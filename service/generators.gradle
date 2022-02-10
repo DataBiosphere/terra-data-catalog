@@ -51,9 +51,9 @@ afterEvaluate {
 gitProperties {
     gitPropertiesName = 'rendered/version.properties'
     keys = []
-    customProperty('externalcreds.version.gitTag', { it.describe(tags: true) })
-    customProperty('externalcreds.version.gitHash', { it.head().abbreviatedId })
-    customProperty('externalcreds.version.github', { 'https://github.com/DataBiosphere/terra-external-credentials-manager/tree/${it.describe(tags: true)}' })
-    customProperty('externalcreds.version.build', version)
+    customProperty('catalog.version.gitTag', { it.describe(tags: true) })
+    customProperty('catalog.version.gitHash', { it.head().abbreviatedId })
+    customProperty('catalog.version.github', { 'https://github.com/DataBiosphere/terra-data-catalog/tree/${it.describe(tags: true)}' })
+    customProperty('catalog.version.build', version)
 }
 */

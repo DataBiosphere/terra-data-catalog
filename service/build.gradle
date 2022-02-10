@@ -1,7 +1,7 @@
 plugins {
     id 'bio.terra.catalog.java-spring-conventions'
-    id 'de.undercouch.download' version '4.1.1'
-    id 'com.google.cloud.tools.jib' version '3.2.0'
+    id 'de.undercouch.download'
+    id 'com.google.cloud.tools.jib'
 }
 
 
@@ -13,13 +13,4 @@ dependencies {
     implementation 'org.springframework.retry:spring-retry'
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-//    implementation 'org.springframework.boot:spring-boot-starter-validation'
-}
-
-bootJar {
-    enabled = false
-}
-
-jar {
-    enabled = true
 }
