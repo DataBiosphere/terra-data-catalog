@@ -9,7 +9,7 @@ dependencies {
     swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli'
 }
 
-def artifactGroup = "${group}.catalog"
+def artifactGroup = '${group}.catalog'
 
 generateSwaggerCode {
     inputFile = file('../common/openapi.yml')
@@ -22,19 +22,19 @@ generateSwaggerCode {
     ]
 
     additionalProperties = [
-        modelPackage  : "${artifactGroup}.model",
-        apiPackage    : "${artifactGroup}.api",
-        invokerPackage: "${artifactGroup}.client",
+        modelPackage  : '${artifactGroup}.model',
+        apiPackage    : '${artifactGroup}.api',
+        invokerPackage: '${artifactGroup}.client',
         dateLibrary   : 'java11',
         java8         : true
         // this is needed because everything outside of the generated date library still checks this flag to decide
         // whether or not to use native libraries (search for 'java11' in swagger-codegen-generators)
     ]
 
-    rawOptions = ["--ignore-file-override", "${projectDir}/.swagger-codegen-ignore"]
+    rawOptions = ['--ignore-file-override', '${projectDir}/.swagger-codegen-ignore']
 }
 
-idea.module.generatedSourceDirs = [file("${generateSwaggerCode.outputDir}/src/main/java")]
-sourceSets.main.java.srcDir "${generateSwaggerCode.outputDir}/src/main/java"
+idea.module.generatedSourceDirs = [file('${generateSwaggerCode.outputDir}/src/main/java')]
+sourceSets.main.java.srcDir '${generateSwaggerCode.outputDir}/src/main/java'
 compileJava.dependsOn generateSwaggerCode
 sourcesJar.dependsOn generateSwaggerCode

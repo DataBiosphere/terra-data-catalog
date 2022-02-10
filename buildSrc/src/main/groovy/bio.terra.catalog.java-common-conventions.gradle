@@ -5,11 +5,18 @@ plugins {
 
     id 'com.diffplug.spotless'
     id 'com.github.spotbugs'
+    // FIXME: lombok
 //    id 'io.freefair.lombok'
     id 'org.hidetake.swagger.generator'
 }
 
 boolean isCiServer = System.getenv().containsKey("CI")
+
+if (!isCiServer) {
+    tasks.withType(JavaExec).configureEach {
+        systemProperty 'spring.profiles.include', 'human-readable-logging'
+    }
+}
 
 java {
     toolchain {
@@ -74,7 +81,7 @@ spotbugs {
     effort = 'max'
     // This makes the "html" reports come out in plain text so you can just open the file in IntelliJ
     // and look at your bugs instead of having to switch to a browser.
-    extraArgs = [ '-emacs']
+    extraArgs = ['-emacs']
 }
 spotbugsMain {
     reports {
