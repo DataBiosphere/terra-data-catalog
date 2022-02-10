@@ -1,0 +1,2 @@
+CREATE DATABASE catalog;
+CREATE ROLE cataloguser WITH LOGIN ENCRYPTED PASSWORD 'cataloguser';

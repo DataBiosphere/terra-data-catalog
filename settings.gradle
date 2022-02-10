@@ -1,0 +1,20 @@
+pluginManagement {
+    repositories {
+        resolutionStrategy {
+            eachPlugin {
+                if (requested.id.id == 'bio.terra.test-runner-plugin') {
+                    useModule("bio.terra:terra-test-runner:${requested.version}")
+                }
+            }
+        }
+        maven {
+            url 'https://broadinstitute.jfrog.io/artifactory/plugins-snapshot'
+        }
+        gradlePluginPortal()
+    }
+}
+
+rootProject.name = 'terra-data-catalog'
+include('service', 'client', 'integration')
+
+gradle.ext.releaseVersion = '0.1.0-SNAPSHOT'

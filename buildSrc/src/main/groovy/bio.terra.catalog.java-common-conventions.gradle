@@ -1,0 +1,96 @@
+plugins {
+    id 'idea'
+    id 'jacoco'
+    id 'java'
+
+    id 'com.diffplug.spotless'
+    id 'com.github.spotbugs'
+//    id 'io.freefair.lombok'
+    id 'org.hidetake.swagger.generator'
+}
+
+boolean isCiServer = System.getenv().containsKey("CI")
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    maven {
+        // Terra proxy for maven central
+        url 'https://broadinstitute.jfrog.io/broadinstitute/maven-central/'
+    }
+    mavenCentral()
+    maven {
+        url 'https://broadinstitute.jfrog.io/broadinstitute/libs-release/'
+    }
+    maven {
+        url 'https://broadinstitute.jfrog.io/broadinstitute/libs-snapshot-local/'
+    }
+}
+
+dependencies {
+    compileOnly "com.google.code.findbugs:annotations:3.0.1"
+    implementation 'io.swagger.core.v3:swagger-annotations:2.1.12'
+    swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli:3.0.31'
+
+    implementation 'org.slf4j:slf4j-api:1.7.35'
+
+    testImplementation 'ch.qos.logback:logback-classic:1.2.10'
+    //    testimplementation "org.hamcrest:hamcrest:2.2"
+
+    implementation 'bio.terra:terra-common-lib:0.0.53-SNAPSHOT'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+version = gradle.releaseVersion
+group = 'bio.terra'
+
+spotless {
+    java {
+        target project.fileTree(project.rootDir) {
+            include 'src/**/*.java'
+        }
+        googleJavaFormat()
+    }
+}
+
+// Run spotless check when running in github actions, otherwise run spotless apply.
+compileJava {
+    if (isCiServer) {
+        dependsOn(spotlessCheck)
+    } else {
+        dependsOn(spotlessApply)
+    }
+}
+
+// Spotbugs configuration
+spotbugs {
+    effort = 'max'
+    // This makes the "html" reports come out in plain text so you can just open the file in IntelliJ
+    // and look at your bugs instead of having to switch to a browser.
+    extraArgs = [ '-emacs']
+}
+spotbugsMain {
+    reports {
+        html {
+            enabled = true
+            destination = file("$buildDir/reports/spotbugs/main.txt")
+            stylesheet = 'fancy.xsl'
+        }
+    }
+}
+spotbugsTest {
+    reports {
+        html {
+            enabled = true
+            destination = file("$buildDir/reports/spotbugs/test.txt")
+            stylesheet = 'fancy.xsl'
+        }
+    }
+}
