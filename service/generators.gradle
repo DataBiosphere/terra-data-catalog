@@ -13,17 +13,19 @@ def artifactGroup = "${group}.catalog"
 generateSwaggerCode {
     inputFile = file('../common/openapi.yml')
     language = 'spring'
-//    components = ['models', 'apis']
+    components = ['models', 'apis']
+    jvmArgs = ['--add-opens=java.base/java.util=ALL-UNNAMED']
     additionalProperties = [
         modelPackage     : "${artifactGroup}.model",
         apiPackage       : "${artifactGroup}.api",
         dateLibrary      : 'java11',
-        java8         : true
-//        interfaceOnly    : 'true',
-//        useTags          : 'true',
-//        springBootVersion: dependencyManagement.managedVersions['org.springframework.boot:spring-boot']
+        java8         : true,
+        interfaceOnly    : 'true',
+        useTags          : 'true',
+        springBootVersion: dependencyManagement.managedVersions['org.springframework.boot:spring-boot']
     ]
-    rawOptions = ['--import-mappings', "VersionProperties=${artifactGroup}.config.VersionProperties"]
+//    uncommnet for gitProperties
+//    rawOptions = ['--import-mappings', "VersionProperties=${artifactGroup}.config.VersionProperties"]
 }
 
 String swaggerOutputSrc = "${generateSwaggerCode.outputDir}/src/main/java"

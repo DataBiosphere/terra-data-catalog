@@ -53,7 +53,6 @@ paths:
           $ref: '#/components/responses/ServerError'
 
 components:
-  parameters:
 
   responses:
     SystemStatusResponse:
@@ -107,12 +106,16 @@ components:
           type: boolean
           description: whether any system(s) need attention
         systems:
-          $ref: '#/components/schemas/SubsystemStatus'
-
-    SubsystemStatus:
-      type: object
-      additionalProperties:
-        type: boolean
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              ok:
+                type: boolean
+              messages:
+                type: array
+                items:
+                  type: string
 
     VersionProperties:
       type: object
