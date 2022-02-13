@@ -58,10 +58,10 @@ catalog:
 
   catalog-database:
     initialize-on-start: ${env.db.init}
-    password: ${env.db.profile.pass}
+    password: ${env.db.catalog.pass}
     upgrade-on-start: true
-    uri: ${env.db.host}/${env.db.profile.name}
-    username: ${env.db.profile.user}
+    uri: ${env.db.host}/${env.db.catalog.name}
+    username: ${env.db.catalog.user}
 
 terra.common:
   kubernetes:
