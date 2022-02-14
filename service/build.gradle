@@ -2,6 +2,8 @@ plugins {
     id 'bio.terra.catalog.java-spring-conventions'
     id 'de.undercouch.download'
     id 'com.google.cloud.tools.jib'
+
+    id 'com.gorylenko.gradle-git-properties' version '2.3.1'
 }
 
 apply from: 'generators.gradle'

@@ -4,14 +4,10 @@ import bio.terra.catalog.config.VersionConfiguration;
 import bio.terra.catalog.model.SystemStatus;
 import bio.terra.catalog.model.VersionProperties;
 import bio.terra.catalog.service.CatalogStatusService;
-import bio.terra.common.iam.AuthenticatedUserRequestFactory;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import javax.servlet.http.HttpServletRequest;
-import java.util.Optional;
 
 @Controller
 public class PublicApiController implements PublicApi {

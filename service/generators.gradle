@@ -6,6 +6,8 @@ dependencies {
     // Versioned by Spring:
     implementation 'javax.validation:validation-api'
     implementation 'org.webjars:webjars-locator-core'
+
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 }
 
 def artifactGroup = "${group}.catalog"
@@ -24,8 +26,6 @@ generateSwaggerCode {
         useTags          : 'true',
         springBootVersion: dependencyManagement.managedVersions['org.springframework.boot:spring-boot']
     ]
-//    uncommnet for gitProperties
-//    rawOptions = ['--import-mappings', "VersionProperties=${artifactGroup}.config.VersionProperties"]
 }
 
 String swaggerOutputSrc = "${generateSwaggerCode.outputDir}/src/main/java"
@@ -48,14 +48,11 @@ afterEvaluate {
 }
 */
 
-/*
 // see https://github.com/n0mer/gradle-git-properties
 gitProperties {
-    gitPropertiesName = 'rendered/version.properties'
     keys = []
     customProperty('catalog.version.gitTag', { it.describe(tags: true) })
     customProperty('catalog.version.gitHash', { it.head().abbreviatedId })
-    customProperty('catalog.version.github', { 'https://github.com/DataBiosphere/terra-data-catalog/tree/${it.describe(tags: true)}' })
+    customProperty('catalog.version.github', { "https://github.com/DataBiosphere/terra-data-catalog/tree/${it.describe(tags: true)}" })
     customProperty('catalog.version.build', version)
 }
-*/
