@@ -173,6 +173,7 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.CATALOG_WEBHOOK_URL }}
         with:
+          channel: '#jade-data-explorer'
           status: failure
           author_name: Build on dev
           fields: workflow,message
