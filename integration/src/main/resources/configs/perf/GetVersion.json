@@ -1,7 +1,7 @@
 {
   "name": "GetVersion",
   "description": "Call the version endpoint multiple times. No authentication required.",
-  "serverSpecificationFile": "catalog-local.json",
+  "serverSpecificationFile": "catalog-perf.json",
   "kubernetes": {},
   "application": {},
   "testScripts": [
