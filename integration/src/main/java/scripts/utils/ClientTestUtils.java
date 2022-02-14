@@ -18,7 +18,7 @@ public class ClientTestUtils {
       List.of("openid", "email", "profile", "https://www.googleapis.com/auth/cloud-platform");
 
   /**
-   * Build the ECM API client object for the server specifications. No access token is needed for
+   * Build the no-auth API client object for the catalog server. No access token is needed for
    * this API client.
    *
    * @param server the server we are testing against
@@ -35,7 +35,7 @@ public class ClientTestUtils {
   }
 
   /**
-   * Build the ECM API client object for the given test user and server specifications. The test
+   * Build the API client object for the given test user and catalog server. The test
    * user's token is always refreshed. If a test user isn't configured (e.g. when running locally),
    * return an un-authenticated client.
    *
