@@ -15,8 +15,9 @@ jobs:
         id: tag
         env:
           GITHUB_TOKEN: ${{ secrets.BROADBOT_TOKEN }}
-          DEFAULT_BUMP: minor
-          RELEASE_BRANCHES: dev
-          VERSION_FILE_PATH: settigns.gradle
-          VERSION_LINE_MATCH: "^\\s*releaseVersion\\s*=\\s*'.*'"
-          VERSION_SUFFIX: SNAPSHOT
+          HOTFIX_BRANCHES: hotfix.*
+          DEFAULT_BUMP: patch
+          RELEASE_BRANCHES: main
+          VERSION_FILE_PATH: settings.gradle
+          VERSION_LINE_MATCH: "^\\s*gradle.ext.releaseVersion\\s*=\\s*'.*'"
+          VERSION_SUFFIX: -SNAPSHOT
