@@ -17,7 +17,7 @@ java {
 
 publishing {
     publications {
-        externalcredsClientLibrary(MavenPublication) {
+        catalogClientLibrary(MavenPublication) {
             artifactId = "catalog-client"
             from components.java
             versionMapping {

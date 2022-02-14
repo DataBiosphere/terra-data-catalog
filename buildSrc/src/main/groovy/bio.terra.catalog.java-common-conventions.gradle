@@ -5,8 +5,6 @@ plugins {
 
     id 'com.diffplug.spotless'
     id 'com.github.spotbugs'
-    // FIXME: lombok
-//    id 'io.freefair.lombok'
     id 'org.hidetake.swagger.generator'
 }
 

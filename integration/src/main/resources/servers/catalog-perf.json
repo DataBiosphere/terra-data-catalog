@@ -12,8 +12,8 @@
     "zone": "us-central1-a",
     "project": "broad-dsde-perf",
     "namespace": "terra-perf",
-    "containerName": "externalcreds",
-    "apiComponentLabel":  "externalcreds"
+    "containerName": "catalog",
+    "apiComponentLabel":  "catalog"
   },
   "deploymentScript": {},
   "testRunnerServiceAccountFile": "testrunner-sa.json",

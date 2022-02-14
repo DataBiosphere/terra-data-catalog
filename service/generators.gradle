@@ -34,20 +34,6 @@ idea.module.generatedSourceDirs = [file(swaggerOutputSrc)]
 sourceSets.main.java.srcDir swaggerOutputSrc
 compileJava.dependsOn generateSwaggerCode
 
-/*
-// The lombok plugin adds an analysis step for each srcDir, but doesn't know to register
-// a dependency on swagger code generation for that code, so things can't be up-to-date
-afterEvaluate {
-    tasks.each {
-        if (it.name.startsWith('generateMainEffectiveLombokConfig') &&
-            it.hasProperty('paths') &&
-            it.paths.contains(file(swaggerOutputSrc))) {
-            it.dependsOn(generateSwaggerCode)
-        }
-    }
-}
-*/
-
 // see https://github.com/n0mer/gradle-git-properties
 gitProperties {
     keys = []
