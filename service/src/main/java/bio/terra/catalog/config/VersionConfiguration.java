@@ -18,6 +18,7 @@ public class VersionConfiguration implements InitializingBean {
   private String gitHash;
   private String gitTag;
   private String build;
+  private String github;
 
   @Autowired
   public VersionConfiguration(ConfigurableEnvironment configurableEnvironment) {
@@ -46,6 +47,14 @@ public class VersionConfiguration implements InitializingBean {
 
   public void setBuild(String build) {
     this.build = build;
+  }
+
+  public String getGithub() {
+    return github;
+  }
+
+  public void setGithub(String github) {
+    this.github = github;
   }
 
   /**

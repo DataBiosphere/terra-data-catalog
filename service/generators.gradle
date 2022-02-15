@@ -21,7 +21,6 @@ generateSwaggerCode {
         modelPackage     : "${artifactGroup}.model",
         apiPackage       : "${artifactGroup}.api",
         dateLibrary      : 'java11',
-        java8         : true,
         interfaceOnly    : 'true',
         useTags          : 'true',
         springBootVersion: dependencyManagement.managedVersions['org.springframework.boot:spring-boot']

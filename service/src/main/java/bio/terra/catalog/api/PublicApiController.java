@@ -22,9 +22,7 @@ public class PublicApiController implements PublicApi {
         new VersionProperties()
             .gitTag(versionConfiguration.getGitTag())
             .gitHash(versionConfiguration.getGitHash())
-            .github(
-                "https://github.com/DataBiosphere/terra-billing-profile-manager/commit/"
-                    + versionConfiguration.getGitHash())
+            .github(versionConfiguration.getGithub())
             .build(versionConfiguration.getBuild());
   }
 

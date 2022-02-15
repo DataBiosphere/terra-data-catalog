@@ -1,7 +1,6 @@
 {
   "name": "GetStatus",
   "description": "Call the service status multiple times. No authentication required.",
-  "serverSpecificationFile": "catalog-perf.json",
   "kubernetes": {},
   "application": {},
   "testScripts": [

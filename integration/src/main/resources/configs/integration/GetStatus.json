@@ -1,7 +1,6 @@
 {
   "name": "GetStatus",
   "description": "Check the service status once. No authentication required.",
-  "serverSpecificationFile": "catalog-local.json",
   "kubernetes": {},
   "application": {},
   "testScripts": [
