@@ -1,0 +1,18 @@
+plugins {
+    id 'bio.terra.catalog.java-spring-conventions'
+    id 'de.undercouch.download'
+    id 'com.google.cloud.tools.jib'
+
+    id 'com.gorylenko.gradle-git-properties' version '2.3.1'
+}
+
+apply from: 'generators.gradle'
+apply from: 'publishing.gradle'
+
+dependencies {
+    implementation 'bio.terra:terra-common-lib'
+    implementation 'org.apache.commons:commons-dbcp2'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.retry:spring-retry'
+}
