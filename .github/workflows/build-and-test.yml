@@ -165,7 +165,7 @@ jobs:
     needs: [ build, jib, unit-tests, integration-tests ]
     runs-on: ubuntu-latest
 
-    if: failure() && github.ref == 'refs/heads/dev'
+    if: failure() && github.ref == 'refs/heads/main'
 
     steps:
       - name: Notify slack on failure
