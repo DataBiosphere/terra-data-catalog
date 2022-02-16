@@ -58,9 +58,8 @@ group = 'bio.terra'
 
 spotless {
     java {
-        target project.fileTree(project.rootDir) {
-            include 'src/**/*.java'
-        }
+        targetExclude "${buildDir}/**"
+        targetExclude "**/swagger-code/**"
         googleJavaFormat()
     }
 }

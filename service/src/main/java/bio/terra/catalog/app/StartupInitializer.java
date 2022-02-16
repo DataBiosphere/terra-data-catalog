@@ -10,7 +10,8 @@ public final class StartupInitializer {
   public static void initialize(ApplicationContext applicationContext) {
     // Initialize or upgrade the database depending on the configuration
     LiquibaseMigrator migrateService = applicationContext.getBean(LiquibaseMigrator.class);
-    var profileDatabaseConfiguration = applicationContext.getBean(CatalogDatabaseConfiguration.class);
+    var profileDatabaseConfiguration =
+        applicationContext.getBean(CatalogDatabaseConfiguration.class);
 
     // Migrate the database
     if (profileDatabaseConfiguration.isInitializeOnStart()) {
