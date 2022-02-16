@@ -11,12 +11,12 @@ jobs:
           token: ${{ secrets.BROADBOT_TOKEN }} # this allows the push to succeed later
       - name: Bump the tag to a new version
         # https://github.com/DataBiosphere/github-actions/tree/master/actions/bumper
-        uses: databiosphere/github-actions/actions/bumper@bumper-0.0.3
+        uses: databiosphere/github-actions/actions/bumper@bumper-0.0.4
         id: tag
         env:
           GITHUB_TOKEN: ${{ secrets.BROADBOT_TOKEN }}
           HOTFIX_BRANCHES: hotfix.*
-          DEFAULT_BUMP: patch
+          DEFAULT_BUMP: minor
           RELEASE_BRANCHES: main
           VERSION_FILE_PATH: settings.gradle
           VERSION_LINE_MATCH: "^\\s*gradle.ext.releaseVersion\\s*=\\s*'.*'"
