@@ -18,8 +18,8 @@ public class ClientTestUtils {
       List.of("openid", "email", "profile", "https://www.googleapis.com/auth/cloud-platform");
 
   /**
-   * Build the no-auth API client object for the catalog server. No access token is needed for
-   * this API client.
+   * Build the no-auth API client object for the catalog server. No access token is needed for this
+   * API client.
    *
    * @param server the server we are testing against
    * @return the API client object for this user
@@ -35,9 +35,9 @@ public class ClientTestUtils {
   }
 
   /**
-   * Build the API client object for the given test user and catalog server. The test
-   * user's token is always refreshed. If a test user isn't configured (e.g. when running locally),
-   * return an un-authenticated client.
+   * Build the API client object for the given test user and catalog server. The test user's token
+   * is always refreshed. If a test user isn't configured (e.g. when running locally), return an
+   * un-authenticated client.
    *
    * @param testUser the test user whose credentials are supplied to the API client object
    * @param server the server we are testing against
