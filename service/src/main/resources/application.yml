@@ -11,6 +11,9 @@ env:
   tracing:
     exportEnabled: ${CLOUD_TRACE_ENABLED:false}
     samplingRate: ${SAMPLING_PROBABILITY:0}
+  sam:
+    basePath: ${SAM_ADDRESS:https://sam.dsde-dev.broadinstitute.org/}
+    adminsGroupEmail: ${SAM_ADMINS_GROUP_EMAIL:admin-group}
 
 # Below here is non-deployment-specific
 
@@ -29,7 +32,7 @@ server:
   port: 8080
 
 spring:
-  application.name: profile
+  application.name: catalog
   web:
     resources:
       cache:
@@ -62,6 +65,10 @@ catalog:
     upgrade-on-start: true
     uri: ${env.db.host}/${env.db.catalog.name}
     username: ${env.db.catalog.user}
+
+  sam:
+    base-path: ${env.sam.basePath}
+    admins-group-email: ${env.sam.adminsGroupEmail}
 
 terra.common:
   kubernetes:

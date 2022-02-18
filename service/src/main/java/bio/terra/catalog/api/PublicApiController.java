@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import java.util.List;
 
 @Controller
 public class PublicApiController implements PublicApi {
@@ -37,4 +38,13 @@ public class PublicApiController implements PublicApi {
   public ResponseEntity<VersionProperties> getVersion() {
     return ResponseEntity.ok(currentVersion);
   }
+
+  @Override
+  public ResponseEntity<List<String>> listDatasets() {
+    return ResponseEntity.ok(List.of());
+  }
+//  @RequestMapping(value = "/")
+//  public String index() {
+//    return "redirect:swagger-ui.html";
+//  }
 }

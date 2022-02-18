@@ -1,0 +1,17 @@
+{
+  "name": "ListDatasets",
+  "description": "List datasets",
+  "serverSpecificationFile": "catalog-perf.json",
+  "kubernetes": {},
+  "application": {},
+  "testScripts": [
+    {
+      "name": "ListDatasets",
+      "numberOfUserJourneyThreadsToRun": 10,
+      "userJourneyThreadPoolSize": 2,
+      "expectedTimeForEach": 5,
+      "expectedTimeForEachUnit": "SECONDS"
+    }
+  ],
+  "testUserFiles": []
+}

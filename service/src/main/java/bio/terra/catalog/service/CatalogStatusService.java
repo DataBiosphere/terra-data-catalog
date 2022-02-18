@@ -1,15 +1,16 @@
 package bio.terra.catalog.service;
 
 import bio.terra.catalog.config.StatusCheckConfiguration;
+import bio.terra.catalog.iam.SamService;
 import bio.terra.catalog.model.SystemStatusSystems;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import java.sql.Connection;
 
-@Component
+@Service
 public class CatalogStatusService extends BaseStatusService {
   private static final Logger logger = LoggerFactory.getLogger(CatalogStatusService.class);
 
@@ -18,10 +19,12 @@ public class CatalogStatusService extends BaseStatusService {
   @Autowired
   public CatalogStatusService(
       NamedParameterJdbcTemplate jdbcTemplate,
-      StatusCheckConfiguration configuration) {
+      StatusCheckConfiguration configuration,
+      SamService samService) {
     super(configuration);
     this.jdbcTemplate = jdbcTemplate;
-    super.registerStatusCheck("CloudSQL", this::databaseStatus);
+    registerStatusCheck("CloudSQL", this::databaseStatus);
+    registerStatusCheck("SAM", samService::status);
   }
 
   private SystemStatusSystems databaseStatus() {
