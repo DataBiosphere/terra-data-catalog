@@ -1,5 +1,5 @@
 name: Publish and deploy
-on: [ create, workflow_dispatch ]
+on: create
 
 env:
   SERVICE_NAME: ${{ github.event.repository.name }}
