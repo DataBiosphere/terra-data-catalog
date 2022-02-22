@@ -17,4 +17,6 @@ dependencies {
     implementation 'org.springframework.retry:spring-retry'
 
     implementation 'org.broadinstitute.dsde.workbench:sam-client_2.12:0.1-61135c7'
+    implementation 'bio.terra:datarepo-client:1.298.0-SNAPSHOT'
+    implementation 'javax.ws.rs:javax.ws.rs-api:2.1.1'
 }

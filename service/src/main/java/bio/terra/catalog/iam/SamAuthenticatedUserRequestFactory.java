@@ -1,6 +1,5 @@
 package bio.terra.catalog.iam;
 
-import bio.terra.catalog.iam.SamService;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.common.iam.AuthenticatedUserRequestFactory;

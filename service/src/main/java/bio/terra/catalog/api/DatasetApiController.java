@@ -5,11 +5,11 @@ import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.common.iam.AuthenticatedUserRequestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Controller;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
-@Component
+@Controller
 public class DatasetApiController implements DatasetApi {
   private final HttpServletRequest request;
   private final DatasetService datasetService;
@@ -26,7 +26,7 @@ public class DatasetApiController implements DatasetApi {
   }
 
   @Override
-  public ResponseEntity<List<String>> listDatasetsV2() {
+  public ResponseEntity<List<String>> listDatasets() {
     AuthenticatedUserRequest user = authenticatedUserRequestFactory.from(request);
     return ResponseEntity.ok(datasetService.listDatasets(user));
   }

@@ -13,7 +13,8 @@ env:
     samplingRate: ${SAMPLING_PROBABILITY:0}
   sam:
     basePath: ${SAM_ADDRESS:https://sam.dsde-dev.broadinstitute.org/}
-    adminsGroupEmail: ${SAM_ADMINS_GROUP_EMAIL:admin-group}
+  datarepo:
+    basePath: ${DATAREPO_ADDRESS:https://jade.datarepo-dev.broadinstitute.org}
 
 # Below here is non-deployment-specific
 
@@ -68,7 +69,9 @@ catalog:
 
   sam:
     base-path: ${env.sam.basePath}
-    admins-group-email: ${env.sam.adminsGroupEmail}
+
+  datarepo:
+    base-path: ${env.datarepo.basePath}
 
 terra.common:
   kubernetes:

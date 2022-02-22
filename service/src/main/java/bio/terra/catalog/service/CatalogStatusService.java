@@ -1,6 +1,7 @@
 package bio.terra.catalog.service;
 
 import bio.terra.catalog.config.StatusCheckConfiguration;
+import bio.terra.catalog.datarepo.DatarepoService;
 import bio.terra.catalog.iam.SamService;
 import bio.terra.catalog.model.SystemStatusSystems;
 import org.slf4j.Logger;
@@ -20,11 +21,13 @@ public class CatalogStatusService extends BaseStatusService {
   public CatalogStatusService(
       NamedParameterJdbcTemplate jdbcTemplate,
       StatusCheckConfiguration configuration,
-      SamService samService) {
+      SamService samService,
+      DatarepoService datarepoService) {
     super(configuration);
     this.jdbcTemplate = jdbcTemplate;
     registerStatusCheck("CloudSQL", this::databaseStatus);
     registerStatusCheck("SAM", samService::status);
+    registerStatusCheck("Data Repo", datarepoService::status);
   }
 
   private SystemStatusSystems databaseStatus() {

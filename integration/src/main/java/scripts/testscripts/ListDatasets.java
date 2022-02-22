@@ -1,6 +1,7 @@
 package scripts.testscripts;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import bio.terra.catalog.api.DatasetApi;
 import bio.terra.testrunner.runner.TestScript;
@@ -9,6 +10,7 @@ import com.google.api.client.http.HttpStatusCodes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scripts.utils.ClientTestUtils;
+import java.util.List;
 
 public class ListDatasets extends TestScript {
 
@@ -19,9 +21,10 @@ public class ListDatasets extends TestScript {
     log.info("Checking the list datasets endpoint.");
     var apiClient = ClientTestUtils.getClientWithTestUserAuth(testUser, server);
     var publicApi = new DatasetApi(apiClient);
-    publicApi.listDatasets();
+    List<String> datasets = publicApi.listDatasets();
     var httpCode = publicApi.getApiClient().getStatusCode();
     assertEquals(HttpStatusCodes.STATUS_CODE_OK, httpCode);
     log.info("Service status return code: {}", httpCode);
+    assertFalse(datasets.isEmpty());
   }
 }
