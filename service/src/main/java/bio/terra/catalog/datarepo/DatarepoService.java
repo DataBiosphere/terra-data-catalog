@@ -5,18 +5,18 @@ import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.datarepo.api.DatasetsApi;
 import bio.terra.datarepo.api.UnauthenticatedApi;
 import bio.terra.datarepo.client.ApiClient;
-import javax.ws.rs.client.Client;
 import bio.terra.datarepo.client.ApiException;
 import bio.terra.datarepo.model.DatasetSummaryModel;
 import bio.terra.datarepo.model.EnumerateSortByParam;
 import bio.terra.datarepo.model.RepositoryStatusModel;
 import bio.terra.datarepo.model.SqlSortDirection;
 import com.google.common.annotations.VisibleForTesting;
+import java.util.List;
+import javax.ws.rs.client.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import java.util.List;
 
 @Component
 public class DatarepoService {

@@ -42,17 +42,13 @@ public class SamService {
    * @param action sam action
    * @return true if the user has any actions on that resource; false otherwise.
    */
-  public boolean hasAction(
-      AuthenticatedUserRequest userRequest, SamAction action)
+  public boolean hasAction(AuthenticatedUserRequest userRequest, SamAction action)
       throws InterruptedException {
     String accessToken = userRequest.getToken();
     ResourcesApi resourceApi = samResourcesApi(accessToken);
     try {
       return SamRetry.retry(
-          () ->
-              resourceApi
-                  .resourceActions(null, null)
-                  .contains(action.toString()));
+          () -> resourceApi.resourceActions(null, null).contains(action.toString()));
     } catch (ApiException e) {
       throw SamExceptionFactory.create("Error checking resource permission in Sam", e);
     }

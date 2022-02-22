@@ -7,10 +7,10 @@ import bio.terra.catalog.api.DatasetApi;
 import bio.terra.testrunner.runner.TestScript;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
 import com.google.api.client.http.HttpStatusCodes;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scripts.utils.ClientTestUtils;
-import java.util.List;
 
 public class ListDatasets extends TestScript {
 
