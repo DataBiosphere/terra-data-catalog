@@ -34,7 +34,7 @@ jobs:
         env:
           ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
           ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
-          ARTIFACTORY_REPO_KEY: "libs-snapshot-local"
+          ARTIFACTORY_REPO_KEY: "libs-release-local"
 
       - name: Auth to GCR
         uses: google-github-actions/setup-gcloud@master
@@ -69,7 +69,7 @@ jobs:
         uses: broadinstitute/action-slack@v3.8.0
         if: failure()
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.CATALOG_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           channel: '#jade-data-explorer'
           status: failure
