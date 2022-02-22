@@ -16,8 +16,8 @@ public class PublicApiController implements PublicApi {
   private final VersionProperties currentVersion;
 
   @Autowired
-  public PublicApiController(CatalogStatusService statusService,
-                             VersionConfiguration versionConfiguration) {
+  public PublicApiController(
+      CatalogStatusService statusService, VersionConfiguration versionConfiguration) {
     this.statusService = statusService;
     this.currentVersion =
         new VersionProperties()

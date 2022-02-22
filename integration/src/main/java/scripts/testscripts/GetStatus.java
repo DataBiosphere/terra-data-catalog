@@ -1,5 +1,7 @@
 package scripts.testscripts;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import bio.terra.catalog.api.PublicApi;
 import bio.terra.testrunner.runner.TestScript;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
@@ -7,8 +9,6 @@ import com.google.api.client.http.HttpStatusCodes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scripts.utils.ClientTestUtils;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class GetStatus extends TestScript {
 

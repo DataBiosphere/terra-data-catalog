@@ -4,6 +4,7 @@ import bio.terra.catalog.config.StatusCheckConfiguration;
 import bio.terra.catalog.datarepo.DatarepoService;
 import bio.terra.catalog.iam.SamService;
 import bio.terra.catalog.model.SystemStatusSystems;
+import java.sql.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,9 +39,7 @@ public class CatalogStatusService extends BaseStatusService {
     } catch (Exception ex) {
       String errorMsg = "Database status check failed";
       logger.error(errorMsg, ex);
-      return new SystemStatusSystems()
-          .ok(false)
-          .addMessagesItem(errorMsg + ": " + ex.getMessage());
+      return new SystemStatusSystems().ok(false).addMessagesItem(errorMsg + ": " + ex.getMessage());
     }
   }
 }
