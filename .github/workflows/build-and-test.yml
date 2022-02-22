@@ -180,13 +180,14 @@ jobs:
       - name: Notify slack on failure
         uses: broadinstitute/action-slack@v3.8.0
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.CATALOG_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           channel: '#jade-data-explorer'
           status: failure
           author_name: Build on dev
           fields: workflow,message
           text: 'Build failed :sadpanda:'
+          username: 'Data Explorer GitHub Action'
 
   dispatch-tag:
     needs: [ build, jib, unit-tests, integration-tests ]
