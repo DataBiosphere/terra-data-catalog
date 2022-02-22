@@ -178,6 +178,7 @@ jobs:
           author_name: Build on dev
           fields: workflow,message
           text: 'Build failed :sadpanda:'
+          username: 'Data Explorer GitHub Action'
 
   dispatch-tag:
     needs: [ build, jib, unit-tests, integration-tests ]
