@@ -2,7 +2,7 @@ package bio.terra.catalog.service;
 
 import bio.terra.catalog.datarepo.DatarepoService;
 import bio.terra.common.iam.AuthenticatedUserRequest;
-import bio.terra.datarepo.model.DatasetSummaryModel;
+import bio.terra.datarepo.model.SnapshotSummaryModel;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,8 +17,8 @@ public class DatasetService {
   }
 
   public List<String> listDatasets(AuthenticatedUserRequest user) {
-    return datarepoService.getDatasets(user.getToken()).stream()
-        .map(DatasetSummaryModel::getName)
+    return datarepoService.getSnapshots(user.getToken()).stream()
+        .map(SnapshotSummaryModel::getName)
         .toList();
   }
 }
