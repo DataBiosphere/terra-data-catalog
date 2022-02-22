@@ -76,3 +76,4 @@ jobs:
           author_name: Publish to dev
           fields: job
           text: 'Publish failed :sadpanda:'
+          username: 'Data Explorer GitHub Action'

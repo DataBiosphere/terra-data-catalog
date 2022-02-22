@@ -55,11 +55,20 @@ jobs:
             ~/.gradle/wrapper
           key: v1-${{ runner.os }}-gradle-${{ github.ref }}-${{ github.sha }}
 
+      - name: Construct docker image name and tag
+        id: image-name
+        run: echo ::set-output name=name::${{ github.event.repository.name }}:$(git rev-parse --short HEAD)
+
       - name: Build image locally with jib
-        # build the docker image to make sure it does not error
         run: |
           ./gradlew --build-cache :service:jibDockerBuild \
-          -Djib.console=plain
+            --image=${{ steps.image-name.outputs.name }} \
+            -Djib.console=plain
+
+      - name: Run Trivy vulnerability scanner
+        uses: broadinstitute/dsp-appsec-trivy-action@v1
+        with:
+          image: ${{ steps.image-name.outputs.name }}
 
   unit-tests:
     needs: [ build ]
@@ -171,13 +180,14 @@ jobs:
       - name: Notify slack on failure
         uses: broadinstitute/action-slack@v3.8.0
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.CATALOG_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           channel: '#jade-data-explorer'
           status: failure
           author_name: Build on dev
           fields: workflow,message
           text: 'Build failed :sadpanda:'
+          username: 'Data Explorer GitHub Action'
 
   dispatch-tag:
     needs: [ build, jib, unit-tests, integration-tests ]
