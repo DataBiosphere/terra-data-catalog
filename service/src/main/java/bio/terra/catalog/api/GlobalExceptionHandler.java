@@ -2,13 +2,13 @@ package bio.terra.catalog.api;
 
 import bio.terra.catalog.model.ErrorReport;
 import bio.terra.common.exception.UnauthorizedException;
+import javax.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import javax.annotation.Nonnull;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
