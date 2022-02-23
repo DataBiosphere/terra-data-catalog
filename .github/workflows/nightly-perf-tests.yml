@@ -126,7 +126,7 @@ jobs:
         run: ./gradlew --build-cache :integration:runTest --args="suites/FullIntegration.json /tmp/foo"
 
   notify-slack:
-    needs: [ build, jib, unit-tests, integration-tests ]
+    needs: [ build, jib, integration-tests ]
     runs-on: ubuntu-latest
 
     if: failure() && github.ref == 'refs/heads/main'
@@ -139,7 +139,7 @@ jobs:
         with:
           channel: '#jade-data-explorer'
           status: failure
-          author_name: Build on dev
+          author_name: Nightly test
           fields: workflow,message
-          text: 'Build failed :sadpanda:'
+          text: 'Nightly test failed :sadpanda:'
           username: 'Data Explorer GitHub Action'
