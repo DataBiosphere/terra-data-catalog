@@ -1,11 +1,8 @@
-name: Build and Test
+name: Nightly Perf Tests
 
 on:
-  push:
-    branches: [ main ]
-    paths-ignore: [ '*.md' ]
-  pull_request:
-    branches: [ '**' ]
+  schedule:
+    - cron: "0 6 * * *"
 
 jobs:
   build:
@@ -69,48 +66,6 @@ jobs:
         uses: broadinstitute/dsp-appsec-trivy-action@v1
         with:
           image: ${{ steps.image-name.outputs.name }}
-
-  unit-tests:
-    needs: [ build ]
-    runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:13
-        env:
-          POSTGRES_PASSWORD: postgres
-        ports: [ "5432:5432" ]
-
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up JDK
-        uses: actions/setup-java@v2
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Gradle cache
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: v1-${{ runner.os }}-gradle-${{ github.ref }}-${{ github.sha }}
-
-      - name: Make sure Postgres is ready and init
-        env:
-          PGPASSWORD: postgres
-        run: |
-          pg_isready -h localhost -t 10
-          psql -h localhost -U postgres -f ./common/postgres-init.sql
-
-      - name: Test with coverage
-        run: ./gradlew --build-cache jacocoTestReport
-
-      - name: Codecov
-        uses: codecov/codecov-action@v2.0.2
-        with:
-          files: ./service/build/reports/jacoco/test/jacocoTestReport.xml
 
   integration-tests:
     needs: [ build ]
@@ -188,16 +143,3 @@ jobs:
           fields: workflow,message
           text: 'Build failed :sadpanda:'
           username: 'Data Explorer GitHub Action'
-
-  dispatch-tag:
-    needs: [ build, jib, unit-tests, integration-tests ]
-    runs-on: ubuntu-latest
-
-    if: success() && github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Fire off tag action
-        uses: broadinstitute/workflow-dispatch@v1
-        with:
-          workflow: Tag
-          token: ${{ secrets.BROADBOT_TOKEN }}
