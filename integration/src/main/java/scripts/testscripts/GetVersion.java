@@ -9,7 +9,7 @@ import bio.terra.testrunner.runner.config.TestUserSpecification;
 import com.google.api.client.http.HttpStatusCodes;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import scripts.utils.ClientTestUtils;
+import scripts.utils.CatalogClient;
 
 public class GetVersion extends TestScript {
 
@@ -18,8 +18,7 @@ public class GetVersion extends TestScript {
   @Override
   public void userJourney(TestUserSpecification testUser) throws Exception {
     log.info("Checking the version endpoint.");
-    var apiClient = ClientTestUtils.getClientWithoutAuth(server);
-    var publicApi = new PublicApi(apiClient);
+    var publicApi = new PublicApi(new CatalogClient(server));
 
     var versionProperties = publicApi.getVersion();
 

@@ -3,7 +3,7 @@
   "description": "Catalog Performance Testing Environment",
 
   "samUri": "https://sam.dsde-perf.broadinstitute.org",
-  "policyManagerUri": "https://catalog.dsde-perf.broadinstitute.org/",
+  "catalogUri": "https://catalog.dsde-perf.broadinstitute.org/",
 
   "cluster": {
     "clusterName": "terra-perf",
