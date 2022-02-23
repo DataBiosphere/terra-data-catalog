@@ -21,7 +21,7 @@ jib {
     from {
         // see https://github.com/broadinstitute/dsp-appsec-blessed-images/tree/main/jre
         // Google's distroless images are openjdk, this is the simplest with adoptopenjdk
-        image = "openjdk:17-alpine"
+        image = "amd64/eclipse-temurin:17-jre-focal"
     }
     extraDirectories {
         paths = [file(jibExtraDirectory)]
