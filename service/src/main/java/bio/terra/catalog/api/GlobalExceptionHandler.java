@@ -33,6 +33,6 @@ public class GlobalExceptionHandler {
       combinedCauseString.append("cause: ").append(cause).append(", ");
     }
     logger.error("Global exception handler: " + combinedCauseString, e);
-    return new ErrorReport(e.getMessage());
+    return new ErrorReport().message(e.getMessage());
   }
 }
