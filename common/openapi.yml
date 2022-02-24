@@ -38,7 +38,7 @@ paths:
 
   /api/v1/datasets:
     get:
-      summary: Lists the available datasets.
+      summary: Lists the available catalog datasets.
       tags: [ dataset ]
       operationId: listDatasets
       responses:
