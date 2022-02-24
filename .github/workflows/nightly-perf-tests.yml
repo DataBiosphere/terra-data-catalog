@@ -2,7 +2,7 @@ name: Nightly Perf Tests
 
 on:
   schedule:
-    - cron: "0 6 * * *"
+    - cron: "0 6 * * *" # runs at 6 AM UTC, 1 AM EST.
 
 jobs:
   build:
@@ -67,16 +67,9 @@ jobs:
         with:
           image: ${{ steps.image-name.outputs.name }}
 
-  integration-tests:
+  test-runner:
     needs: [ build ]
     runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:13
-        env:
-          POSTGRES_PASSWORD: postgres
-        ports: [ "5432:5432" ]
 
     steps:
       - uses: actions/checkout@v2
@@ -86,47 +79,24 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Gradle cache
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: v1-${{ runner.os }}-gradle-${{ github.ref }}-${{ github.sha }}
-
-      - name: Make sure Postgres is ready and init
-        env:
-          PGPASSWORD: postgres
-        run: |
-          pg_isready -h localhost -t 10
-          psql -h localhost -U postgres -f ./common/postgres-init.sql
-
       - name: Render GitHub Secrets
-        run: echo "${{ secrets.DEV_FIRECLOUD_ACCOUNT_B64 }}" | base64 -d >"./integration/src/main/resources/rendered/user-delegated-sa.json"
-
-      - name: Launch the background process for integration tests
-        run: ./gradlew --build-cache :service:bootRun | tee bootrun.log &
-
-      - name: Prep the integration project
-        run: ./gradlew --build-cache :integration:classes
-
-      - name: Wait for boot run to be ready
         run: |
-          timeout 60 bash -c 'until echo > /dev/tcp/localhost/8080; do sleep 1; done'
-          resultStatus=$(echo > /dev/tcp/localhost/8080; echo $?)
-          if [[ $resultStatus == 0 ]]; then
-            echo "Server started successfully"
-          else
-            echo "Server did not start successfully. Dumping log file"
-            cat bootrun.log
-            exit 1
-          fi
+          echo "${{ secrets.DEV_FIRECLOUD_ACCOUNT_B64 }}" | base64 -d > "./integration/src/main/resources/rendered/user-delegated-sa.json"
+          echo "${{ secrets.PERF_TESTRUNNER_ACCOUNT_B64 }}" | base64 -d > "./integration/src/main/resources/rendered/testrunner-sa.json"
 
-      - name: Run the integration test suite
-        run: ./gradlew --build-cache :integration:runTest --args="suites/FullIntegration.json /tmp/foo"
+      - name: Run perf test suite
+        run: |
+          ./gradlew --build-cache :integration:runTest --scan --args="suites/FullPerf.json build/reports"
+
+      - name: Upload Test Reports
+        if: always()
+        uses: actions/upload-artifact@v1
+        with:
+          name: Test Reports
+          path: catalog-clienttests/build/reports
 
   notify-slack:
-    needs: [ build, jib, integration-tests ]
+    needs: [ build, jib, test-runner ]
     runs-on: ubuntu-latest
 
     if: failure() && github.ref == 'refs/heads/main'
