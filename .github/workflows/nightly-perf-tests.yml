@@ -1,6 +1,7 @@
 name: Nightly Perf Tests
 
 on:
+  workflow_dispatch: {}
   schedule:
     - cron: "0 6 * * *" # runs at 6 AM UTC, 1 AM EST.
 
