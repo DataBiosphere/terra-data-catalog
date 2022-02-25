@@ -82,7 +82,6 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper
           key: v1-${{ runner.os }}-gradle-${{ github.ref }}-${{ github.sha }}
-          restore-keys: v1-${{ runner.os }}-gradle-${{ github.ref }}
 
       - name: Render GitHub Secrets
         run: |
