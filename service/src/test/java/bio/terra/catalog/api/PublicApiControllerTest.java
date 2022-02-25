@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import bio.terra.catalog.config.VersionConfiguration;
+import bio.terra.catalog.model.SystemStatus;
 import bio.terra.catalog.service.CatalogStatusService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,16 +20,30 @@ import org.springframework.test.web.servlet.MockMvc;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = PublicApiController.class)
 @WebMvcTest
-public class VersionTest {
+class PublicApiControllerTest {
 
   @Autowired private MockMvc mockMvc;
 
-  @MockBean private VersionConfiguration versionConfiguration;
-
   @MockBean private CatalogStatusService statusService;
 
+  @MockBean private VersionConfiguration versionConfiguration;
+
   @Test
-  public void testVersion() throws Exception {
+  void testStatus() throws Exception {
+    SystemStatus systemStatus = new SystemStatus().ok(true);
+    when(statusService.getCurrentStatus()).thenReturn(systemStatus);
+    this.mockMvc.perform(get("/status")).andExpect(status().isOk());
+  }
+
+  @Test
+  void testStatusCheckFails() throws Exception {
+    SystemStatus systemStatus = new SystemStatus().ok(false);
+    when(statusService.getCurrentStatus()).thenReturn(systemStatus);
+    this.mockMvc.perform(get("/status")).andExpect(status().is5xxServerError());
+  }
+
+  @Test
+  void testVersion() throws Exception {
     String gitTag = "0.1.0";
     String gitHash = "abc1234";
     String github = "https://github.com/DataBiosphere/terra-data-catalog/tree/0.9.0";
