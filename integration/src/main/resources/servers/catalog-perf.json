@@ -2,7 +2,6 @@
   "name": "catalog-perf",
   "description": "Catalog Performance Testing Environment",
 
-  "samUri": "https://sam.dsde-perf.broadinstitute.org",
   "policyManagerUri": "https://catalog.dsde-perf.broadinstitute.org/",
 
   "cluster": {
