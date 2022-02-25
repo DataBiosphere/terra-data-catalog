@@ -110,7 +110,7 @@ jobs:
       - name: Codecov
         uses: codecov/codecov-action@v2.0.2
         with:
-          files: ./service/build/reports/jacoco/test/jacocoTestReport.xml
+          files: ./service/build/reports/jacoco/test/html/index.html
 
   integration-tests:
     needs: [ build ]
@@ -147,7 +147,7 @@ jobs:
           psql -h localhost -U postgres -f ./common/postgres-init.sql
 
       - name: Render GitHub Secrets
-        run: echo "${{ secrets.DEV_FIRECLOUD_ACCOUNT_B64 }}" | base64 -d >"./integration/src/main/resources/rendered/user-delegated-sa.json"
+        run: echo "${{ secrets.DEV_FIRECLOUD_ACCOUNT_B64 }}" | base64 -d >"integration/src/main/resources/rendered/user-delegated-sa.json"
 
       - name: Launch the background process for integration tests
         run: ./gradlew --build-cache :service:bootRun | tee bootrun.log &

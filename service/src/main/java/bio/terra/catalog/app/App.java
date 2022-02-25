@@ -27,7 +27,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
       // Scan all service-specific packages beneath the current package
       "bio.terra.catalog"
     })
-@ConfigurationPropertiesScan(basePackages = {"bio.terra.catalog"})
+@ConfigurationPropertiesScan("bio.terra.catalog")
 @EnableRetry
 @EnableTransactionManagement
 public class App {
