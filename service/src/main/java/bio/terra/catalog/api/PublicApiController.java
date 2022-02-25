@@ -13,18 +13,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 public class PublicApiController implements PublicApi {
   private final CatalogStatusService statusService;
-  private final VersionProperties currentVersion;
+  private final VersionConfiguration versionConfiguration;
 
   @Autowired
   public PublicApiController(
       CatalogStatusService statusService, VersionConfiguration versionConfiguration) {
     this.statusService = statusService;
-    this.currentVersion =
-        new VersionProperties()
-            .gitTag(versionConfiguration.getGitTag())
-            .gitHash(versionConfiguration.getGitHash())
-            .github(versionConfiguration.getGithub())
-            .build(versionConfiguration.getBuild());
+    this.versionConfiguration = versionConfiguration;
   }
 
   @Override
@@ -36,6 +31,12 @@ public class PublicApiController implements PublicApi {
 
   @Override
   public ResponseEntity<VersionProperties> getVersion() {
+    VersionProperties currentVersion =
+        new VersionProperties()
+            .gitTag(versionConfiguration.getGitTag())
+            .gitHash(versionConfiguration.getGitHash())
+            .github(versionConfiguration.getGithub())
+            .build(versionConfiguration.getBuild());
     return ResponseEntity.ok(currentVersion);
   }
 
