@@ -30,7 +30,7 @@ class PublicApiControllerTest {
 
   @Test
   void testStatus() throws Exception {
-    SystemStatus systemStatus = new SystemStatus().ok(false);
+    SystemStatus systemStatus = new SystemStatus().ok(true);
     when(statusService.getCurrentStatus()).thenReturn(systemStatus);
     this.mockMvc.perform(get("/status")).andExpect(status().isOk());
   }
