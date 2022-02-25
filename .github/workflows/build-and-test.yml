@@ -105,7 +105,7 @@ jobs:
           psql -h localhost -U postgres -f ./common/postgres-init.sql
 
       - name: Test with coverage
-        run: ./gradlew --build-cache :service:test
+        run: ./gradlew --build-cache jacocoTestReport
 
       - name: Codecov
         uses: codecov/codecov-action@v2.0.2
