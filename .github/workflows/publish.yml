@@ -16,14 +16,7 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: v1-${{ runner.os }}-gradle-refs/heads/main-${{ github.sha }}
+          cache: 'gradle'
 
       - name: Parse tag
         id: tag
