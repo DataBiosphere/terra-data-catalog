@@ -4,6 +4,8 @@ plugins {
     id 'com.google.cloud.tools.jib'
 
     id 'com.gorylenko.gradle-git-properties' version '2.3.1'
+    id 'org.sonarqube'
+    id 'com.srcclr.gradle'
 }
 
 apply from: 'generators.gradle'
@@ -15,9 +17,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.retry:spring-retry'
-}
-plugins {
-    id "org.sonarqube" version "3.3"
 }
 
 sonarqube {
