@@ -151,7 +151,7 @@ jobs:
           key: v1-${{ runner.os }}-gradle-${{ github.ref }}-${{ github.sha }}
 
       - name: SonarQube scan
-        run: ./gradlew -Dsonar.login="${{ secrets.SONAR_TOKEN }}" --build-cache sonarqube
+        run: ./gradlew --build-cache -Dsonar.login="${{ secrets.SONAR_TOKEN }}" sonarqube
 
   integration-tests:
     needs: [ build ]
