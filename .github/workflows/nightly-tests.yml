@@ -1,4 +1,4 @@
-name: Nightly Perf Tests
+name: Nightly Tests
 
 on:
   workflow_dispatch: {}
@@ -97,7 +97,7 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: Test Reports
-          path: catalog-clienttests/build/reports
+          path: integration/build/reports
 
   notify-slack:
     needs: [ build, jib, test-runner ]
