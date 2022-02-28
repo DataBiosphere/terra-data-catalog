@@ -2,9 +2,9 @@ plugins {
     id 'bio.terra.catalog.java-spring-conventions'
     id 'de.undercouch.download'
     id 'com.google.cloud.tools.jib'
+    id 'org.sonarqube'
 
     id 'com.gorylenko.gradle-git-properties' version '2.3.1'
-    id 'org.sonarqube'
     id 'com.srcclr.gradle' version '3.1.10'
 }
 
