@@ -11,6 +11,10 @@ env:
   tracing:
     exportEnabled: ${CLOUD_TRACE_ENABLED:false}
     samplingRate: ${SAMPLING_PROBABILITY:0}
+  sam:
+    basePath: ${SAM_ADDRESS:https://sam.dsde-dev.broadinstitute.org/}
+  datarepo:
+    basePath: ${DATAREPO_ADDRESS:https://jade.datarepo-dev.broadinstitute.org}
 
 # Below here is non-deployment-specific
 
@@ -29,7 +33,7 @@ server:
   port: 8080
 
 spring:
-  application.name: profile
+  application.name: catalog
   web:
     resources:
       cache:
@@ -62,6 +66,12 @@ catalog:
     upgrade-on-start: true
     uri: ${env.db.host}/${env.db.catalog.name}
     username: ${env.db.catalog.user}
+
+  sam:
+    base-path: ${env.sam.basePath}
+
+  datarepo:
+    base-path: ${env.datarepo.basePath}
 
 terra.common:
   kubernetes:

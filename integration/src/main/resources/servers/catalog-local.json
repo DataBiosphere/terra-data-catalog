@@ -2,7 +2,6 @@
   "name": "catalog-local",
   "description": "Catalog Local env.",
 
-  "samUri": "https://sam.dsde-dev.broadinstitute.org",
   "policyManagerUri": "http://localhost:8080",
 
   "testRunnerServiceAccountFile": "delegate-user-sa.json",
