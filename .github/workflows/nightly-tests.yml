@@ -38,7 +38,8 @@ jobs:
         id: image-name
         run: |
           GITHUB_REPO=$(basename ${{ github.repository }})
-          echo ::set-output name=name::${GITHUB_REPO}:$(git rev-parse --short HEAD)
+          GIT_SHORT_HASH=$(git rev-parse --short HEAD)
+          echo ::set-output name=name::${GITHUB_REPO}:${GIT_SHORT_HASH}
 
       - name: Build image locally with jib
         run: |
