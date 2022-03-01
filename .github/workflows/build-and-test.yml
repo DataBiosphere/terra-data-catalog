@@ -120,14 +120,7 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-
-      - name: Gradle cache
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: v1-${{ runner.os }}-gradle-${{ github.ref }}-${{ github.sha }}
+          cache: 'gradle'
 
       - name: SonarQube scan
         run: ./gradlew --build-cache -Dsonar.login="${{ secrets.SONAR_TOKEN }}" sonarqube
