@@ -43,7 +43,7 @@ jobs:
 
       - name: Construct docker image name and tag
         id: image-name
-        run: echo ::set-output name=name::${{ github.event.repository.name }}:$(git rev-parse --short HEAD)
+        run: echo ::set-output name=name::${{ github.repository }}:$(git rev-parse --short HEAD)
 
       - name: Build image locally with jib
         run: |
