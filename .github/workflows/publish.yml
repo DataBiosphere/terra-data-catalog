@@ -16,14 +16,7 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: v1-${{ runner.os }}-gradle-refs/heads/main-${{ github.sha }}
+          cache: 'gradle'
 
       - name: Parse tag
         id: tag
@@ -57,13 +50,13 @@ jobs:
       - name: Push GCR image
         run: docker push ${{ steps.image-name.outputs.name }}
 
-      #- name: Deploy to Terra Dev environment
-      #  uses: broadinstitute/repository-dispatch@master
-      #  with:
-      #    token: ${{ secrets.BROADBOT_TOKEN }}
-      #    repository: broadinstitute/terra-helmfile
-      #    event-type: update-service
-      #    client-payload: '{"service": "catalog", "version": "${{ steps.tag.outputs.tag }}", "dev_only": false}'
+      - name: Deploy to Terra Dev environment
+        uses: broadinstitute/repository-dispatch@master
+        with:
+          token: ${{ secrets.BROADBOT_TOKEN }}
+          repository: broadinstitute/terra-helmfile
+          event-type: update-service
+          client-payload: '{"service": "catalog", "version": "${{ steps.tag.outputs.tag }}", "dev_only": false}'
 
       - name: Notify slack on failure
         uses: broadinstitute/action-slack@v3.8.0

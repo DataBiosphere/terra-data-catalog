@@ -1,0 +1,98 @@
+name: Nightly Tests
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "0 6 * * *" # runs at 6 AM UTC, 1 AM EST.
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Gradle build service
+        run: ./gradlew --build-cache :service:build -x test
+
+  jib:
+    needs: [ build ]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Construct docker image name and tag
+        id: image-name
+        run: echo ::set-output name=name::${{ github.event.repository.name }}:$(git rev-parse --short HEAD)
+
+      - name: Build image locally with jib
+        run: |
+          ./gradlew --build-cache :service:jibDockerBuild \
+            --image=${{ steps.image-name.outputs.name }} \
+            -Djib.console=plain
+
+      - name: Run Trivy vulnerability scanner
+        uses: broadinstitute/dsp-appsec-trivy-action@v1
+        with:
+          image: ${{ steps.image-name.outputs.name }}
+
+  test-runner:
+    needs: [ build ]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Render GitHub Secrets
+        run: |
+          echo "${{ secrets.DEV_FIRECLOUD_ACCOUNT_B64 }}" | base64 -d > "integration/src/main/resources/rendered/user-delegated-sa.json"
+          echo "${{ secrets.PERF_TESTRUNNER_ACCOUNT_B64 }}" | base64 -d > "integration/src/main/resources/rendered/testrunner-sa.json"
+
+      - name: Run perf test suite
+        run: |
+          ./gradlew --build-cache :integration:runTest --scan --args="suites/FullPerf.json build/reports"
+
+      - name: Upload Test Reports
+        if: always()
+        uses: actions/upload-artifact@v1
+        with:
+          name: Test Reports
+          path: integration/build/reports
+
+  notify-slack:
+    needs: [ build, jib, test-runner ]
+    runs-on: ubuntu-latest
+
+    if: failure() && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Notify slack on failure
+        uses: broadinstitute/action-slack@v3.8.0
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        with:
+          channel: '#jade-data-explorer'
+          status: failure
+          author_name: Nightly test
+          fields: workflow,message
+          text: 'Nightly test failed :sadpanda:'
+          username: 'Data Explorer GitHub Action'

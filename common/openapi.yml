@@ -4,23 +4,6 @@ info:
   description: An indexed catalog of data for use in Terra
   version: 0.0.1
 paths:
-  /api/catalog/v1/datasets:
-    get:
-      summary: Lists the available datasets.
-      tags: [ dataset ]
-      operationId: listDatasets
-      responses:
-        '200':
-          description: A JSON array of datasets
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: string
-        '500':
-          $ref: '#/components/responses/ServerError'
-
   /status:
     get:
       summary: Check status of the service.
@@ -34,6 +17,7 @@ paths:
           $ref: '#/components/responses/ServerError'
         '503':
           $ref: '#/components/responses/SystemStatusResponse'
+
   /version:
     get:
       summary: Get version info of the deployed service.
@@ -49,6 +33,23 @@ paths:
                 $ref: '#/components/schemas/VersionProperties'
         '404':
           description: "Version not configured"
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /api/v1/datasets:
+    get:
+      summary: Lists the available catalog datasets.
+      tags: [ dataset ]
+      operationId: listDatasets
+      responses:
+        '200':
+          description: A JSON array of catalog datasets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
         '500':
           $ref: '#/components/responses/ServerError'
 

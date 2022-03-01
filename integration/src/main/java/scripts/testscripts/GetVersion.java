@@ -7,13 +7,13 @@ import bio.terra.catalog.api.PublicApi;
 import bio.terra.testrunner.runner.TestScript;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
 import com.google.api.client.http.HttpStatusCodes;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import scripts.utils.CatalogClient;
 
 public class GetVersion extends TestScript {
 
-  private static final Logger log = LogManager.getLogger(GetStatus.class);
+  private static final Logger log = LoggerFactory.getLogger(GetStatus.class);
 
   @Override
   public void userJourney(TestUserSpecification testUser) throws Exception {
