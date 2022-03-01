@@ -31,8 +31,8 @@ test {
 
 sonarqube {
     properties {
-        property "sonar.projectKey", "terra-data-catalog"
-        property "sonar.organization", "broad-databiosphere"
-        property "sonar.host.url", "https://sonarcloud.io"
+        property 'sonar.projectKey', 'terra-data-catalog'
+        property 'sonar.organization', 'broad-databiosphere'
+        property 'sonar.host.url', 'https://sonarcloud.io'
     }
 }
