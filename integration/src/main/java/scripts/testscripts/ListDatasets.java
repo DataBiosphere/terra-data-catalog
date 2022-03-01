@@ -10,7 +10,7 @@ import com.google.api.client.http.HttpStatusCodes;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scripts.utils.ClientTestUtils;
+import scripts.client.CatalogClient;
 
 public class ListDatasets extends TestScript {
 
@@ -19,8 +19,7 @@ public class ListDatasets extends TestScript {
   @Override
   public void userJourney(TestUserSpecification testUser) throws Exception {
     log.info("Checking the list datasets endpoint.");
-    var apiClient = ClientTestUtils.getClientWithTestUserAuth(testUser, server);
-    var publicApi = new DatasetApi(apiClient);
+    var publicApi = new DatasetApi(new CatalogClient(server, testUser));
     List<String> datasets = publicApi.listDatasets();
     var httpCode = publicApi.getApiClient().getStatusCode();
     assertEquals(HttpStatusCodes.STATUS_CODE_OK, httpCode);

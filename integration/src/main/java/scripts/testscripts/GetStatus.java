@@ -8,7 +8,7 @@ import bio.terra.testrunner.runner.config.TestUserSpecification;
 import com.google.api.client.http.HttpStatusCodes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scripts.utils.CatalogClient;
+import scripts.client.CatalogClient;
 
 public class GetStatus extends TestScript {
 

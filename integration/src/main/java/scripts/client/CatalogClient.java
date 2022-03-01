@@ -1,4 +1,4 @@
-package scripts.utils;
+package scripts.client;
 
 import bio.terra.catalog.client.ApiClient;
 import bio.terra.testrunner.common.utils.AuthenticationUtils;
