@@ -33,8 +33,8 @@ public class CatalogClient extends ApiClient {
    * @param server the server we are testing against
    * @param testUser the test user whose credentials are supplied to the API client object
    */
-  public CatalogClient(
-      ServerSpecification server, TestUserSpecification testUser) throws IOException {
+  public CatalogClient(ServerSpecification server, TestUserSpecification testUser)
+      throws IOException {
     setBasePath(Objects.requireNonNull(server.catalogUri, "Catalog URI required"));
 
     if (testUser != null) {
