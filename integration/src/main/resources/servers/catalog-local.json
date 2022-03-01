@@ -2,7 +2,7 @@
   "name": "catalog-local",
   "description": "Catalog Local env.",
 
-  "policyManagerUri": "http://localhost:8080",
+  "catalogUri": "http://localhost:8080",
 
   "testRunnerServiceAccountFile": "delegate-user-sa.json",
 
