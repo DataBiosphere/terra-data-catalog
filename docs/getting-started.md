@@ -84,6 +84,8 @@ curl -LO https://raw.githubusercontent.com/DataBiosphere/terra-data-catalog/main
 brew bundle --no-lock install
 ```
 
+Running the `brew` command above will install the following tools:
+
 1. [Git](https://git-scm.com/) is a version control tool for tracking changes in
 projects and code.
 2. [git-secrets](https://github.com/awslabs/git-secrets) prevents developers
