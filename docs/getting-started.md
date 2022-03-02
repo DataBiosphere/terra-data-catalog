@@ -162,6 +162,9 @@ follows:
 vault login -method=github token=$(cat ~/.github-token)
 ```
 
+> Vault access tokens expire after 30 days, so if you get a `403` error trying
+to use `vault`, re-run the `vault login` command to refresh your access token.
+
 ## 9. Code Checkout
 
 > It may be useful to create a folder for Broad projects in your home directory.
