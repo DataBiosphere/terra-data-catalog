@@ -18,7 +18,6 @@ databaseChangeLog:
                   type: text
                   constraints:
                     nullable: false
-                    unique: true
               - column:
                   name: storage_system
                   type: text
@@ -35,3 +34,7 @@ databaseChangeLog:
                   defaultValueComputed: now()
                   constraints:
                     nullable: false
+        - addUniqueConstraint:
+            columnNames: dataset_id, storage_system
+            constraintName: dataset_unique_constraint
+            tableName: dataset
