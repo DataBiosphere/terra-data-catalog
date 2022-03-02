@@ -86,23 +86,25 @@ brew bundle --no-lock install
 
 1. [Git](https://git-scm.com/) is a version control tool for tracking changes in
 projects and code.
-2. [jq](https://stedolan.github.io/jq/) is a command line JSON processing tool.
-3. [Docker](https://www.docker.com/) is a tool to deliver software in packages
+2. [git-secrets](https://github.com/awslabs/git-secrets) prevents developers
+from committing passwords and secrets to git.
+3. [jq](https://stedolan.github.io/jq/) is a command line JSON processing tool.
+4. [Docker](https://www.docker.com/) is a tool to deliver software in packages
 called containers. Docker for MacOS also includes [Kubernetes](https://kubernetes.io/),
 which deploys groups of containers together in clusters.
-4. [Vault](https://www.vaultproject.io/) is an encrypted database used to store
+5. [Vault](https://www.vaultproject.io/) is an encrypted database used to store
 many of the team's secrets such as keys and passwords.
-5. [Google Cloud SDK](https://cloud.google.com/sdk) is a command-line interface
+6. [Google Cloud SDK](https://cloud.google.com/sdk) is a command-line interface
 to Google Cloud services. Once it is installed, you'll need to allow auth access
 and configure Docker to connect to the appropriate Google Cloud endpoint when
 necessary, which is done with the configuration below.
-6. [IntelliJ IDEA](https://www.jetbrains.com/idea/) is an integrated development
+7. [IntelliJ IDEA](https://www.jetbrains.com/idea/) is an integrated development
 environment (IDE) for Java. There are two versions available: **Ultimate** (paid)
 and **Community** (open-source). We recommend the Ultimate Edition to Broad
 employees for its database navigation capabilities. Alternatively, the Community
 Edition has all the features needed for development, and this version can be
 installed by switching `intellij-idea` with `intellij-idea-ce` in the Brewfile.
-7. [Temurin](https://adoptium.net/) is the code name for the free and
+8. [Temurin](https://adoptium.net/) is the code name for the free and
 open-source version of Java 17 provided by the Eclipse Adoptium Working Group.
 
 Unfortunately, some manual configuration is also necessary:
@@ -118,6 +120,10 @@ open -a docker
 gcloud auth login
 gcloud auth application-default login
 gcloud auth configure-docker
+
+# ensure that git-secrets patterns are installed
+git clone https://github.com/broadinstitute/dsp-appsec-gitsecrets-client.git
+./dsp-appsec-gitsecrets-client/gitsecrets.sh
 ```
 
 ## 6. Install Postgres 12

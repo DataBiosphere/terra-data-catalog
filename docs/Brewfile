@@ -1,4 +1,5 @@
 brew "git"
+brew "git-secrets"
 brew "jq"
 brew "vault"
 cask "docker"
