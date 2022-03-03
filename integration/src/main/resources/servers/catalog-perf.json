@@ -2,7 +2,7 @@
   "name": "catalog-perf",
   "description": "Catalog Performance Testing Environment",
 
-  "policyManagerUri": "https://catalog.dsde-perf.broadinstitute.org/",
+  "catalogUri": "https://catalog.dsde-perf.broadinstitute.org/",
 
   "cluster": {
     "clusterName": "terra-perf",
