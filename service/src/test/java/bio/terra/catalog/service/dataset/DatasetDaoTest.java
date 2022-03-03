@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import bio.terra.catalog.app.App;
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.service.dataset.exception.InvalidDatasetException;
-import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,50 +23,31 @@ class DatasetDaoTest {
   @Autowired private DatasetDao datasetDao;
   @Autowired private NamedParameterJdbcTemplate jdbcTemplate;
 
+  private void createDataset(String datasetId,
+                             StorageSystem storageSystem,
+                             String metadata) throws InvalidDatasetException {
+    Dataset dataset = new Dataset(null, datasetId, storageSystem, metadata, null);
+    datasetDao.create(dataset);
+  }
+
   @Test
   void testCreateDatasetWithDifferentSources() throws Exception {
     String datasetId = UUID.randomUUID().toString();
-    Dataset dataset =
-        new Dataset(
-            null,
-            datasetId,
-            StorageSystem.TERRA_DATA_REPO,
-            "{\"sampleId\": \"12345\", \"species\": [\"mouse\", \"human\"]}",
-            null);
-    Dataset duplicateDataset =
-        new Dataset(
-            null,
-            datasetId,
-            StorageSystem.TERRA_WORKSPACE,
-            "{\"sampleId\": \"12345\", \"species\": [\"mouse\", \"human\"]}",
-            null);
-    try {
-      datasetDao.create(dataset);
-      datasetDao.create(duplicateDataset);
-      int datasetCount = datasetDao.enumerate().size();
-      assertEquals(datasetCount, 2);
-    } finally {
-      datasetDao.enumerate().forEach(d -> datasetDao.delete(d.id()));
-    }
+    String metadata = "{\"sampleId\": \"12345\", \"species\": [\"mouse\", \"human\"]}";
+    createDataset(datasetId, StorageSystem.TERRA_DATA_REPO, metadata);
+    createDataset(datasetId, StorageSystem.TERRA_WORKSPACE, metadata);
+    long datasetCount = datasetDao.enumerate().stream().map(Dataset::datasetId).count();
+    assertEquals(datasetCount, 2L);
   }
 
   @Test
   void testCreateDuplicateDataset() throws Exception {
     String datasetId = UUID.randomUUID().toString();
-    Dataset dataset =
-        new Dataset(
-            null,
-            datasetId,
-            StorageSystem.TERRA_DATA_REPO,
-            "{\"sampleId\": \"12345\", \"species\": [\"mouse\", \"human\"]}",
-            null);
-    try {
-      datasetDao.create(dataset);
-      assertThrows(InvalidDatasetException.class, () -> datasetDao.create(dataset));
-      int datasetCount = datasetDao.enumerate().size();
-      assertEquals(datasetCount, 1);
-    } finally {
-      datasetDao.delete(datasetDao.enumerate().get(0).id());
-    }
+    String metadata = "{\"sampleId\": \"12345\", \"species\": [\"mouse\", \"human\"]}";
+    createDataset(datasetId, StorageSystem.TERRA_DATA_REPO, metadata);
+    assertThrows(InvalidDatasetException.class, () ->
+    createDataset(datasetId, StorageSystem.TERRA_DATA_REPO, metadata));
+    long datasetCount = datasetDao.enumerate().stream().map(Dataset::datasetId).count();
+    assertEquals(datasetCount, 1L);
   }
 }
