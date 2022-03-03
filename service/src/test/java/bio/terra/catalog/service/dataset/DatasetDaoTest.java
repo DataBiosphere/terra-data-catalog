@@ -34,7 +34,11 @@ class DatasetDaoTest {
     String datasetId = UUID.randomUUID().toString();
     String metadata = "{\"sampleId\": \"12345\", \"species\": [\"mouse\", \"human\"]}";
     Dataset dataset = createDataset(datasetId, StorageSystem.TERRA_DATA_REPO, metadata);
+    Dataset updateRequest =
+        new Dataset(dataset.id(), datasetId, StorageSystem.TERRA_WORKSPACE, metadata, null);
     datasetDao.retrieve(dataset.id());
+    Dataset updatedDataset = datasetDao.update(updateRequest);
+    assertEquals(updatedDataset.storageSystem(), updateRequest.storageSystem());
     datasetDao.delete(dataset.id());
   }
 

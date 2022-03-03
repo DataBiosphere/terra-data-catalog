@@ -74,6 +74,37 @@ public class DatasetDao {
   }
 
   @WriteTransaction
+  public Dataset update(Dataset dataset) {
+    String sql =
+        "UPDATE dataset "
+            + "SET dataset_id = :dataset_id, storage_system = :storage_system, "
+            + "metadata = cast(:metadata as jsonb) "
+            + "WHERE id = :id";
+    MapSqlParameterSource params =
+        new MapSqlParameterSource()
+            .addValue("id", dataset.id())
+            .addValue("dataset_id", dataset.datasetId())
+            .addValue("storage_system", String.valueOf(dataset.storageSystem()))
+            .addValue("metadata", dataset.metadata());
+
+    DaoKeyHolder keyHolder = new DaoKeyHolder();
+    try {
+      jdbcTemplate.update(sql, params, keyHolder);
+    } catch (EmptyResultDataAccessException ex) {
+      throw new DatasetNotFoundException("Dataset not found for id " + dataset.id());
+    } catch (DuplicateKeyException e) {
+      throw new InvalidDatasetException(
+          "A dataset for this dataset_id and storage_system already exists");
+    }
+    return new Dataset(
+        keyHolder.getId(),
+        keyHolder.getString("dataset_id"),
+        StorageSystem.valueOf(keyHolder.getString("storage_system")),
+        keyHolder.getString("metadata"),
+        keyHolder.getTimestamp("created_date").toInstant());
+  }
+
+  @WriteTransaction
   public boolean delete(UUID id) {
     String sql = "DELETE FROM dataset WHERE id = :id";
     MapSqlParameterSource params = new MapSqlParameterSource().addValue("id", id);
