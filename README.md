@@ -37,3 +37,10 @@ After the database is initialized, then you may run integration tests as follows
 render-configs.sh # render service account credentials needed for tests
 ./gradlew :integration:runTest --args="suites/FullIntegration.json /tmp/test"
 ```
+
+Performance tests may be run as follows:
+
+```sh
+render-configs.sh perf
+./gradlew :integration:runTest --args="suites/FullPerf.json /tmp/test"
+```
