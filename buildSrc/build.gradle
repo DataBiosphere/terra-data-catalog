@@ -20,4 +20,6 @@ dependencies {
     implementation 'org.sonarqube:org.sonarqube.gradle.plugin:3.3'
     implementation 'org.springframework.boot:spring-boot-gradle-plugin:2.6.3'
     implementation 'bio.terra:terra-test-runner:0.0.8-SNAPSHOT'
+    // This is required due to a dependency conflict between jib and srcclr. Removing it will cause jib to fail.
+    implementation 'org.apache.commons:commons-compress:1.21'
 }
