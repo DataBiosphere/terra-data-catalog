@@ -21,7 +21,11 @@ class DatasetDaoTest {
 
   @Autowired private DatasetDao datasetDao;
   @Autowired private NamedParameterJdbcTemplate jdbcTemplate;
-  private enum storageSystem { TERRA_WORKSPACE, TERRA_DATA_REPO};
+
+  private enum storageSystem {
+    TERRA_WORKSPACE,
+    TERRA_DATA_REPO
+  };
 
   @Test
   void testCreateDeleteDataset() throws Exception {
@@ -48,9 +52,10 @@ class DatasetDaoTest {
   @Test
   void testCreateDuplicateDataset() throws Exception {
     String datasetId = UUID.randomUUID().toString();
-    Dataset dataset = new Dataset()
-        .datasetId(datasetId)
-        .storageSystem(String.valueOf(storageSystem.TERRA_DATA_REPO));
+    Dataset dataset =
+        new Dataset()
+            .datasetId(datasetId)
+            .storageSystem(String.valueOf(storageSystem.TERRA_DATA_REPO));
     try {
       datasetDao.create(dataset);
       assertThrows(InvalidDatasetException.class, () -> datasetDao.create(dataset));
