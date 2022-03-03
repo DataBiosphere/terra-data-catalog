@@ -24,21 +24,22 @@ Then, to build the code, run:
 ## Running the tests
 
 For tests, ensure you have a local Postgres instance running. While in the
-`terra-data-catalog` directory, initialize the database as follows:
+`terra-data-catalog` directory, initialize the database:
 
 ```sh
 psql -f common/postgres-init.sql
 ```
 
-After the database is initialized, then you may run integration tests as follows:
+After the database is initialized, then run integration tests:
 
 ```sh
-./gradlew bootRun & # start up a local instance of the data catalog service
-render-configs.sh # render service account credentials needed for tests
+./gradlew bootRun &    # start up a local instance of the data catalog service
+sleep 5                # wait until service comes up
+render-configs.sh      # render service account credentials needed for tests
 ./gradlew :integration:runTest --args="suites/FullIntegration.json /tmp/test"
 ```
 
-Performance tests may be run as follows:
+To run performance tests, execute:
 
 ```sh
 render-configs.sh perf
