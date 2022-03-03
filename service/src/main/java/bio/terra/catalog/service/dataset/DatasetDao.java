@@ -1,20 +1,20 @@
 package bio.terra.catalog.service.dataset;
 
+import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.service.dataset.exception.InvalidDatasetException;
+import bio.terra.common.db.ReadTransaction;
+import bio.terra.common.db.WriteTransaction;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
-import bio.terra.common.db.ReadTransaction;
-import bio.terra.common.db.WriteTransaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
-
 
 @Repository
 public class DatasetDao {
@@ -49,7 +49,7 @@ public class DatasetDao {
     MapSqlParameterSource params =
         new MapSqlParameterSource()
             .addValue("dataset_id", dataset.datasetId())
-            .addValue("storage_system", dataset.storageSystem())
+            .addValue("storage_system", String.valueOf(dataset.storageSystem()))
             .addValue("metadata", dataset.metadata());
     try {
       jdbcTemplate.update(sql, params);
@@ -72,7 +72,7 @@ public class DatasetDao {
       return new Dataset(
           rs.getObject("id", UUID.class),
           rs.getString("dataset_id"),
-          rs.getString("storage_system"),
+          StorageSystem.valueOf(rs.getString("storage_system")),
           rs.getString("metadata"),
           rs.getTimestamp("created_date").toInstant());
     }

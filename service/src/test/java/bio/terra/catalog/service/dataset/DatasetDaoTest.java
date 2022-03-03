@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import bio.terra.catalog.app.App;
+import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.service.dataset.exception.InvalidDatasetException;
 import java.time.Instant;
 import java.util.UUID;
@@ -23,11 +24,6 @@ class DatasetDaoTest {
   @Autowired private DatasetDao datasetDao;
   @Autowired private NamedParameterJdbcTemplate jdbcTemplate;
 
-  private enum storageSystem {
-    TERRA_WORKSPACE,
-    TERRA_DATA_REPO
-  };
-
   @Test
   void testCreateDeleteDataset() throws Exception {
     String datasetId = UUID.randomUUID().toString();
@@ -35,14 +31,14 @@ class DatasetDaoTest {
         new Dataset(
             UUID.randomUUID(),
             datasetId,
-            String.valueOf(storageSystem.TERRA_DATA_REPO),
+            StorageSystem.TERRA_DATA_REPO,
             "{\"sampleId\": \"12345\", \"species\": [\"mouse\", \"human\"]}",
             Instant.now());
     Dataset duplicateDataset =
         new Dataset(
             UUID.randomUUID(),
             datasetId,
-            String.valueOf(storageSystem.TERRA_WORKSPACE),
+            StorageSystem.TERRA_WORKSPACE,
             "{\"sampleId\": \"12345\", \"species\": [\"mouse\", \"human\"]}",
             Instant.now());
     try {
@@ -62,7 +58,7 @@ class DatasetDaoTest {
         new Dataset(
             UUID.randomUUID(),
             datasetId,
-            String.valueOf(storageSystem.TERRA_DATA_REPO),
+            StorageSystem.TERRA_DATA_REPO,
             "{\"sampleId\": \"12345\", \"species\": [\"mouse\", \"human\"]}",
             Instant.now());
     try {
