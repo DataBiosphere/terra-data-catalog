@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import bio.terra.catalog.app.App;
 import bio.terra.catalog.service.dataset.exception.InvalidDatasetException;
+import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,21 +32,26 @@ class DatasetDaoTest {
   void testCreateDeleteDataset() throws Exception {
     String datasetId = UUID.randomUUID().toString();
     Dataset dataset =
-        new Dataset()
-            .datasetId(datasetId)
-            .storageSystem("DATA_REPO")
-            .metadata("{\"sampleId\": \"12345\", \"species\": [\"mouse\", \"human\"]}");
-    Dataset duplicateDatasetId =
-        new Dataset()
-            .datasetId(datasetId)
-            .storageSystem(String.valueOf(storageSystem.TERRA_WORKSPACE));
+        new Dataset(
+            UUID.randomUUID(),
+            datasetId,
+            String.valueOf(storageSystem.TERRA_DATA_REPO),
+            "{\"sampleId\": \"12345\", \"species\": [\"mouse\", \"human\"]}",
+            Instant.now());
+    Dataset duplicateDataset =
+        new Dataset(
+            UUID.randomUUID(),
+            datasetId,
+            String.valueOf(storageSystem.TERRA_WORKSPACE),
+            "{\"sampleId\": \"12345\", \"species\": [\"mouse\", \"human\"]}",
+            Instant.now());
     try {
       datasetDao.create(dataset);
-      datasetDao.create(duplicateDatasetId);
+      datasetDao.create(duplicateDataset);
       int datasetCount = datasetDao.enumerate().size();
       assertEquals(datasetCount, 2);
     } finally {
-      datasetDao.enumerate().forEach(d -> datasetDao.delete(d.getId()));
+      datasetDao.enumerate().forEach(d -> datasetDao.delete(d.id()));
     }
   }
 
@@ -53,16 +59,19 @@ class DatasetDaoTest {
   void testCreateDuplicateDataset() throws Exception {
     String datasetId = UUID.randomUUID().toString();
     Dataset dataset =
-        new Dataset()
-            .datasetId(datasetId)
-            .storageSystem(String.valueOf(storageSystem.TERRA_DATA_REPO));
+        new Dataset(
+            UUID.randomUUID(),
+            datasetId,
+            String.valueOf(storageSystem.TERRA_DATA_REPO),
+            "{\"sampleId\": \"12345\", \"species\": [\"mouse\", \"human\"]}",
+            Instant.now());
     try {
       datasetDao.create(dataset);
       assertThrows(InvalidDatasetException.class, () -> datasetDao.create(dataset));
       int datasetCount = datasetDao.enumerate().size();
       assertEquals(datasetCount, 1);
     } finally {
-      datasetDao.delete(datasetDao.enumerate().get(0).getId());
+      datasetDao.delete(datasetDao.enumerate().get(0).id());
     }
   }
 }
