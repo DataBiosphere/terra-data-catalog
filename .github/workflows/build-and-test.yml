@@ -127,6 +127,8 @@ jobs:
 
       - name: SonarQube scan
         run: ./gradlew --build-cache -Dsonar.login="${{ secrets.SONAR_TOKEN }}" sonarqube
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   integration-tests:
     needs: [ build ]
