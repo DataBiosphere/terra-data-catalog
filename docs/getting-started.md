@@ -12,7 +12,7 @@ you don't have those yet, see the section below, otherwise you can skip to
 ## 1. Create a GitHub account
 
 GitHub is where the Broad stores our code and projects. Sign up to this service
-with your **personal** email: https://github.com/join
+with your personal or Broad email: https://github.com/join
 
 Create a [personal access token](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line)
 so you can interact with GitHub on the command line.
