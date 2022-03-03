@@ -22,6 +22,11 @@ import org.springframework.stereotype.Repository;
 public class DatasetDao {
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
+  private static final String ID_FIELD = "id";
+  private static final String DATASET_ID_FIELD = "dataset_id";
+  private static final String STORAGE_SYSTEM_FIELD = "storage_system";
+  private static final String METADATA_FIELD = "metadata";
+  private static final String CREATED_DATE_FIELD = "created_date";
 
   @Autowired
   public DatasetDao(NamedParameterJdbcTemplate jdbcTemplate) {
@@ -39,7 +44,7 @@ public class DatasetDao {
   public Dataset retrieve(UUID id) {
     String sql =
         "SELECT id, dataset_id, storage_system, metadata, created_date FROM dataset WHERE id = :id";
-    MapSqlParameterSource params = new MapSqlParameterSource().addValue("id", id);
+    MapSqlParameterSource params = new MapSqlParameterSource().addValue(ID_FIELD, id);
     try {
       return jdbcTemplate.queryForObject(sql, params, new DatasetMapper());
     } catch (EmptyResultDataAccessException ex) {
@@ -54,9 +59,9 @@ public class DatasetDao {
             + "VALUES (:dataset_id, :storage_system, cast(:metadata as jsonb))";
     MapSqlParameterSource params =
         new MapSqlParameterSource()
-            .addValue("dataset_id", dataset.datasetId())
-            .addValue("storage_system", String.valueOf(dataset.storageSystem()))
-            .addValue("metadata", dataset.metadata());
+            .addValue(DATASET_ID_FIELD, dataset.datasetId())
+            .addValue(STORAGE_SYSTEM_FIELD, String.valueOf(dataset.storageSystem()))
+            .addValue(METADATA_FIELD, dataset.metadata());
     DaoKeyHolder keyHolder = new DaoKeyHolder();
     try {
       jdbcTemplate.update(sql, params, keyHolder);
@@ -67,10 +72,10 @@ public class DatasetDao {
 
     return new Dataset(
         keyHolder.getId(),
-        keyHolder.getString("dataset_id"),
-        StorageSystem.valueOf(keyHolder.getString("storage_system")),
-        keyHolder.getString("metadata"),
-        keyHolder.getTimestamp("created_date").toInstant());
+        keyHolder.getString(DATASET_ID_FIELD),
+        StorageSystem.valueOf(keyHolder.getString(STORAGE_SYSTEM_FIELD)),
+        keyHolder.getString(METADATA_FIELD),
+        keyHolder.getTimestamp(CREATED_DATE_FIELD).toInstant());
   }
 
   @WriteTransaction
@@ -82,10 +87,10 @@ public class DatasetDao {
             + "WHERE id = :id";
     MapSqlParameterSource params =
         new MapSqlParameterSource()
-            .addValue("id", dataset.id())
-            .addValue("dataset_id", dataset.datasetId())
-            .addValue("storage_system", String.valueOf(dataset.storageSystem()))
-            .addValue("metadata", dataset.metadata());
+            .addValue(ID_FIELD, dataset.id())
+            .addValue(DATASET_ID_FIELD, dataset.datasetId())
+            .addValue(STORAGE_SYSTEM_FIELD, String.valueOf(dataset.storageSystem()))
+            .addValue(METADATA_FIELD, dataset.metadata());
 
     DaoKeyHolder keyHolder = new DaoKeyHolder();
     try {
@@ -98,16 +103,16 @@ public class DatasetDao {
     }
     return new Dataset(
         keyHolder.getId(),
-        keyHolder.getString("dataset_id"),
-        StorageSystem.valueOf(keyHolder.getString("storage_system")),
-        keyHolder.getString("metadata"),
-        keyHolder.getTimestamp("created_date").toInstant());
+        keyHolder.getString(DATASET_ID_FIELD),
+        StorageSystem.valueOf(keyHolder.getString(STORAGE_SYSTEM_FIELD)),
+        keyHolder.getString(METADATA_FIELD),
+        keyHolder.getTimestamp(CREATED_DATE_FIELD).toInstant());
   }
 
   @WriteTransaction
   public boolean delete(UUID id) {
     String sql = "DELETE FROM dataset WHERE id = :id";
-    MapSqlParameterSource params = new MapSqlParameterSource().addValue("id", id);
+    MapSqlParameterSource params = new MapSqlParameterSource().addValue(ID_FIELD, id);
     int rowsAffected = jdbcTemplate.update(sql, params);
     return rowsAffected > 0;
   }
@@ -115,11 +120,11 @@ public class DatasetDao {
   private static class DatasetMapper implements RowMapper<Dataset> {
     public Dataset mapRow(ResultSet rs, int rowNum) throws SQLException {
       return new Dataset(
-          rs.getObject("id", UUID.class),
-          rs.getString("dataset_id"),
-          StorageSystem.valueOf(rs.getString("storage_system")),
-          rs.getString("metadata"),
-          rs.getTimestamp("created_date").toInstant());
+          rs.getObject(ID_FIELD, UUID.class),
+          rs.getString(DATASET_ID_FIELD),
+          StorageSystem.valueOf(rs.getString(STORAGE_SYSTEM_FIELD)),
+          rs.getString(METADATA_FIELD),
+          rs.getTimestamp(CREATED_DATE_FIELD).toInstant());
     }
   }
 }

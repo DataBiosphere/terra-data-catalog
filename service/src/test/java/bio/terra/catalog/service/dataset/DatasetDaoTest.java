@@ -49,7 +49,7 @@ class DatasetDaoTest {
     createDataset(datasetId, StorageSystem.TERRA_DATA_REPO, metadata);
     createDataset(datasetId, StorageSystem.TERRA_WORKSPACE, metadata);
     long datasetCount = datasetDao.enumerate().stream().map(Dataset::datasetId).count();
-    assertEquals(datasetCount, 2L);
+    assertEquals(2L, datasetCount);
   }
 
   @Test
@@ -61,6 +61,6 @@ class DatasetDaoTest {
         InvalidDatasetException.class,
         () -> createDataset(datasetId, StorageSystem.TERRA_DATA_REPO, metadata));
     long datasetCount = datasetDao.enumerate().stream().map(Dataset::datasetId).count();
-    assertEquals(datasetCount, 1L);
+    assertEquals(1L, datasetCount);
   }
 }
