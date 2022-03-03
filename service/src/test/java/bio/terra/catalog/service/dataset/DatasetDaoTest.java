@@ -23,11 +23,19 @@ class DatasetDaoTest {
   @Autowired private DatasetDao datasetDao;
   @Autowired private NamedParameterJdbcTemplate jdbcTemplate;
 
-  private void createDataset(String datasetId,
-                             StorageSystem storageSystem,
-                             String metadata) throws InvalidDatasetException {
+  private Dataset createDataset(String datasetId, StorageSystem storageSystem, String metadata)
+      throws InvalidDatasetException {
     Dataset dataset = new Dataset(null, datasetId, storageSystem, metadata, null);
-    datasetDao.create(dataset);
+    return datasetDao.create(dataset);
+  }
+
+  @Test
+  void testDatasetCrudOperations() {
+    String datasetId = UUID.randomUUID().toString();
+    String metadata = "{\"sampleId\": \"12345\", \"species\": [\"mouse\", \"human\"]}";
+    Dataset dataset = createDataset(datasetId, StorageSystem.TERRA_DATA_REPO, metadata);
+    datasetDao.retrieve(dataset.id());
+    datasetDao.delete(dataset.id());
   }
 
   @Test
@@ -45,8 +53,9 @@ class DatasetDaoTest {
     String datasetId = UUID.randomUUID().toString();
     String metadata = "{\"sampleId\": \"12345\", \"species\": [\"mouse\", \"human\"]}";
     createDataset(datasetId, StorageSystem.TERRA_DATA_REPO, metadata);
-    assertThrows(InvalidDatasetException.class, () ->
-    createDataset(datasetId, StorageSystem.TERRA_DATA_REPO, metadata));
+    assertThrows(
+        InvalidDatasetException.class,
+        () -> createDataset(datasetId, StorageSystem.TERRA_DATA_REPO, metadata));
     long datasetCount = datasetDao.enumerate().stream().map(Dataset::datasetId).count();
     assertEquals(datasetCount, 1L);
   }
