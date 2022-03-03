@@ -25,22 +25,22 @@ class DatasetDaoTest {
   @Autowired private NamedParameterJdbcTemplate jdbcTemplate;
 
   @Test
-  void testCreateDeleteDataset() throws Exception {
+  void testCreateDatasetWithDifferentSources() throws Exception {
     String datasetId = UUID.randomUUID().toString();
     Dataset dataset =
         new Dataset(
-            UUID.randomUUID(),
+            null,
             datasetId,
             StorageSystem.TERRA_DATA_REPO,
             "{\"sampleId\": \"12345\", \"species\": [\"mouse\", \"human\"]}",
-            Instant.now());
+            null);
     Dataset duplicateDataset =
         new Dataset(
-            UUID.randomUUID(),
+            null,
             datasetId,
             StorageSystem.TERRA_WORKSPACE,
             "{\"sampleId\": \"12345\", \"species\": [\"mouse\", \"human\"]}",
-            Instant.now());
+            null);
     try {
       datasetDao.create(dataset);
       datasetDao.create(duplicateDataset);
@@ -56,11 +56,11 @@ class DatasetDaoTest {
     String datasetId = UUID.randomUUID().toString();
     Dataset dataset =
         new Dataset(
-            UUID.randomUUID(),
+            null,
             datasetId,
             StorageSystem.TERRA_DATA_REPO,
             "{\"sampleId\": \"12345\", \"species\": [\"mouse\", \"human\"]}",
-            Instant.now());
+            null);
     try {
       datasetDao.create(dataset);
       assertThrows(InvalidDatasetException.class, () -> datasetDao.create(dataset));
