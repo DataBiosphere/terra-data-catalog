@@ -48,9 +48,28 @@ public class DatasetDao {
     try {
       return jdbcTemplate.queryForObject(sql, params, new DatasetMapper());
     } catch (EmptyResultDataAccessException ex) {
-      throw new DatasetNotFoundException("Dataset not found for id " + id);
+      throw new DatasetNotFoundException("Dataset not found for id " + id, ex);
     }
   }
+
+  private Dataset createOrUpdate(String sql, MapSqlParameterSource params) {
+    DaoKeyHolder keyHolder = new DaoKeyHolder();
+    try {
+      jdbcTemplate.update(sql, params, keyHolder);
+    } catch (EmptyResultDataAccessException ex) {
+      throw new DatasetNotFoundException("Dataset not found", ex);
+    } catch (DuplicateKeyException ex) {
+      throw new InvalidDatasetException(
+          "A dataset for this dataset_id and storage_system already exists", ex);
+    }
+    return new Dataset(
+        keyHolder.getId(),
+        keyHolder.getString(DATASET_ID_FIELD),
+        StorageSystem.valueOf(keyHolder.getString(STORAGE_SYSTEM_FIELD)),
+        keyHolder.getString(METADATA_FIELD),
+        keyHolder.getTimestamp(CREATED_DATE_FIELD).toInstant());
+  }
+
 
   @WriteTransaction
   public Dataset create(Dataset dataset) {
@@ -62,20 +81,7 @@ public class DatasetDao {
             .addValue(DATASET_ID_FIELD, dataset.datasetId())
             .addValue(STORAGE_SYSTEM_FIELD, String.valueOf(dataset.storageSystem()))
             .addValue(METADATA_FIELD, dataset.metadata());
-    DaoKeyHolder keyHolder = new DaoKeyHolder();
-    try {
-      jdbcTemplate.update(sql, params, keyHolder);
-    } catch (DuplicateKeyException e) {
-      throw new InvalidDatasetException(
-          "A dataset for this dataset_id and storage_system already exists");
-    }
-
-    return new Dataset(
-        keyHolder.getId(),
-        keyHolder.getString(DATASET_ID_FIELD),
-        StorageSystem.valueOf(keyHolder.getString(STORAGE_SYSTEM_FIELD)),
-        keyHolder.getString(METADATA_FIELD),
-        keyHolder.getTimestamp(CREATED_DATE_FIELD).toInstant());
+    return createOrUpdate(sql, params);
   }
 
   @WriteTransaction
@@ -91,22 +97,7 @@ public class DatasetDao {
             .addValue(DATASET_ID_FIELD, dataset.datasetId())
             .addValue(STORAGE_SYSTEM_FIELD, String.valueOf(dataset.storageSystem()))
             .addValue(METADATA_FIELD, dataset.metadata());
-
-    DaoKeyHolder keyHolder = new DaoKeyHolder();
-    try {
-      jdbcTemplate.update(sql, params, keyHolder);
-    } catch (EmptyResultDataAccessException ex) {
-      throw new DatasetNotFoundException("Dataset not found for id " + dataset.id());
-    } catch (DuplicateKeyException e) {
-      throw new InvalidDatasetException(
-          "A dataset for this dataset_id and storage_system already exists");
-    }
-    return new Dataset(
-        keyHolder.getId(),
-        keyHolder.getString(DATASET_ID_FIELD),
-        StorageSystem.valueOf(keyHolder.getString(STORAGE_SYSTEM_FIELD)),
-        keyHolder.getString(METADATA_FIELD),
-        keyHolder.getTimestamp(CREATED_DATE_FIELD).toInstant());
+    return createOrUpdate(sql, params);
   }
 
   @WriteTransaction
