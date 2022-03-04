@@ -85,3 +85,9 @@ spotbugsMain {
         }
     }
 }
+
+jacocoTestReport {
+    reports {
+        xml.required = true
+    }
+}
