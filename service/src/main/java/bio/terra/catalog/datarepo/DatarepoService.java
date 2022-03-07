@@ -2,10 +2,12 @@ package bio.terra.catalog.datarepo;
 
 import bio.terra.catalog.config.DatarepoConfiguration;
 import bio.terra.catalog.model.SystemStatusSystems;
+import bio.terra.datarepo.api.DatasetsApi;
 import bio.terra.datarepo.api.SnapshotsApi;
 import bio.terra.datarepo.api.UnauthenticatedApi;
 import bio.terra.datarepo.client.ApiClient;
 import bio.terra.datarepo.client.ApiException;
+import bio.terra.datarepo.model.DatasetSummaryModel;
 import bio.terra.datarepo.model.RepositoryStatusModel;
 import bio.terra.datarepo.model.SnapshotSummaryModel;
 import com.google.common.annotations.VisibleForTesting;
@@ -28,13 +30,28 @@ public class DatarepoService {
     this.commonHttpClient = new ApiClient().getHttpClient();
   }
 
+  public List<DatasetSummaryModel> getDatasets(String userToken) {
+    try {
+      return datasetsApi(userToken)
+          .enumerateDatasets(null, null, null, null, null, null)
+          .getItems();
+    } catch (ApiException e) {
+      throw new DatarepoException("Enumerate datasets failed", e);
+    }
+  }
+
+  @VisibleForTesting
+  DatasetsApi datasetsApi(String accessToken) {
+    return new DatasetsApi(getApiClient(accessToken));
+  }
+
   public List<SnapshotSummaryModel> getSnapshots(String userToken) {
     try {
       return snapshotsApi(userToken)
           .enumerateSnapshots(null, null, null, null, null, null, null)
           .getItems();
     } catch (ApiException e) {
-      throw new DatarepoException("Enumerate Datasets failed", e);
+      throw new DatarepoException("Enumerate snapshots failed", e);
     }
   }
 
