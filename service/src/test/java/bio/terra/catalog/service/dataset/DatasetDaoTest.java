@@ -43,24 +43,30 @@ class DatasetDaoTest {
   }
 
   @Test
-  void testCreateDatasetWithDifferentSources() throws Exception {
+  void testCreateDatasetWithDifferentSources() {
     String datasetId = UUID.randomUUID().toString();
     String metadata = "{\"sampleId\": \"12345\", \"species\": [\"mouse\", \"human\"]}";
     createDataset(datasetId, StorageSystem.TERRA_DATA_REPO, metadata);
     createDataset(datasetId, StorageSystem.TERRA_WORKSPACE, metadata);
-    long datasetCount = datasetDao.enumerate().stream().map(Dataset::datasetId).count();
+    long datasetCount =
+        datasetDao.enumerate().stream()
+            .filter(dataset -> dataset.datasetId().equals(datasetId))
+            .count();
     assertEquals(2L, datasetCount);
   }
 
   @Test
-  void testCreateDuplicateDataset() throws Exception {
+  void testCreateDuplicateDataset() {
     String datasetId = UUID.randomUUID().toString();
     String metadata = "{\"sampleId\": \"12345\", \"species\": [\"mouse\", \"human\"]}";
     createDataset(datasetId, StorageSystem.TERRA_DATA_REPO, metadata);
     assertThrows(
         InvalidDatasetException.class,
         () -> createDataset(datasetId, StorageSystem.TERRA_DATA_REPO, metadata));
-    long datasetCount = datasetDao.enumerate().stream().map(Dataset::datasetId).count();
+    long datasetCount =
+        datasetDao.enumerate().stream()
+            .filter(dataset -> dataset.datasetId().equals(datasetId))
+            .count();
     assertEquals(1L, datasetCount);
   }
 }
