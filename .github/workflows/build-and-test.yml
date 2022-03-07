@@ -180,7 +180,7 @@ jobs:
         run: ./gradlew --build-cache :integration:runTest --args="suites/FullIntegration.json /tmp/foo"
 
   notify-slack:
-    needs: [ build, jib, sonar-scanner, source-clear, integration-tests ]
+    needs: [ build, jib, source-clear, sonar-scanner, integration-tests ]
     runs-on: ubuntu-latest
 
     if: failure() && github.ref == 'refs/heads/main'
