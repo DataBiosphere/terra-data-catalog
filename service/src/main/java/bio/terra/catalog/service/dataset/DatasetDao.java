@@ -70,7 +70,6 @@ public class DatasetDao {
         keyHolder.getTimestamp(CREATED_DATE_FIELD).toInstant());
   }
 
-
   @WriteTransaction
   public Dataset create(Dataset dataset) {
     String sql =
