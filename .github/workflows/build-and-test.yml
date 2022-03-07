@@ -111,8 +111,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
       - name: Set up JDK
         uses: actions/setup-java@v2
         with:
@@ -128,12 +126,7 @@ jobs:
           psql -h localhost -U postgres -f ./common/postgres-init.sql
 
       - name: Test with coverage
-        run: ./gradlew --build-cache jacocoTestReport
-
-      - name: Codecov
-        uses: codecov/codecov-action@v2.0.2
-        with:
-          files: ./service/build/reports/jacoco/test/html/index.html
+        run: ./gradlew --build-cache test jacocoTestReport
 
   integration-tests:
     needs: [ build ]
