@@ -59,48 +59,6 @@ jobs:
         with:
           image: ${{ steps.image-name.outputs.name }}
 
-  unit-tests:
-    needs: [ build ]
-    runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:13
-        env:
-          POSTGRES_PASSWORD: postgres
-        ports: [ "5432:5432" ]
-
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Set up JDK
-        uses: actions/setup-java@v2
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'gradle'
-
-      - name: Make sure Postgres is ready and init
-        env:
-          PGPASSWORD: postgres
-        run: |
-          pg_isready -h localhost -t 10
-          psql -h localhost -U postgres -f ./common/postgres-init.sql
-
-      - name: Test with coverage
-        run: ./gradlew --build-cache test jacocoTestReport
-
-      - name: Codecov
-        uses: codecov/codecov-action@v2.0.2
-        with:
-          files: ./service/build/reports/jacoco/test/html/index.html
-
-      - name: SonarQube scan
-        run: ./gradlew --build-cache -Dsonar.login="${{ secrets.SONAR_TOKEN }}" sonarqube --info
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   source-clear:
     needs: [ build ]
     runs-on: ubuntu-latest
@@ -135,9 +93,47 @@ jobs:
           cache: 'gradle'
 
       - name: SonarQube scan
-        run: ./gradlew --build-cache -Dsonar.login="${{ secrets.SONAR_TOKEN }}" sonarqube
+        run: ./gradlew --build-cache sonarqube
         env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  unit-tests:
+    needs: [ build ]
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: [ "5432:5432" ]
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Make sure Postgres is ready and init
+        env:
+          PGPASSWORD: postgres
+        run: |
+          pg_isready -h localhost -t 10
+          psql -h localhost -U postgres -f ./common/postgres-init.sql
+
+      - name: Test with coverage
+        run: ./gradlew --build-cache jacocoTestReport
+
+      - name: Codecov
+        uses: codecov/codecov-action@v2.0.2
+        with:
+          files: ./service/build/reports/jacoco/test/html/index.html
 
   integration-tests:
     needs: [ build ]
