@@ -1,16 +1,16 @@
 package bio.terra.catalog.api;
 
+import bio.terra.catalog.model.DatasetsListResponse;
 import bio.terra.catalog.service.DatasetService;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.common.iam.AuthenticatedUserRequestFactory;
-import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
 @Controller
-public class DatasetApiController implements DatasetApi {
+public class DatasetApiController implements DatasetsApi {
   private final HttpServletRequest request;
   private final DatasetService datasetService;
   private final AuthenticatedUserRequestFactory authenticatedUserRequestFactory;
@@ -26,7 +26,7 @@ public class DatasetApiController implements DatasetApi {
   }
 
   @Override
-  public ResponseEntity<List<String>> listDatasets() {
+  public ResponseEntity<DatasetsListResponse> listDatasets() {
     AuthenticatedUserRequest user = authenticatedUserRequestFactory.from(request);
     return ResponseEntity.ok(datasetService.listDatasets(user));
   }

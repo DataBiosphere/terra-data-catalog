@@ -51,7 +51,7 @@ class DatasetApiControllerTest {
         .perform(get("/api/v1/datasets"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.result[0].id").value(snapshot.getId()))
-        .andExpect(jsonPath("$.result[0].name").value(snapshot.getName()));
+        .andExpect(jsonPath("$.result[0].id").value(snapshot.getId().toString()))
+        .andExpect(jsonPath("$.result[0].dct:title").value(snapshot.getName()));
   }
 }

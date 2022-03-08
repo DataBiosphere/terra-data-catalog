@@ -39,7 +39,7 @@ paths:
   /api/v1/datasets:
     get:
       summary: Lists the available catalog datasets.
-      tags: [ dataset ]
+      tags: [ datasets ]
       operationId: listDatasets
       responses:
         '200':
@@ -47,9 +47,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: string
+                $ref: '#/components/schemas/DatasetsListResponse'
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -117,6 +115,15 @@ components:
                 type: array
                 items:
                   type: string
+
+    DatasetsListResponse:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            type: object
+      description: List of datasets
 
     VersionProperties:
       type: object
