@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import bio.terra.catalog.app.App;
 import bio.terra.catalog.common.StorageSystem;
+import bio.terra.catalog.service.dataset.exception.DatasetNotFoundException;
 import bio.terra.catalog.service.dataset.exception.InvalidDatasetException;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,8 @@ class DatasetDaoTest {
 
   @Autowired private DatasetDao datasetDao;
   @Autowired private NamedParameterJdbcTemplate jdbcTemplate;
+  static String metadata = """
+      {"sampleId": "12345", "species": ["mouse", "human"]}""";
 
   private Dataset createDataset(String datasetId, StorageSystem storageSystem, String metadata)
       throws InvalidDatasetException {
@@ -32,7 +35,6 @@ class DatasetDaoTest {
   @Test
   void testDatasetCrudOperations() {
     String datasetId = UUID.randomUUID().toString();
-    String metadata = "{\"sampleId\": \"12345\", \"species\": [\"mouse\", \"human\"]}";
     Dataset dataset = createDataset(datasetId, StorageSystem.TERRA_DATA_REPO, metadata);
     Dataset updateRequest =
         new Dataset(dataset.id(), datasetId, StorageSystem.TERRA_WORKSPACE, metadata, null);
@@ -40,12 +42,12 @@ class DatasetDaoTest {
     Dataset updatedDataset = datasetDao.update(updateRequest);
     assertEquals(updatedDataset.storageSystem(), updateRequest.storageSystem());
     datasetDao.delete(dataset.id());
+    assertThrows(DatasetNotFoundException.class, () -> datasetDao.retrieve(dataset.id()));
   }
 
   @Test
   void testCreateDatasetWithDifferentSources() {
     String datasetId = UUID.randomUUID().toString();
-    String metadata = "{\"sampleId\": \"12345\", \"species\": [\"mouse\", \"human\"]}";
     createDataset(datasetId, StorageSystem.TERRA_DATA_REPO, metadata);
     createDataset(datasetId, StorageSystem.TERRA_WORKSPACE, metadata);
     long datasetCount =
@@ -58,7 +60,6 @@ class DatasetDaoTest {
   @Test
   void testCreateDuplicateDataset() {
     String datasetId = UUID.randomUUID().toString();
-    String metadata = "{\"sampleId\": \"12345\", \"species\": [\"mouse\", \"human\"]}";
     createDataset(datasetId, StorageSystem.TERRA_DATA_REPO, metadata);
     assertThrows(
         InvalidDatasetException.class,
