@@ -55,13 +55,15 @@ public class DatasetDao {
 
   private Dataset createOrUpdate(String sql, MapSqlParameterSource params) {
     DaoKeyHolder keyHolder = new DaoKeyHolder();
+    int rowsAffected = 0;
     try {
-      jdbcTemplate.update(sql, params, keyHolder);
-    } catch (EmptyResultDataAccessException ex) {
-      throw new DatasetNotFoundException("Dataset not found", ex);
+      rowsAffected = jdbcTemplate.update(sql, params, keyHolder);
     } catch (DuplicateKeyException ex) {
       throw new InvalidDatasetException(
           "A dataset for this dataset_id and storage_system already exists", ex);
+    }
+    if (rowsAffected != 1) {
+      throw new DatasetNotFoundException("Dataset not found");
     }
     return new Dataset(
         keyHolder.getId(),
