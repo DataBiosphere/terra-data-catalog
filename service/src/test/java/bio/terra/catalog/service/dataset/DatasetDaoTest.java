@@ -23,7 +23,8 @@ class DatasetDaoTest {
 
   @Autowired private DatasetDao datasetDao;
   @Autowired private NamedParameterJdbcTemplate jdbcTemplate;
-  static String metadata = """
+  private static final String metadata =
+      """
       {"sampleId": "12345", "species": ["mouse", "human"]}""";
 
   private Dataset createDataset(String datasetId, StorageSystem storageSystem, String metadata)

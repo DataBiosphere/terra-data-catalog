@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
+import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -66,7 +67,7 @@ public class DatasetDao {
         keyHolder.getId(),
         keyHolder.getString(DATASET_ID_FIELD),
         StorageSystem.valueOf(keyHolder.getString(STORAGE_SYSTEM_FIELD)),
-        keyHolder.getString(METADATA_FIELD),
+        keyHolder.getField(METADATA_FIELD, PGobject.class).toString(),
         keyHolder.getTimestamp(CREATED_DATE_FIELD).toInstant());
   }
 
