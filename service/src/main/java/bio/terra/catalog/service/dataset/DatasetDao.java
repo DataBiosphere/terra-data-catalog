@@ -70,7 +70,7 @@ public class DatasetDao {
         keyHolder.getString(DATASET_ID_FIELD),
         StorageSystem.valueOf(keyHolder.getString(STORAGE_SYSTEM_FIELD)),
         keyHolder.getField(METADATA_FIELD, PGobject.class).toString(),
-        keyHolder.getTimestamp(CREATED_DATE_FIELD).toInstant());
+        keyHolder.getCreatedDate());
   }
 
   @WriteTransaction
