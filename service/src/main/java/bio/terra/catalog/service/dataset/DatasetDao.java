@@ -24,7 +24,7 @@ public class DatasetDao {
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
   private static final String ID_FIELD = "id";
-  private static final String DATASET_ID_FIELD = "dataset_id";
+  private static final String STORAGE_SOURCE_ID_FIELD = "storage_source_id";
   private static final String STORAGE_SYSTEM_FIELD = "storage_system";
   private static final String METADATA_FIELD = "metadata";
   private static final String CREATED_DATE_FIELD = "created_date";
@@ -36,7 +36,8 @@ public class DatasetDao {
 
   @ReadTransaction
   public List<Dataset> enumerate() {
-    String sql = "SELECT id, dataset_id, storage_system, metadata, created_date FROM dataset";
+    String sql =
+        "SELECT id, storage_source_id, storage_system, metadata, created_date FROM dataset";
     MapSqlParameterSource params = new MapSqlParameterSource();
     return jdbcTemplate.query(sql, params, new DatasetMapper());
   }
@@ -44,7 +45,7 @@ public class DatasetDao {
   @ReadTransaction
   public Dataset retrieve(UUID id) {
     String sql =
-        "SELECT id, dataset_id, storage_system, metadata, created_date FROM dataset WHERE id = :id";
+        "SELECT id, storage_source_id, storage_system, metadata, created_date FROM dataset WHERE id = :id";
     MapSqlParameterSource params = new MapSqlParameterSource().addValue(ID_FIELD, id);
     try {
       return jdbcTemplate.queryForObject(sql, params, new DatasetMapper());
@@ -60,14 +61,14 @@ public class DatasetDao {
       rowsAffected = jdbcTemplate.update(sql, params, keyHolder);
     } catch (DuplicateKeyException ex) {
       throw new InvalidDatasetException(
-          "A dataset for this dataset_id and storage_system already exists", ex);
+          "A dataset for this storage_source_id and storage_system already exists", ex);
     }
     if (rowsAffected != 1) {
       throw new DatasetNotFoundException("Dataset not found");
     }
     return new Dataset(
         keyHolder.getId(),
-        keyHolder.getString(DATASET_ID_FIELD),
+        keyHolder.getString(STORAGE_SOURCE_ID_FIELD),
         StorageSystem.valueOf(keyHolder.getString(STORAGE_SYSTEM_FIELD)),
         keyHolder.getField(METADATA_FIELD, PGobject.class).toString(),
         keyHolder.getCreatedDate());
@@ -76,11 +77,11 @@ public class DatasetDao {
   @WriteTransaction
   public Dataset create(Dataset dataset) {
     String sql =
-        "INSERT INTO dataset (dataset_id, storage_system, metadata) "
-            + "VALUES (:dataset_id, :storage_system, cast(:metadata as jsonb))";
+        "INSERT INTO dataset (storage_source_id, storage_system, metadata) "
+            + "VALUES (:storage_source_id, :storage_system, cast(:metadata as jsonb))";
     MapSqlParameterSource params =
         new MapSqlParameterSource()
-            .addValue(DATASET_ID_FIELD, dataset.datasetId())
+            .addValue(STORAGE_SOURCE_ID_FIELD, dataset.storageSourceId())
             .addValue(STORAGE_SYSTEM_FIELD, String.valueOf(dataset.storageSystem()))
             .addValue(METADATA_FIELD, dataset.metadata());
     return createOrUpdate(sql, params);
@@ -90,13 +91,13 @@ public class DatasetDao {
   public Dataset update(Dataset dataset) {
     String sql =
         "UPDATE dataset "
-            + "SET dataset_id = :dataset_id, storage_system = :storage_system, "
+            + "SET storage_source_id = :storage_source_id, storage_system = :storage_system, "
             + "metadata = cast(:metadata as jsonb) "
             + "WHERE id = :id";
     MapSqlParameterSource params =
         new MapSqlParameterSource()
             .addValue(ID_FIELD, dataset.id())
-            .addValue(DATASET_ID_FIELD, dataset.datasetId())
+            .addValue(STORAGE_SOURCE_ID_FIELD, dataset.storageSourceId())
             .addValue(STORAGE_SYSTEM_FIELD, String.valueOf(dataset.storageSystem()))
             .addValue(METADATA_FIELD, dataset.metadata());
     return createOrUpdate(sql, params);
@@ -114,7 +115,7 @@ public class DatasetDao {
     public Dataset mapRow(ResultSet rs, int rowNum) throws SQLException {
       return new Dataset(
           rs.getObject(ID_FIELD, UUID.class),
-          rs.getString(DATASET_ID_FIELD),
+          rs.getString(STORAGE_SOURCE_ID_FIELD),
           StorageSystem.valueOf(rs.getString(STORAGE_SYSTEM_FIELD)),
           rs.getString(METADATA_FIELD),
           rs.getTimestamp(CREATED_DATE_FIELD).toInstant());

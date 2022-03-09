@@ -29,19 +29,20 @@ class DatasetDaoTest {
       """
       {"sampleId": "12345", "species": ["mouse", "human"]}""";
 
-  private Dataset createDataset(String datasetId, StorageSystem storageSystem, String metadata)
+  private Dataset createDataset(
+      String storageSourceId, StorageSystem storageSystem, String metadata)
       throws InvalidDatasetException {
-    Dataset dataset = new Dataset(null, datasetId, storageSystem, metadata, null);
+    Dataset dataset = new Dataset(null, storageSourceId, storageSystem, metadata, null);
     return datasetDao.create(dataset);
   }
 
   @Test
   void testDatasetCrudOperations() {
-    String datasetId = UUID.randomUUID().toString();
-    Dataset dataset = createDataset(datasetId, StorageSystem.TERRA_DATA_REPO, metadata);
+    String storageSourceId = UUID.randomUUID().toString();
+    Dataset dataset = createDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO, metadata);
     UUID id = dataset.id();
     Dataset updateRequest =
-        new Dataset(id, datasetId, StorageSystem.TERRA_WORKSPACE, metadata, null);
+        new Dataset(id, storageSourceId, StorageSystem.TERRA_WORKSPACE, metadata, null);
     datasetDao.retrieve(id);
     Dataset updatedDataset = datasetDao.update(updateRequest);
     assertEquals(updatedDataset.storageSystem(), updateRequest.storageSystem());
@@ -51,26 +52,26 @@ class DatasetDaoTest {
 
   @Test
   void testCreateDatasetWithDifferentSources() {
-    String datasetId = UUID.randomUUID().toString();
-    createDataset(datasetId, StorageSystem.TERRA_DATA_REPO, metadata);
-    createDataset(datasetId, StorageSystem.TERRA_WORKSPACE, metadata);
+    String storageSourceId = UUID.randomUUID().toString();
+    createDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO, metadata);
+    createDataset(storageSourceId, StorageSystem.TERRA_WORKSPACE, metadata);
     long datasetCount =
         datasetDao.enumerate().stream()
-            .filter(dataset -> dataset.datasetId().equals(datasetId))
+            .filter(dataset -> dataset.storageSourceId().equals(storageSourceId))
             .count();
     assertEquals(2L, datasetCount);
   }
 
   @Test
   void testCreateDuplicateDataset() {
-    String datasetId = UUID.randomUUID().toString();
-    createDataset(datasetId, StorageSystem.TERRA_DATA_REPO, metadata);
+    String storageSourceId = UUID.randomUUID().toString();
+    createDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO, metadata);
     assertThrows(
         InvalidDatasetException.class,
-        () -> createDataset(datasetId, StorageSystem.TERRA_DATA_REPO, metadata));
+        () -> createDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO, metadata));
     long datasetCount =
         datasetDao.enumerate().stream()
-            .filter(dataset -> dataset.datasetId().equals(datasetId))
+            .filter(dataset -> dataset.storageSourceId().equals(storageSourceId))
             .count();
     assertEquals(1L, datasetCount);
   }
@@ -78,9 +79,9 @@ class DatasetDaoTest {
   @Test
   void testHandleNonExistentDatasets() {
     UUID id = UUID.randomUUID();
-    String datasetId = UUID.randomUUID().toString();
+    String storageSourceId = UUID.randomUUID().toString();
     Dataset updateRequest =
-        new Dataset(id, datasetId, StorageSystem.TERRA_WORKSPACE, metadata, null);
+        new Dataset(id, storageSourceId, StorageSystem.TERRA_WORKSPACE, metadata, null);
     assertThrows(DatasetNotFoundException.class, () -> datasetDao.retrieve(id));
     assertThrows(DatasetNotFoundException.class, () -> datasetDao.update(updateRequest));
     assertFalse(datasetDao.delete(id));

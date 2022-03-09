@@ -14,7 +14,7 @@ databaseChangeLog:
                     primaryKey: true
                     nullable: false
               - column:
-                  name: dataset_id
+                  name: storage_source_id
                   type: text
                   constraints:
                     nullable: false
@@ -36,6 +36,6 @@ databaseChangeLog:
                     nullable: false
         # ensure there can only be one dataset_id, storage_system combination
         - addUniqueConstraint:
-            columnNames: dataset_id, storage_system
+            columnNames: storage_source_id, storage_system
             constraintName: dataset_unique_constraint
             tableName: dataset
