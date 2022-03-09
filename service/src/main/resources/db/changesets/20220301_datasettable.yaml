@@ -1,0 +1,41 @@
+databaseChangeLog:
+  - changeSet:
+      id: dataset_table
+      author: sehsan
+      changes:
+        - createTable:
+            tableName: dataset
+            columns:
+              - column:
+                  name: id
+                  type: ${uuid_type}
+                  defaultValueComputed: ${uuid_function}
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: storage_source_id
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: storage_system
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: metadata
+                  type: jsonb
+                  constraints:
+                    nullable: true
+              - column:
+                  name: created_date
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        # ensure there can only be one dataset_id, storage_system combination
+        - addUniqueConstraint:
+            columnNames: storage_source_id, storage_system
+            constraintName: dataset_unique_constraint
+            tableName: dataset
