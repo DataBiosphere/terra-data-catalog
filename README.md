@@ -61,6 +61,7 @@ To run migrations locally use:
 
 If the local database gets into a bad state (for instance while testing/modifying a new changeset),
 drop its contents with:
+
 ```
 ./gradlew dropAll
 ```
