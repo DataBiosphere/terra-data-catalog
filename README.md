@@ -46,7 +46,8 @@ render-configs.sh perf
 ./gradlew :integration:runTest --args="suites/FullPerf.json /tmp/test"
 ```
 
-## Handling Database Migrations
+## Handling database migrations
+
 The catalog service uses [Liquibase](https://liquibase.org/) to track and manage changes to the
 database schema. Liquibase runs each changeset (migration) listed in the
 [changelog.xml](service/src/resources/db/changelog.xml) file and
