@@ -48,7 +48,7 @@ liquibase {
     activities {
         catalog {
             changeLogFile 'src/main/resources/db/changelog.xml'
-            url 'jdbc:postgresql://127.0.0.1:5432/catalog_db'
+            url 'jdbc:postgresql://localhost:5432/catalog_db'
             username 'dbuser'
             password 'dbpwd'
             logLevel 'info'
