@@ -53,6 +53,7 @@ database schema. Liquibase runs each changeset (migration) listed in the
 maintains a record of what has been run, so new changes must be added in a new changeset.
 
 To run migrations locally use:
+
 ```
 ./gradlew update
 ```
