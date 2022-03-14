@@ -45,3 +45,20 @@ To run performance tests, execute:
 render-configs.sh perf
 ./gradlew :integration:runTest --args="suites/FullPerf.json /tmp/test"
 ```
+
+## Handling Database Migrations
+The catalog service uses [Liquibase](https://liquibase.org/) to track and manage changes to the
+database schema. Liquibase runs each changeset (migration) listed in the
+[changelog.xml](service/src/resources/db/changelog.xml) file and
+maintains a record of what has been run, so new changes must be added in a new changeset.
+
+To run migrations locally use:
+```
+./gradlew update
+```
+
+If the local database gets into a bad state (for instance while testing/modifying a new changeset),
+drop its contents with:
+```
+./gradlew dropAll
+```
