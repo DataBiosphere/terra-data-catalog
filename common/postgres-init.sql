@@ -1,3 +1,4 @@
 CREATE DATABASE catalog_db;
+\c catalog_db;
 CREATE ROLE dbuser WITH LOGIN ENCRYPTED PASSWORD 'dbpwd';
 CREATE EXTENSION pgcrypto;
