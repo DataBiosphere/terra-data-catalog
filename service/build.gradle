@@ -6,6 +6,7 @@ plugins {
     id 'org.sonarqube'
 
     id 'com.gorylenko.gradle-git-properties' version '2.3.1'
+    id 'org.liquibase.gradle' version '2.1.0'
 }
 
 apply from: 'generators.gradle'
@@ -22,6 +23,11 @@ dependencies {
     implementation 'javax.ws.rs:javax.ws.rs-api:2.1.1'
     implementation 'org.postgresql:postgresql:42.3.3'
 
+    liquibaseRuntime 'org.liquibase:liquibase-core:3.10.0'
+    liquibaseRuntime 'info.picocli:picocli:4.6.1'
+    liquibaseRuntime 'org.postgresql:postgresql:42.3.3'
+    liquibaseRuntime 'ch.qos.logback:logback-classic:1.2.3'
+
     testImplementation 'org.junit.jupiter:junit-jupiter-api'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
@@ -35,5 +41,17 @@ sonarqube {
         property 'sonar.projectKey', 'terra-data-catalog'
         property 'sonar.organization', 'broad-databiosphere'
         property 'sonar.host.url', 'https://sonarcloud.io'
+    }
+}
+
+liquibase {
+    activities {
+        catalog {
+            changeLogFile 'src/main/resources/db/changelog.xml'
+            url 'jdbc:postgresql://localhost:5432/catalog_db'
+            username 'dbuser'
+            password 'dbpwd'
+            logLevel 'info'
+        }
     }
 }
