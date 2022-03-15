@@ -88,7 +88,7 @@ jobs:
     if: failure() && github.ref == 'refs/heads/main'
 
     steps:
-      - name: Notify #jade-data-explorer Slack on failure
+      - name: "Notify #jade-data-explorer Slack on failure"
         uses: broadinstitute/action-slack@v3.8.0
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -108,7 +108,7 @@ jobs:
     if: always()
 
     steps:
-      - name: Always notify #dsde-qa Slack
+      - name: "Always notify #dsde-qa Slack"
         uses: broadinstitute/action-slack@v3.8.0
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
