@@ -2,18 +2,25 @@ package bio.terra.catalog.api;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import bio.terra.catalog.datarepo.DatarepoService;
+import bio.terra.catalog.common.StorageSystem;
+import bio.terra.catalog.model.CreateDatasetRequest;
+import bio.terra.catalog.model.DatasetsListResponse;
 import bio.terra.catalog.service.DatasetService;
+import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.common.iam.AuthenticatedUserRequestFactory;
-import bio.terra.datarepo.model.SnapshotSummaryModel;
-import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,27 +38,91 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest
 class DatasetApiControllerTest {
 
+  private static final String API = "/api/v1/datasets";
+  private static final String API_ID = API + "/{id}";
+  private static final String METADATA = """
+      {"some": "metadata"}""";
+
   @Autowired private MockMvc mockMvc;
 
-  @MockBean private DatarepoService datarepoService;
+  @MockBean private DatasetService datasetService;
 
   @MockBean private AuthenticatedUserRequestFactory authenticatedUserRequestFactory;
 
+  private final AuthenticatedUserRequest user = mock(AuthenticatedUserRequest.class);
+
   @BeforeEach
   void beforeEach() {
-    when(authenticatedUserRequestFactory.from(any()))
-        .thenReturn(mock(AuthenticatedUserRequest.class));
+    when(authenticatedUserRequestFactory.from(any())).thenReturn(user);
   }
 
   @Test
   void listDatasets() throws Exception {
-    var snapshot = new SnapshotSummaryModel().id(UUID.randomUUID()).name("snapshot");
-    when(datarepoService.getSnapshots(any())).thenReturn(List.of(snapshot));
+    DatasetsListResponse response = new DatasetsListResponse();
+    ObjectNode node = new ObjectMapper().createObjectNode();
+    node.put("id", "id");
+    response.addResultItem(node);
+    when(datasetService.listDatasets(user)).thenReturn(response);
     mockMvc
-        .perform(get("/api/v1/datasets"))
+        .perform(get(API))
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.result[0].id").value(snapshot.getId().toString()))
-        .andExpect(jsonPath("$.result[0].dct:title").value(snapshot.getName()));
+        .andExpect(jsonPath("$.result[0].id").value("id"));
   }
+
+  @Test
+  void deleteDataset() throws Exception {
+    var datasetId = new DatasetId(UUID.randomUUID());
+    mockMvc.perform(delete(API_ID, datasetId.uuid())).andExpect(status().is2xxSuccessful());
+    verify(datasetService).deleteMetadata(user, datasetId);
+  }
+
+  @Test
+  void getDataset() throws Exception {
+    var datasetId = new DatasetId(UUID.randomUUID());
+    mockMvc.perform(get(API_ID, datasetId.uuid())).andExpect(status().isOk());
+    verify(datasetService).getMetadata(user, datasetId);
+  }
+
+  @Test
+  void updateDataset() throws Exception {
+    var datasetId = new DatasetId(UUID.randomUUID());
+    mockMvc
+        .perform(
+            put(API_ID, datasetId.uuid()).contentType(MediaType.APPLICATION_JSON).content(METADATA))
+        .andExpect(status().is2xxSuccessful());
+    verify(datasetService).updateMetadata(user, datasetId, METADATA);
+  }
+
+  @Test
+  void createDataset() throws Exception {
+    var storageSystem = StorageSystem.EXTERNAL;
+    var id = "sourceId";
+    var request =
+        new CreateDatasetRequest()
+            .storageSystem(storageSystem.value)
+            .storageSourceId(id)
+            .catalogEntry(METADATA);
+    var postBody = new ObjectMapper().writeValueAsString(request);
+    mockMvc
+        .perform(post(API).contentType(MediaType.APPLICATION_JSON).content(postBody))
+        .andExpect(status().is2xxSuccessful());
+    verify(datasetService).createDataset(user, storageSystem, id, METADATA);
+  }
+
+  /*
+  @Test
+  void createDatasetInvalidStorageSystem() throws Exception {
+    var id = "sourceId";
+    var request =
+        new CreateDatasetRequest()
+            .storageSystem("unknown")
+            .storageSourceId(id)
+            .catalogEntry(METADATA);
+    var postBody = new ObjectMapper().writeValueAsString(request);
+    mockMvc
+        .perform(post(API).contentType(MediaType.APPLICATION_JSON).content(postBody))
+        .andExpect(status().isInternalServerError());
+  }
+  */
 }

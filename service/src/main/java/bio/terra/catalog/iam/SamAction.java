@@ -4,7 +4,10 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import java.util.Arrays;
 
 public enum SamAction {
-  ALTER_ENTRY("alter_entry");
+  CREATE_METADATA("create_metadata"),
+  READ_ANY_METADATA("read_any_metadata"),
+  UPDATE_ANY_METADATA("update_any_metadata"),
+  DELETE_ANY_METADATA("delete_any_metadata");
 
   private final String name;
 

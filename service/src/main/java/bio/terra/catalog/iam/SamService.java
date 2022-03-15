@@ -42,14 +42,15 @@ public class SamService {
    * @param action sam action
    * @return true if the user has any actions on that resource; false otherwise.
    */
-  public boolean hasAction(AuthenticatedUserRequest userRequest, SamAction action)
-      throws InterruptedException {
+  public boolean hasAction(AuthenticatedUserRequest userRequest, SamAction action) {
     String accessToken = userRequest.getToken();
     ResourcesApi resourceApi = samResourcesApi(accessToken);
     try {
       return SamRetry.retry(
           () -> resourceApi.resourceActions(null, null).contains(action.toString()));
     } catch (ApiException e) {
+      throw SamExceptionFactory.create("Error checking resource permission in Sam", e);
+    } catch (InterruptedException e) {
       throw SamExceptionFactory.create("Error checking resource permission in Sam", e);
     }
   }
@@ -60,12 +61,14 @@ public class SamService {
    * @param userToken user token
    * @return {@link UserStatusInfo}
    */
-  public UserStatusInfo getUserStatusInfo(String userToken) throws InterruptedException {
+  public UserStatusInfo getUserStatusInfo(String userToken) {
     UsersApi usersApi = samUsersApi(userToken);
     try {
       return SamRetry.retry(usersApi::getUserStatusInfo);
     } catch (ApiException e) {
       throw SamExceptionFactory.create("Error getting user email from Sam", e);
+    } catch (InterruptedException e) {
+      throw SamExceptionFactory.create("Error checking resource permission in Sam", e);
     }
   }
 

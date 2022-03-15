@@ -2,11 +2,20 @@ package bio.terra.catalog.service.dataset;
 
 import bio.terra.catalog.common.StorageSystem;
 import java.time.Instant;
-import java.util.UUID;
 
 public record Dataset(
-    UUID id,
+    DatasetId id,
     String storageSourceId,
     StorageSystem storageSystem,
     String metadata,
-    Instant createdDate) {}
+    Instant createdDate) {
+
+  /**
+   * Create a new Dataset with the given metadata
+   *
+   * @param metadata the metadata to store
+   */
+  public Dataset withMetadata(String metadata) {
+    return new Dataset(id, storageSourceId, storageSystem, metadata, createdDate);
+  }
+}
