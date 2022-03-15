@@ -85,7 +85,7 @@ jobs:
     needs: [ build, jib, test-runner ]
     runs-on: ubuntu-latest
 
-    if: failure() && github.ref == 'refs/heads/main'
+    if: failure()
 
     steps:
       - name: "Notify #jade-data-explorer Slack on failure"
