@@ -2,6 +2,7 @@ package bio.terra.catalog.api;
 
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.model.CreateDatasetRequest;
+import bio.terra.catalog.model.CreatedDatasetId;
 import bio.terra.catalog.model.DatasetsListResponse;
 import bio.terra.catalog.service.DatasetService;
 import bio.terra.catalog.service.dataset.DatasetId;
@@ -56,13 +57,14 @@ public class DatasetApiController implements DatasetsApi {
   }
 
   @Override
-  public ResponseEntity<Void> createDataset(CreateDatasetRequest request) {
+  public ResponseEntity<CreatedDatasetId> createDataset(CreateDatasetRequest request) {
     AuthenticatedUserRequest user = getUser();
-    datasetService.createDataset(
-        user,
-        StorageSystem.fromString(request.getStorageSystem()),
-        request.getStorageSourceId(),
-        request.getCatalogEntry());
-    return ResponseEntity.noContent().build();
+    var datasetId =
+        datasetService.createDataset(
+            user,
+            StorageSystem.fromString(request.getStorageSystem()),
+            request.getStorageSourceId(),
+            request.getCatalogEntry());
+    return ResponseEntity.ok(new CreatedDatasetId().id(datasetId.uuid()));
   }
 }

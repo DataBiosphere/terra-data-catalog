@@ -61,9 +61,8 @@ paths:
               $ref: '#/components/schemas/CreateDatasetRequest'
         required: true
       responses:
-        204:
-          description: The catalog entry was created successfully
-          content: { }
+        200:
+          $ref: '#/components/responses/DatasetResponse'
         403:
           description: No permission to modify metadata
           content:
@@ -158,6 +157,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/SystemStatus'
+    DatasetResponse:
+      description: The created dataset's ID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CreatedDatasetId'
 
     # Error Responses
     BadRequest:
@@ -213,6 +218,14 @@ components:
                 type: array
                 items:
                   type: string
+
+    CreatedDatasetId:
+      type: object
+      required: [ id ]
+      properties:
+        id:
+          type: string
+          format: uuid
 
     DatasetsListResponse:
       type: object

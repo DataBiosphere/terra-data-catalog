@@ -50,13 +50,13 @@ public class DatasetDao {
     try {
       return jdbcTemplate.queryForObject(sql, params, new DatasetMapper());
     } catch (EmptyResultDataAccessException ex) {
-      throw new DatasetNotFoundException("Dataset not found for id " + id, ex);
+      throw new DatasetNotFoundException("Dataset not found for " + id, ex);
     }
   }
 
   private Dataset createOrUpdate(String sql, MapSqlParameterSource params) {
     DaoKeyHolder keyHolder = new DaoKeyHolder();
-    int rowsAffected = 0;
+    int rowsAffected;
     try {
       rowsAffected = jdbcTemplate.update(sql, params, keyHolder);
     } catch (DuplicateKeyException ex) {

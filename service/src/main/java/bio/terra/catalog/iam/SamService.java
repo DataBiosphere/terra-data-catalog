@@ -26,6 +26,9 @@ public class SamService {
   private final SamConfiguration samConfig;
   private final OkHttpClient commonHttpClient;
 
+  private static final String CATALOG_RESOURCE_TYPE = "catalog";
+  private static final String CATALOG_RESOURCE_ID = "catalog";
+
   @Autowired
   public SamService(SamConfiguration samConfig) {
     this.samConfig = samConfig;
@@ -47,7 +50,10 @@ public class SamService {
     ResourcesApi resourceApi = samResourcesApi(accessToken);
     try {
       return SamRetry.retry(
-          () -> resourceApi.resourceActions(null, null).contains(action.toString()));
+          () ->
+              resourceApi
+                  .resourceActions(CATALOG_RESOURCE_TYPE, CATALOG_RESOURCE_ID)
+                  .contains(action.toString()));
     } catch (ApiException e) {
       throw SamExceptionFactory.create("Error checking resource permission in Sam", e);
     } catch (InterruptedException e) {

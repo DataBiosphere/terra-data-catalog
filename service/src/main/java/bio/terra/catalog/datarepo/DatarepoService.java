@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class DatarepoService {
   private static final Logger logger = LoggerFactory.getLogger(DatarepoService.class);
-  public static final String OWNER_ROLE_NAME = "owner";
+  public static final String OWNER_ROLE_NAME = "admin";
   private final DatarepoConfiguration datarepoConfig;
   private final Client commonHttpClient;
 

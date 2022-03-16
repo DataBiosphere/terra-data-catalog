@@ -69,6 +69,8 @@ public class DatasetService {
 
   public String getMetadata(AuthenticatedUserRequest user, DatasetId datasetId) {
     var dataset = datasetDao.retrieve(datasetId);
+    // This check isn't correct as it checks for owner, but it should check for reader or
+    // discoverer.
     ensureActionPermission(user, dataset, SamAction.READ_ANY_METADATA);
     return dataset.metadata();
   }
@@ -79,13 +81,13 @@ public class DatasetService {
     datasetDao.update(dataset.withMetadata(metadata));
   }
 
-  public void createDataset(
+  public DatasetId createDataset(
       AuthenticatedUserRequest user,
       StorageSystem storageSystem,
       String storageSourceId,
       String metadata) {
     var dataset = new Dataset(null, storageSourceId, storageSystem, metadata, null);
     ensureActionPermission(user, dataset, SamAction.UPDATE_ANY_METADATA);
-    datasetDao.create(dataset);
+    return datasetDao.create(dataset).id();
   }
 }
