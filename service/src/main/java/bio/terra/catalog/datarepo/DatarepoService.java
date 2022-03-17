@@ -1,8 +1,8 @@
 package bio.terra.catalog.datarepo;
 
 import bio.terra.catalog.config.DatarepoConfiguration;
+import bio.terra.catalog.iam.SamAuthenticatedUserRequestFactory;
 import bio.terra.catalog.model.SystemStatusSystems;
-import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.api.SnapshotsApi;
 import bio.terra.datarepo.api.UnauthenticatedApi;
 import bio.terra.datarepo.client.ApiClient;
@@ -21,54 +21,55 @@ import org.springframework.stereotype.Component;
 @Component
 public class DatarepoService {
   private static final Logger logger = LoggerFactory.getLogger(DatarepoService.class);
+
   public static final String OWNER_ROLE_NAME = "admin";
+
   private final DatarepoConfiguration datarepoConfig;
+  private final SamAuthenticatedUserRequestFactory userFactory;
   private final Client commonHttpClient;
 
   @Autowired
-  public DatarepoService(DatarepoConfiguration datarepoConfig) {
+  public DatarepoService(
+      DatarepoConfiguration datarepoConfig, SamAuthenticatedUserRequestFactory userFactory) {
     this.datarepoConfig = datarepoConfig;
+    this.userFactory = userFactory;
     this.commonHttpClient = new ApiClient().getHttpClient();
   }
 
-  public List<SnapshotSummaryModel> getSnapshots(AuthenticatedUserRequest user) {
+  public List<SnapshotSummaryModel> getSnapshots() {
     try {
-      return snapshotsApi(user)
-          .enumerateSnapshots(null, null, null, null, null, null, null)
-          .getItems();
+      return snapshotsApi().enumerateSnapshots(null, null, null, null, null, null, null).getItems();
     } catch (ApiException e) {
       throw new DatarepoException("Enumerate snapshots failed", e);
     }
   }
 
-  public boolean isOwner(AuthenticatedUserRequest user, String snapshotId) {
+  public boolean isOwner(String snapshotId) {
     try {
       UUID id = UUID.fromString(snapshotId);
-      return snapshotsApi(user).retrieveUserSnapshotRoles(id).contains(OWNER_ROLE_NAME);
+      return snapshotsApi().retrieveUserSnapshotRoles(id).contains(OWNER_ROLE_NAME);
     } catch (ApiException e) {
       throw new DatarepoException("Get snapshot roles failed", e);
     }
   }
 
   @VisibleForTesting
-  SnapshotsApi snapshotsApi(AuthenticatedUserRequest user) {
-    return new SnapshotsApi(getApiClient(user));
+  SnapshotsApi snapshotsApi() {
+    return new SnapshotsApi(getApiClient(userFactory.getUser().getToken()));
   }
 
-  private ApiClient getApiClient(AuthenticatedUserRequest user) {
-    ApiClient apiClient = getApiClient();
-    apiClient.setAccessToken(user.getToken());
+  private ApiClient getApiClient(String token) {
+    var apiClient =
+        new ApiClient().setHttpClient(commonHttpClient).setBasePath(datarepoConfig.basePath());
+    if (token != null) {
+      apiClient.setAccessToken(token);
+    }
     return apiClient;
-  }
-
-  private ApiClient getApiClient() {
-    // Share one api client across requests.
-    return new ApiClient().setHttpClient(commonHttpClient).setBasePath(datarepoConfig.basePath());
   }
 
   public SystemStatusSystems status() {
     // No access token needed since this is an unauthenticated API.
-    UnauthenticatedApi api = new UnauthenticatedApi(getApiClient());
+    UnauthenticatedApi api = new UnauthenticatedApi(getApiClient(null));
     var result = new SystemStatusSystems();
     try {
       // Don't retry status check

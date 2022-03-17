@@ -2,33 +2,33 @@ package bio.terra.catalog.iam;
 
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
-import bio.terra.common.iam.AuthenticatedUserRequestFactory;
 import bio.terra.common.iam.BearerTokenParser;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * An {@link AuthenticatedUserRequestFactory} which always resolves the user email and subjectId
- * from Sam given a request token.
+ * A Component which always resolves the user email and subjectId from Sam given a request token.
  *
  * <p>This is important for calls made by pet service accounts, which will have a pet email in the
  * request header, but Sam will return the owner's email.
  */
 @Component
-public class SamAuthenticatedUserRequestFactory implements AuthenticatedUserRequestFactory {
+public class SamAuthenticatedUserRequestFactory {
   private static final String OAUTH2_ACCESS_TOKEN = "OAUTH2_CLAIM_access_token";
   private static final String AUTHORIZATION = "Authorization";
-  private final SamService samService;
+  private final SamUserStatusService samService;
+  private final HttpServletRequest request;
 
   @Autowired
-  public SamAuthenticatedUserRequestFactory(SamService samService) {
+  public SamAuthenticatedUserRequestFactory(
+      SamUserStatusService samService, HttpServletRequest request) {
     this.samService = samService;
+    this.request = request;
   }
 
-  @Override
-  public AuthenticatedUserRequest from(HttpServletRequest servletRequest) {
-    final var token = getRequiredToken(servletRequest);
+  public AuthenticatedUserRequest getUser() {
+    final var token = getRequiredToken(request);
 
     // Fetch the user status from Sam
     var userStatusInfo =
