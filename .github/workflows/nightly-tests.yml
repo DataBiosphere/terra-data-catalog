@@ -81,14 +81,14 @@ jobs:
           name: Test Reports
           path: integration/build/reports
 
-  notify-slack:
+  notify-slack-failure:
     needs: [ build, jib, test-runner ]
     runs-on: ubuntu-latest
 
-    if: failure() && github.ref == 'refs/heads/main'
+    if: failure()
 
     steps:
-      - name: Notify slack on failure
+      - name: "Notify #jade-data-explorer Slack on failure"
         uses: broadinstitute/action-slack@v3.8.0
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -98,4 +98,24 @@ jobs:
           author_name: Nightly test
           fields: workflow,message
           text: 'Nightly test failed :sadpanda:'
+          username: 'Data Explorer GitHub Action'
+          
+
+  notify-slack-always:
+    needs: [ build, jib, test-runner ]
+    runs-on: ubuntu-latest
+    
+    if: always()
+
+    steps:
+      - name: "Always notify #dsde-qa Slack"
+        uses: broadinstitute/action-slack@v3.8.0
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        with:
+          channel: '#dsde-qa'
+          status: ${{ job.status }}
+          author_name: Nightly test
+          fields: workflow,message
+          text: 'Nightly performance test results'
           username: 'Data Explorer GitHub Action'
