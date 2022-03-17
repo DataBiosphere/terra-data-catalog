@@ -8,7 +8,11 @@ public record Dataset(
     String storageSourceId,
     StorageSystem storageSystem,
     String metadata,
-    Instant createdDate) {
+    Instant creationTime) {
+
+  public Dataset(String storageSourceId, StorageSystem storageSystem, String metadata) {
+    this(null, storageSourceId, storageSystem, metadata, null);
+  }
 
   /**
    * Create a new Dataset with the given metadata
@@ -16,6 +20,6 @@ public record Dataset(
    * @param metadata the metadata to store
    */
   public Dataset withMetadata(String metadata) {
-    return new Dataset(id, storageSourceId, storageSystem, metadata, createdDate);
+    return new Dataset(storageSourceId, storageSystem, metadata);
   }
 }
