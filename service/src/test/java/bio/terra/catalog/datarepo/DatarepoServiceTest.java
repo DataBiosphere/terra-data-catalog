@@ -38,11 +38,11 @@ class DatarepoServiceTest {
 
   @Autowired private DatarepoService datarepoServiceReal;
 
-  @Mock AuthenticatedUserRequest user;
+  @Mock private AuthenticatedUserRequest user;
 
-  @MockBean SnapshotsApi snapshotsApi;
+  @MockBean private SnapshotsApi snapshotsApi;
 
-  @MockBean UnauthenticatedApi unauthenticatedApi;
+  @MockBean private UnauthenticatedApi unauthenticatedApi;
 
   private DatarepoService datarepoService;
 
