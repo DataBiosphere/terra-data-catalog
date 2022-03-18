@@ -74,7 +74,7 @@ public class SamService {
     } catch (ApiException e) {
       throw SamExceptionFactory.create("Error getting user email from Sam", e);
     } catch (InterruptedException e) {
-      throw SamExceptionFactory.create("Error checking resource permission in Sam", e);
+      throw SamExceptionFactory.create("Error getting user email from Sam", e);
     }
   }
 

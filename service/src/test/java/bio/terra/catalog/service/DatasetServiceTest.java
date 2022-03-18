@@ -1,8 +1,10 @@
 package bio.terra.catalog.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -15,8 +17,10 @@ import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
+import bio.terra.datarepo.model.SnapshotSummaryModel;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,7 +48,9 @@ class DatasetServiceTest {
 
   private final AuthenticatedUserRequest user = mock(AuthenticatedUserRequest.class);
   private final DatasetId datasetId = new DatasetId(UUID.randomUUID());
-  private final Dataset dataset = new Dataset(null, StorageSystem.TERRA_DATA_REPO, null);
+  private final String sourceId = "sourceId";
+  private final Dataset dataset =
+      new Dataset(datasetId, sourceId, StorageSystem.EXTERNAL, null, null);
 
   @BeforeEach
   public void setup() {
@@ -52,11 +58,16 @@ class DatasetServiceTest {
   }
 
   @Test
-  void testListDatasets() {}
+  void listDatasets() {
+    var model = new SnapshotSummaryModel().id(UUID.randomUUID()).name("test");
+    when(datarepoService.getSnapshots(user)).thenReturn(List.of(model));
+    when(objectMapper.createObjectNode()).thenReturn(new ObjectMapper().createObjectNode());
+    var result = datasetService.listDatasets(user);
+    assertThat(result, is(notNullValue()));
+  }
 
   @Test()
   void testDeleteMetadataWithInvalidUser() {
-    when(datasetDao.retrieve(datasetId)).thenReturn(dataset);
     assertThrows(UnauthorizedException.class, () -> datasetService.deleteMetadata(user, datasetId));
   }
 
@@ -69,7 +80,6 @@ class DatasetServiceTest {
 
   @Test
   void testGetMetadataWithInvalidUser() {
-    when(datasetDao.retrieve(datasetId)).thenReturn(dataset);
     assertThrows(UnauthorizedException.class, () -> datasetService.getMetadata(user, datasetId));
   }
 
@@ -81,8 +91,17 @@ class DatasetServiceTest {
   }
 
   @Test
+  void testGetMetadataUsingTdrPermission() {
+    var tdrDataset = new Dataset(datasetId, sourceId, StorageSystem.TERRA_DATA_REPO, null, null);
+    reset(datasetDao);
+    when(datasetDao.retrieve(datasetId)).thenReturn(tdrDataset);
+    when(datarepoService.isOwner(user, sourceId)).thenReturn(true);
+    datasetService.getMetadata(user, datasetId);
+    verify(datasetDao).retrieve(datasetId);
+  }
+
+  @Test
   void testUpdateMetadataWithInvalidUser() {
-    when(datasetDao.retrieve(datasetId)).thenReturn(dataset);
     assertThrows(
         UnauthorizedException.class, () -> datasetService.updateMetadata(user, datasetId, "test"));
   }
@@ -116,7 +135,6 @@ class DatasetServiceTest {
     DatasetId id =
         datasetService.createDataset(
             user, StorageSystem.TERRA_DATA_REPO, storageSourceId, metadata);
-    verify(datasetDao).create(testDataset);
-    assertEquals(id, datasetId);
+    assertThat(id, is(datasetId));
   }
 }
