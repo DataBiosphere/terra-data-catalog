@@ -56,7 +56,7 @@ class SamServiceTest {
   @Test
   void hasAction() throws Exception {
     var action = SamAction.READ_ANY_METADATA;
-    when(resourcesApi.resourceActions(any(), any())).thenReturn(List.of(action.name));
+    when(resourcesApi.resourceActions(any(), any())).thenReturn(List.of(action.value));
     assertTrue(samService.hasAction(USER, action));
   }
 
