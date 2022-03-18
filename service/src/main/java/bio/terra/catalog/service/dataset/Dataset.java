@@ -20,6 +20,6 @@ public record Dataset(
    * @param metadata the metadata to store
    */
   public Dataset withMetadata(String metadata) {
-    return new Dataset(storageSourceId, storageSystem, metadata);
+    return new Dataset(id, storageSourceId, storageSystem, metadata, creationTime);
   }
 }

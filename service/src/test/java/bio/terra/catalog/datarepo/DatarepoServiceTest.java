@@ -71,8 +71,7 @@ class DatarepoServiceTest {
     var id = UUID.randomUUID();
     when(snapshotsApi.retrieveUserSnapshotRoles(id))
         .thenReturn(List.of(DatarepoService.READER_ROLE_NAME));
-    assertThat(
-        datarepoService.userHasAction(user, id.toString(), SamAction.READ_ANY_METADATA), is(true));
+    assertTrue(datarepoService.userHasAction(user, id.toString(), SamAction.READ_ANY_METADATA));
   }
 
   @Test
@@ -80,8 +79,7 @@ class DatarepoServiceTest {
     var id = UUID.randomUUID();
     when(snapshotsApi.retrieveUserSnapshotRoles(id))
         .thenReturn(List.of(DatarepoService.ADMIN_ROLE_NAME));
-    assertThat(
-        datarepoService.userHasAction(user, id.toString(), SamAction.CREATE_METADATA), is(true));
+    assertTrue(datarepoService.userHasAction(user, id.toString(), SamAction.CREATE_METADATA));
   }
 
   @Test

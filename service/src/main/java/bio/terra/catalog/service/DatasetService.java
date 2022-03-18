@@ -71,8 +71,6 @@ public class DatasetService {
 
   public String getMetadata(AuthenticatedUserRequest user, DatasetId datasetId) {
     var dataset = datasetDao.retrieve(datasetId);
-    // This check isn't correct as it checks for owner, but it should check for reader or
-    // discoverer.
     ensureActionPermission(user, dataset, SamAction.READ_ANY_METADATA);
     return dataset.metadata();
   }

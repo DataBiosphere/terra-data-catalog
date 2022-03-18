@@ -53,7 +53,7 @@ class DatasetServiceTest {
       new Dataset(datasetId, sourceId, StorageSystem.EXTERNAL, null, null);
 
   @BeforeEach
-  public void setup() {
+  public void beforeEach() {
     when(datasetDao.retrieve(datasetId)).thenReturn(dataset);
   }
 
