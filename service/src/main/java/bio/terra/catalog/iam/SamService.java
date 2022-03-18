@@ -57,6 +57,7 @@ public class SamService {
     } catch (ApiException e) {
       throw SamExceptionFactory.create("Error checking resource permission in Sam", e);
     } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
       throw SamExceptionFactory.create("Error checking resource permission in Sam", e);
     }
   }
@@ -74,6 +75,7 @@ public class SamService {
     } catch (ApiException e) {
       throw SamExceptionFactory.create("Error getting user email from Sam", e);
     } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
       throw SamExceptionFactory.create("Error getting user email from Sam", e);
     }
   }
