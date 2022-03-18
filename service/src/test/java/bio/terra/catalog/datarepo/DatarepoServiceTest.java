@@ -26,7 +26,6 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -39,10 +38,8 @@ class DatarepoServiceTest {
   @Autowired private DatarepoService datarepoServiceReal;
 
   @Mock private AuthenticatedUserRequest user;
-
-  @MockBean private SnapshotsApi snapshotsApi;
-
-  @MockBean private UnauthenticatedApi unauthenticatedApi;
+  @Mock private SnapshotsApi snapshotsApi;
+  @Mock private UnauthenticatedApi unauthenticatedApi;
 
   private DatarepoService datarepoService;
 

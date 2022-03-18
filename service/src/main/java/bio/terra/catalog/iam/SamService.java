@@ -47,13 +47,13 @@ public class SamService {
    */
   public boolean hasAction(AuthenticatedUserRequest userRequest, SamAction action) {
     String accessToken = userRequest.getToken();
-    ResourcesApi resourceApi = samResourcesApi(accessToken);
+    ResourcesApi resourceApi = resourcesApi(accessToken);
     try {
       return SamRetry.retry(
-          () ->
-              resourceApi
-                  .resourceActions(CATALOG_RESOURCE_TYPE, CATALOG_RESOURCE_ID)
-                  .contains(action.toString()));
+              () -> resourceApi.resourceActions(CATALOG_RESOURCE_TYPE, CATALOG_RESOURCE_ID))
+          .stream()
+          .map(SamAction::fromValue)
+          .anyMatch(action::equals);
     } catch (ApiException e) {
       throw SamExceptionFactory.create("Error checking resource permission in Sam", e);
     } catch (InterruptedException e) {
@@ -69,7 +69,7 @@ public class SamService {
    * @return {@link UserStatusInfo}
    */
   public UserStatusInfo getUserStatusInfo(String userToken) {
-    UsersApi usersApi = samUsersApi(userToken);
+    UsersApi usersApi = usersApi(userToken);
     try {
       return SamRetry.retry(usersApi::getUserStatusInfo);
     } catch (ApiException e) {
@@ -82,10 +82,9 @@ public class SamService {
 
   public SystemStatusSystems status() {
     // No access token needed since this is an unauthenticated API.
-    StatusApi statusApi = new StatusApi(getApiClient(null));
     try {
       // Don't retry status check
-      SystemStatus samStatus = statusApi.getSystemStatus();
+      SystemStatus samStatus = statusApi().getSystemStatus();
       var result = new SystemStatusSystems().ok(samStatus.getOk());
       var samSystems = samStatus.getSystems();
       // Populate error message if Sam status is non-ok
@@ -103,13 +102,18 @@ public class SamService {
   }
 
   @VisibleForTesting
-  UsersApi samUsersApi(String accessToken) {
+  UsersApi usersApi(String accessToken) {
     return new UsersApi(getApiClient(accessToken));
   }
 
   @VisibleForTesting
-  ResourcesApi samResourcesApi(String accessToken) {
+  ResourcesApi resourcesApi(String accessToken) {
     return new ResourcesApi(getApiClient(accessToken));
+  }
+
+  @VisibleForTesting
+  StatusApi statusApi() {
+    return new StatusApi(getApiClient(null));
   }
 
   private ApiClient getApiClient(String accessToken) {

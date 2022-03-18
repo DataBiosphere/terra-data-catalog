@@ -9,7 +9,7 @@ public enum SamAction {
   UPDATE_ANY_METADATA("update_any_metadata"),
   DELETE_ANY_METADATA("delete_any_metadata");
 
-  private final String name;
+  public final String name;
 
   SamAction(String samActionName) {
     this.name = samActionName;
