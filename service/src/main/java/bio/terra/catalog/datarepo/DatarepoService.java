@@ -83,13 +83,16 @@ public class DatarepoService {
     return new ApiClient().setHttpClient(commonHttpClient).setBasePath(datarepoConfig.basePath());
   }
 
+  @VisibleForTesting
+  UnauthenticatedApi unauthenticatedApi() {
+    return new UnauthenticatedApi(getApiClient());
+  }
+
   public SystemStatusSystems status() {
-    // No access token needed since this is an unauthenticated API.
-    UnauthenticatedApi api = new UnauthenticatedApi(getApiClient());
     var result = new SystemStatusSystems();
     try {
       // Don't retry status check
-      RepositoryStatusModel status = api.serviceStatus();
+      RepositoryStatusModel status = unauthenticatedApi().serviceStatus();
       result.ok(status.isOk());
       // Populate error message if system status is non-ok
       if (!result.isOk()) {
