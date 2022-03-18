@@ -100,7 +100,7 @@ class DatasetApiControllerTest {
     var id = "sourceId";
     var request =
         new CreateDatasetRequest()
-            .storageSystem(storageSystem.value)
+            .storageSystem(storageSystem.toModel())
             .storageSourceId(id)
             .catalogEntry(METADATA);
     var uuid = UUID.randomUUID();
@@ -114,20 +114,4 @@ class DatasetApiControllerTest {
         .andExpect(jsonPath("$.id").value(uuid.toString()));
     verify(datasetService).createDataset(user, storageSystem, id, METADATA);
   }
-
-  /*
-  @Test
-  void createDatasetInvalidStorageSystem() throws Exception {
-    var id = "sourceId";
-    var request =
-        new CreateDatasetRequest()
-            .storageSystem("unknown")
-            .storageSourceId(id)
-            .catalogEntry(METADATA);
-    var postBody = new ObjectMapper().writeValueAsString(request);
-    mockMvc
-        .perform(post(API).contentType(MediaType.APPLICATION_JSON).content(postBody))
-        .andExpect(status().isInternalServerError());
-  }
-  */
 }

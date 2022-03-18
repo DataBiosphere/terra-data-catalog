@@ -62,7 +62,7 @@ public class DatasetApiController implements DatasetsApi {
     var datasetId =
         datasetService.createDataset(
             user,
-            StorageSystem.fromString(request.getStorageSystem()),
+            StorageSystem.fromModel(request.getStorageSystem()),
             request.getStorageSourceId(),
             request.getCatalogEntry());
     return ResponseEntity.ok(new CreatedDatasetId().id(datasetId.uuid()));

@@ -46,16 +46,18 @@ public class DatasetService {
     return response;
   }
 
-  private boolean isOwner(AuthenticatedUserRequest user, Dataset dataset) {
+  private boolean checkStoragePermission(
+      AuthenticatedUserRequest user, Dataset dataset, SamAction action) {
     return switch (dataset.storageSystem()) {
-      case TERRA_DATA_REPO -> datarepoService.isOwner(user, dataset.storageSourceId());
+      case TERRA_DATA_REPO -> datarepoService.userHasAction(
+          user, dataset.storageSourceId(), action);
       case TERRA_WORKSPACE, EXTERNAL -> false;
     };
   }
 
   private void ensureActionPermission(
       AuthenticatedUserRequest user, Dataset dataset, SamAction action) {
-    if (!isOwner(user, dataset) && !samService.hasAction(user, action)) {
+    if (!checkStoragePermission(user, dataset, action) && !samService.hasAction(user, action)) {
       throw new UnauthorizedException(
           String.format("User %s does not have permission to %s", user.getEmail(), action));
     }

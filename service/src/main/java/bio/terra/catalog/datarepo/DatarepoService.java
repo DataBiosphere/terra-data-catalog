@@ -1,6 +1,7 @@
 package bio.terra.catalog.datarepo;
 
 import bio.terra.catalog.config.DatarepoConfiguration;
+import bio.terra.catalog.iam.SamAction;
 import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.api.SnapshotsApi;
@@ -21,7 +22,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class DatarepoService {
   private static final Logger logger = LoggerFactory.getLogger(DatarepoService.class);
-  public static final String OWNER_ROLE_NAME = "admin";
+  public static final String ADMIN_ROLE_NAME = "admin";
+  public static final String CUSTODIAN_ROLE_NAME = "custodian";
+  public static final String READER_ROLE_NAME = "reader";
+  public static final String DISCOVERER_ROLE_NAME = "discoverer";
+
+  private static final List<String> OWNER_ROLES = List.of(ADMIN_ROLE_NAME, CUSTODIAN_ROLE_NAME);
+  private static final List<String> READER_ROLES =
+      List.of(ADMIN_ROLE_NAME, CUSTODIAN_ROLE_NAME, READER_ROLE_NAME, DISCOVERER_ROLE_NAME);
+
   private final DatarepoConfiguration datarepoConfig;
   private final Client commonHttpClient;
 
@@ -41,10 +50,18 @@ public class DatarepoService {
     }
   }
 
-  public boolean isOwner(AuthenticatedUserRequest user, String snapshotId) {
+  private List<String> rolesForAction(SamAction action) {
+    return switch (action) {
+      case READ_ANY_METADATA -> READER_ROLES;
+      case CREATE_METADATA, DELETE_ANY_METADATA, UPDATE_ANY_METADATA -> OWNER_ROLES;
+    };
+  }
+
+  public boolean userHasAction(AuthenticatedUserRequest user, String snapshotId, SamAction action) {
     try {
       UUID id = UUID.fromString(snapshotId);
-      return snapshotsApi(user).retrieveUserSnapshotRoles(id).contains(OWNER_ROLE_NAME);
+      var roles = rolesForAction(action);
+      return snapshotsApi(user).retrieveUserSnapshotRoles(id).stream().anyMatch(roles::contains);
     } catch (ApiException e) {
       throw new DatarepoException("Get snapshot roles failed", e);
     }

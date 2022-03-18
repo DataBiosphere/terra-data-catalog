@@ -95,7 +95,8 @@ class DatasetServiceTest {
     var tdrDataset = new Dataset(datasetId, sourceId, StorageSystem.TERRA_DATA_REPO, null, null);
     reset(datasetDao);
     when(datasetDao.retrieve(datasetId)).thenReturn(tdrDataset);
-    when(datarepoService.isOwner(user, sourceId)).thenReturn(true);
+    when(datarepoService.userHasAction(user, sourceId, SamAction.READ_ANY_METADATA))
+        .thenReturn(true);
     datasetService.getMetadata(user, datasetId);
     verify(datasetDao).retrieve(datasetId);
   }
