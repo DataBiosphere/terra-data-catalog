@@ -88,9 +88,10 @@ class DatarepoServiceTest {
   void userHasActionException() throws Exception {
     var id = UUID.randomUUID();
     when(snapshotsApi.retrieveUserSnapshotRoles(id)).thenThrow(new ApiException());
+    var stringId = id.toString();
     assertThrows(
         DatarepoException.class,
-        () -> datarepoService.userHasAction(user, id.toString(), SamAction.CREATE_METADATA));
+        () -> datarepoService.userHasAction(user, stringId, SamAction.CREATE_METADATA));
   }
 
   @Test
