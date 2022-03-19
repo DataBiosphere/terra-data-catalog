@@ -49,15 +49,15 @@ public class DatasetService {
     return response;
   }
 
-  private boolean isOwner(Dataset dataset) {
+  private boolean checkStoragePermission(Dataset dataset, SamAction action) {
     return switch (dataset.storageSystem()) {
-      case TERRA_DATA_REPO -> datarepoService.isOwner(dataset.storageSourceId());
+      case TERRA_DATA_REPO -> datarepoService.userHasAction(dataset.storageSourceId(), action);
       case TERRA_WORKSPACE, EXTERNAL -> false;
     };
   }
 
   private void ensureActionPermission(Dataset dataset, SamAction action) {
-    if (!isOwner(dataset) && !samService.hasAction(action)) {
+    if (!checkStoragePermission(dataset, action) && !samService.hasAction(action)) {
       throw new UnauthorizedException(
           String.format(
               "User %s does not have permission to %s", userFactory.getUser().getEmail(), action));
@@ -72,8 +72,6 @@ public class DatasetService {
 
   public String getMetadata(DatasetId datasetId) {
     var dataset = datasetDao.retrieve(datasetId);
-    // This check isn't correct as it checks for owner, but it should check for reader or
-    // discoverer.
     ensureActionPermission(dataset, SamAction.READ_ANY_METADATA);
     return dataset.metadata();
   }
@@ -85,8 +83,10 @@ public class DatasetService {
   }
 
   public DatasetId createDataset(
-      StorageSystem storageSystem, String storageSourceId, String metadata) {
-    var dataset = new Dataset(null, storageSourceId, storageSystem, metadata, null);
+      StorageSystem storageSystem,
+      String storageSourceId,
+      String metadata) {
+    var dataset = new Dataset(storageSourceId, storageSystem, metadata);
     ensureActionPermission(dataset, SamAction.UPDATE_ANY_METADATA);
     return datasetDao.create(dataset).id();
   }

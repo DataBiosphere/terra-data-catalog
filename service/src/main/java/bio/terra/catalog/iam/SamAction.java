@@ -9,16 +9,16 @@ public enum SamAction {
   UPDATE_ANY_METADATA("update_any_metadata"),
   DELETE_ANY_METADATA("delete_any_metadata");
 
-  private final String name;
+  public final String value;
 
   SamAction(String samActionName) {
-    this.name = samActionName;
+    this.value = samActionName;
   }
 
   @JsonCreator
   static SamAction fromValue(String text) {
     return Arrays.stream(values())
-        .filter(action -> action.name.equalsIgnoreCase(text))
+        .filter(action -> action.value.equalsIgnoreCase(text))
         .findFirst()
         .orElse(null);
   }

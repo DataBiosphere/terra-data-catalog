@@ -46,24 +46,44 @@ public class SamService {
    * @return true if the user has any actions on that resource; false otherwise.
    */
   public boolean hasAction(SamAction action) {
-    ResourcesApi resourceApi = samResourcesApi(userFactory.getUser().getToken());
+    ResourcesApi resourceApi = resourcesApi(userFactory.getUser().getToken());
     try {
       return SamRetry.retry(
               () -> resourceApi.resourceActions(CATALOG_RESOURCE_TYPE, CATALOG_RESOURCE_ID))
-          .contains(action.toString());
+          .stream()
+          .map(SamAction::fromValue)
+          .anyMatch(action::equals);
     } catch (ApiException e) {
       throw SamExceptionFactory.create("Error checking resource permission in Sam", e);
     } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
       throw SamExceptionFactory.create("Error checking resource permission in Sam", e);
+    }
+  }
+
+  /**
+   * Fetch the user status (email and subjectId) from Sam.
+   *
+   * @param userToken user token
+   * @return {@link UserStatusInfo}
+   */
+  public UserStatusInfo getUserStatusInfo(String userToken) {
+    UsersApi usersApi = usersApi(userToken);
+    try {
+      return SamRetry.retry(usersApi::getUserStatusInfo);
+    } catch (ApiException e) {
+      throw SamExceptionFactory.create("Error getting user email from Sam", e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw SamExceptionFactory.create("Error getting user email from Sam", e);
     }
   }
 
   public SystemStatusSystems status() {
     // No access token needed since this is an unauthenticated API.
-    StatusApi statusApi = new StatusApi(getApiClient(null));
     try {
       // Don't retry status check
-      SystemStatus samStatus = statusApi.getSystemStatus();
+      SystemStatus samStatus = statusApi().getSystemStatus();
       var result = new SystemStatusSystems().ok(samStatus.getOk());
       var samSystems = samStatus.getSystems();
       // Populate error message if Sam status is non-ok
@@ -81,8 +101,18 @@ public class SamService {
   }
 
   @VisibleForTesting
-  ResourcesApi samResourcesApi(String accessToken) {
+  UsersApi usersApi(String accessToken) {
+    return new UsersApi(getApiClient(accessToken));
+  }
+
+  @VisibleForTesting
+  ResourcesApi resourcesApi(String accessToken) {
     return new ResourcesApi(getApiClient(accessToken));
+  }
+
+  @VisibleForTesting
+  StatusApi statusApi() {
+    return new StatusApi(getApiClient(null));
   }
 
   private ApiClient getApiClient(String accessToken) {

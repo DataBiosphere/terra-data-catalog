@@ -1,9 +1,9 @@
 package bio.terra.catalog.common;
 
 public enum StorageSystem {
-  TERRA_WORKSPACE("wks"),
-  TERRA_DATA_REPO("tdr"),
-  EXTERNAL("ext");
+  TERRA_WORKSPACE(bio.terra.catalog.model.StorageSystem.WKS.name()),
+  TERRA_DATA_REPO(bio.terra.catalog.model.StorageSystem.TDR.name()),
+  EXTERNAL(bio.terra.catalog.model.StorageSystem.EXT.name());
 
   public final String value;
 
@@ -18,5 +18,13 @@ public enum StorageSystem {
       }
     }
     throw new IllegalArgumentException("Unknown storage system: " + value);
+  }
+
+  public static StorageSystem fromModel(bio.terra.catalog.model.StorageSystem storageSystem) {
+    return fromString(storageSystem.name());
+  }
+
+  public bio.terra.catalog.model.StorageSystem toModel() {
+    return bio.terra.catalog.model.StorageSystem.valueOf(this.value);
   }
 }

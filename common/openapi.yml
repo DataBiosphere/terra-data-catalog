@@ -252,11 +252,16 @@ components:
       type: object
       properties:
         storageSystem:
-          type: string
+          $ref: '#/components/schemas/StorageSystem'
         storageSourceId:
           type: string
         catalogEntry:
           type: string
+
+    StorageSystem:
+      type: string
+      description: The storage system for this dataset
+      enum: ['tdr', 'wks', 'ext']
 
   securitySchemes:
     authorization:
