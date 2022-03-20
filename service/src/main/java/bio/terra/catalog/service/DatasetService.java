@@ -83,9 +83,7 @@ public class DatasetService {
   }
 
   public DatasetId createDataset(
-      StorageSystem storageSystem,
-      String storageSourceId,
-      String metadata) {
+      StorageSystem storageSystem, String storageSourceId, String metadata) {
     var dataset = new Dataset(storageSourceId, storageSystem, metadata);
     ensureActionPermission(dataset, SamAction.UPDATE_ANY_METADATA);
     return datasetDao.create(dataset).id();

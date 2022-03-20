@@ -5,7 +5,10 @@ import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.common.iam.BearerTokenParser;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.WebApplicationContext;
 
 /**
  * A Component which always resolves the user email and subjectId from Sam given a request token.
@@ -14,11 +17,13 @@ import org.springframework.stereotype.Component;
  * request header, but Sam will return the owner's email.
  */
 @Component
+@Scope(proxyMode = ScopedProxyMode.TARGET_CLASS, scopeName = WebApplicationContext.SCOPE_REQUEST)
 public class SamAuthenticatedUserRequestFactory {
   private static final String OAUTH2_ACCESS_TOKEN = "OAUTH2_CLAIM_access_token";
   private static final String AUTHORIZATION = "Authorization";
   private final SamUserStatusService samService;
   private final HttpServletRequest request;
+  private AuthenticatedUserRequest cachedUser;
 
   @Autowired
   public SamAuthenticatedUserRequestFactory(
@@ -27,7 +32,7 @@ public class SamAuthenticatedUserRequestFactory {
     this.request = request;
   }
 
-  public AuthenticatedUserRequest getUser() {
+  private AuthenticatedUserRequest lookupUser() {
     final var token = getRequiredToken(request);
 
     // Fetch the user status from Sam
@@ -39,6 +44,13 @@ public class SamAuthenticatedUserRequestFactory {
         .setEmail(userStatusInfo.getUserEmail())
         .setSubjectId(userStatusInfo.getUserSubjectId())
         .build();
+  }
+
+  public AuthenticatedUserRequest getUser() {
+    if (cachedUser == null) {
+      cachedUser = lookupUser();
+    }
+    return cachedUser;
   }
 
   /**

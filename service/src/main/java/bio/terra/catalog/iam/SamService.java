@@ -2,6 +2,7 @@ package bio.terra.catalog.iam;
 
 import bio.terra.catalog.config.SamConfiguration;
 import bio.terra.catalog.model.SystemStatusSystems;
+import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.common.sam.SamRetry;
 import bio.terra.common.sam.exception.SamExceptionFactory;
 import com.google.common.annotations.VisibleForTesting;
@@ -46,7 +47,7 @@ public class SamService {
    * @return true if the user has any actions on that resource; false otherwise.
    */
   public boolean hasAction(SamAction action) {
-    ResourcesApi resourceApi = resourcesApi(userFactory.getUser().getToken());
+    ResourcesApi resourceApi = resourcesApi(userFactory.getUser());
     try {
       return SamRetry.retry(
               () -> resourceApi.resourceActions(CATALOG_RESOURCE_TYPE, CATALOG_RESOURCE_ID))
@@ -58,24 +59,6 @@ public class SamService {
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw SamExceptionFactory.create("Error checking resource permission in Sam", e);
-    }
-  }
-
-  /**
-   * Fetch the user status (email and subjectId) from Sam.
-   *
-   * @param userToken user token
-   * @return {@link UserStatusInfo}
-   */
-  public UserStatusInfo getUserStatusInfo(String userToken) {
-    UsersApi usersApi = usersApi(userToken);
-    try {
-      return SamRetry.retry(usersApi::getUserStatusInfo);
-    } catch (ApiException e) {
-      throw SamExceptionFactory.create("Error getting user email from Sam", e);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw SamExceptionFactory.create("Error getting user email from Sam", e);
     }
   }
 
@@ -101,13 +84,8 @@ public class SamService {
   }
 
   @VisibleForTesting
-  UsersApi usersApi(String accessToken) {
-    return new UsersApi(getApiClient(accessToken));
-  }
-
-  @VisibleForTesting
-  ResourcesApi resourcesApi(String accessToken) {
-    return new ResourcesApi(getApiClient(accessToken));
+  ResourcesApi resourcesApi(AuthenticatedUserRequest user) {
+    return new ResourcesApi(getApiClient(user.getToken()));
   }
 
   @VisibleForTesting

@@ -1,74 +1,61 @@
 package bio.terra.catalog.iam;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import bio.terra.catalog.config.SamConfiguration;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import java.util.List;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
 import org.broadinstitute.dsde.workbench.client.sam.api.ResourcesApi;
 import org.broadinstitute.dsde.workbench.client.sam.api.StatusApi;
-import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
 import org.broadinstitute.dsde.workbench.client.sam.model.SystemStatus;
-import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-@ConfigurationPropertiesScan("bio.terra.catalog")
-@ContextConfiguration(classes = {SamService.class})
+@ExtendWith(MockitoExtension.class)
 class SamServiceTest {
 
-  @Autowired private SamService samServiceReal;
-
-  @Mock private UsersApi usersApi;
   @Mock private ResourcesApi resourcesApi;
   @Mock private StatusApi statusApi;
-
-  private static final String USER_TOKEN = "token";
-  private static final AuthenticatedUserRequest USER =
-      AuthenticatedUserRequest.builder().setToken(USER_TOKEN).setEmail("").setSubjectId("").build();
+  @Mock private SamAuthenticatedUserRequestFactory userFactory;
 
   private SamService samService;
 
   @BeforeEach
   void beforeEach() {
-    samService = spy(samServiceReal);
-    doReturn(usersApi).when(samService).usersApi(USER_TOKEN);
-    doReturn(resourcesApi).when(samService).resourcesApi(USER_TOKEN);
+    samService = spy(new SamService(new SamConfiguration(""), userFactory));
+  }
+
+  private void mockResourcesApi() {
+    var user = mock(AuthenticatedUserRequest.class);
+    when(userFactory.getUser()).thenReturn(user);
+    doReturn(resourcesApi).when(samService).resourcesApi(user);
+  }
+
+  private void mockStatusApi() {
     doReturn(statusApi).when(samService).statusApi();
   }
 
   @Test
   void hasAction() throws Exception {
+    mockResourcesApi();
     var action = SamAction.READ_ANY_METADATA;
     when(resourcesApi.resourceActions(any(), any())).thenReturn(List.of(action.value));
-    assertTrue(samService.hasAction(USER, action));
-  }
-
-  @Test
-  void getUserStatusInfo() throws Exception {
-    UserStatusInfo userStatusInfo = new UserStatusInfo();
-    when(usersApi.getUserStatusInfo()).thenReturn(userStatusInfo);
-    assertThat(userStatusInfo, is(samService.getUserStatusInfo(USER_TOKEN)));
+    assertTrue(samService.hasAction(action));
   }
 
   @Test
   void status() throws Exception {
+    mockStatusApi();
     SystemStatus status = new SystemStatus().ok(true);
     when(statusApi.getSystemStatus()).thenReturn(status);
     var samStatus = samService.status();
@@ -77,6 +64,7 @@ class SamServiceTest {
 
   @Test
   void statusDown() throws Exception {
+    mockStatusApi();
     SystemStatus status = new SystemStatus().ok(false);
     when(statusApi.getSystemStatus()).thenReturn(status);
     var samStatus = samService.status();
@@ -85,6 +73,7 @@ class SamServiceTest {
 
   @Test
   void statusException() throws Exception {
+    mockStatusApi();
     when(statusApi.getSystemStatus()).thenThrow(new ApiException());
     var samStatus = samService.status();
     assertFalse(samStatus.isOk());

@@ -9,8 +9,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import bio.terra.catalog.common.StorageSystem;
+import bio.terra.catalog.config.BeanConfig;
 import bio.terra.catalog.datarepo.DatarepoService;
 import bio.terra.catalog.iam.SamAction;
+import bio.terra.catalog.iam.SamAuthenticatedUserRequestFactory;
 import bio.terra.catalog.iam.SamService;
 import bio.terra.catalog.service.dataset.Dataset;
 import bio.terra.catalog.service.dataset.DatasetDao;
@@ -24,29 +26,18 @@ import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-@ContextConfiguration(classes = {DatasetService.class})
 class DatasetServiceTest {
 
-  @Autowired private DatasetService datasetService;
+  private DatasetService datasetService;
 
-  @MockBean private DatarepoService datarepoService;
+  private final DatarepoService datarepoService = mock(DatarepoService.class);
+  private final DatasetDao datasetDao = mock(DatasetDao.class);
+  private final ObjectMapper objectMapper = new BeanConfig().objectMapper();
+  private final SamService samService = mock(SamService.class);
+  private final SamAuthenticatedUserRequestFactory userFactory =
+      mock(SamAuthenticatedUserRequestFactory.class);
 
-  @MockBean private DatasetDao datasetDao;
-
-  @MockBean private ObjectMapper objectMapper;
-
-  @MockBean private SamService samService;
-
-  private final AuthenticatedUserRequest user = mock(AuthenticatedUserRequest.class);
   private final DatasetId datasetId = new DatasetId(UUID.randomUUID());
   private final String sourceId = "sourceId";
   private final Dataset dataset =
@@ -54,39 +45,41 @@ class DatasetServiceTest {
 
   @BeforeEach
   public void beforeEach() {
+    datasetService =
+        new DatasetService(datarepoService, samService, datasetDao, objectMapper, userFactory);
+    when(userFactory.getUser()).thenReturn(mock(AuthenticatedUserRequest.class));
     when(datasetDao.retrieve(datasetId)).thenReturn(dataset);
   }
 
   @Test
   void listDatasets() {
     var model = new SnapshotSummaryModel().id(UUID.randomUUID()).name("test");
-    when(datarepoService.getSnapshots(user)).thenReturn(List.of(model));
-    when(objectMapper.createObjectNode()).thenReturn(new ObjectMapper().createObjectNode());
-    var result = datasetService.listDatasets(user);
+    when(datarepoService.getSnapshots()).thenReturn(List.of(model));
+    var result = datasetService.listDatasets();
     assertThat(result, is(notNullValue()));
   }
 
   @Test()
   void testDeleteMetadataWithInvalidUser() {
-    assertThrows(UnauthorizedException.class, () -> datasetService.deleteMetadata(user, datasetId));
+    assertThrows(UnauthorizedException.class, () -> datasetService.deleteMetadata(datasetId));
   }
 
   @Test()
   void testDeleteMetadata() {
-    when(samService.hasAction(user, SamAction.DELETE_ANY_METADATA)).thenReturn(true);
-    datasetService.deleteMetadata(user, datasetId);
+    when(samService.hasAction(SamAction.DELETE_ANY_METADATA)).thenReturn(true);
+    datasetService.deleteMetadata(datasetId);
     verify(datasetDao).delete(dataset);
   }
 
   @Test
   void testGetMetadataWithInvalidUser() {
-    assertThrows(UnauthorizedException.class, () -> datasetService.getMetadata(user, datasetId));
+    assertThrows(UnauthorizedException.class, () -> datasetService.getMetadata(datasetId));
   }
 
   @Test
   void testGetMetadata() {
-    when(samService.hasAction(user, SamAction.READ_ANY_METADATA)).thenReturn(true);
-    datasetService.getMetadata(user, datasetId);
+    when(samService.hasAction(SamAction.READ_ANY_METADATA)).thenReturn(true);
+    datasetService.getMetadata(datasetId);
     verify(datasetDao).retrieve(datasetId);
   }
 
@@ -95,23 +88,22 @@ class DatasetServiceTest {
     var tdrDataset = new Dataset(datasetId, sourceId, StorageSystem.TERRA_DATA_REPO, null, null);
     reset(datasetDao);
     when(datasetDao.retrieve(datasetId)).thenReturn(tdrDataset);
-    when(datarepoService.userHasAction(user, sourceId, SamAction.READ_ANY_METADATA))
-        .thenReturn(true);
-    datasetService.getMetadata(user, datasetId);
+    when(datarepoService.userHasAction(sourceId, SamAction.READ_ANY_METADATA)).thenReturn(true);
+    datasetService.getMetadata(datasetId);
     verify(datasetDao).retrieve(datasetId);
   }
 
   @Test
   void testUpdateMetadataWithInvalidUser() {
     assertThrows(
-        UnauthorizedException.class, () -> datasetService.updateMetadata(user, datasetId, "test"));
+        UnauthorizedException.class, () -> datasetService.updateMetadata(datasetId, "test"));
   }
 
   @Test
   void testUpdateMetadata() {
     String metadata = "test metadata";
-    when(samService.hasAction(user, SamAction.UPDATE_ANY_METADATA)).thenReturn(true);
-    datasetService.updateMetadata(user, datasetId, metadata);
+    when(samService.hasAction(SamAction.UPDATE_ANY_METADATA)).thenReturn(true);
+    datasetService.updateMetadata(datasetId, metadata);
     verify(datasetDao).update(dataset.withMetadata(metadata));
   }
 
@@ -119,7 +111,7 @@ class DatasetServiceTest {
   void testCreateDatasetWithInvalidUser() {
     assertThrows(
         UnauthorizedException.class,
-        () -> datasetService.createDataset(user, StorageSystem.TERRA_DATA_REPO, null, null));
+        () -> datasetService.createDataset(StorageSystem.TERRA_DATA_REPO, null, null));
   }
 
   @Test
@@ -131,11 +123,10 @@ class DatasetServiceTest {
         new Dataset(
             datasetId, storageSourceId, StorageSystem.TERRA_DATA_REPO, metadata, Instant.now());
 
-    when(samService.hasAction(user, SamAction.UPDATE_ANY_METADATA)).thenReturn(true);
+    when(samService.hasAction(SamAction.UPDATE_ANY_METADATA)).thenReturn(true);
     when(datasetDao.create(testDataset)).thenReturn(testDatasetWithCreationInfo);
     DatasetId id =
-        datasetService.createDataset(
-            user, StorageSystem.TERRA_DATA_REPO, storageSourceId, metadata);
+        datasetService.createDataset(StorageSystem.TERRA_DATA_REPO, storageSourceId, metadata);
     assertThat(id, is(datasetId));
   }
 }

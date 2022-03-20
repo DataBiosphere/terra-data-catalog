@@ -7,9 +7,10 @@ import com.google.common.annotations.VisibleForTesting;
 import okhttp3.OkHttpClient;
 import org.broadinstitute.dsde.workbench.client.sam.ApiClient;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
-import org.broadinstitute.dsde.workbench.client.sam.api.ResourcesApi;
 import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +18,8 @@ import org.springframework.stereotype.Component;
 public class SamUserStatusService {
   private final SamConfiguration samConfig;
   private final OkHttpClient commonHttpClient;
+
+  private static final Logger logger = LoggerFactory.getLogger(SamUserStatusService.class);
 
   @Autowired
   public SamUserStatusService(SamConfiguration samConfig) {
@@ -31,8 +34,9 @@ public class SamUserStatusService {
    * @return {@link UserStatusInfo}
    */
   public UserStatusInfo getUserStatusInfo(String userToken) {
-    UsersApi usersApi = samUsersApi(userToken);
+    UsersApi usersApi = usersApi(userToken);
     try {
+      logger.info("calling SAM");
       return SamRetry.retry(usersApi::getUserStatusInfo);
     } catch (ApiException e) {
       throw SamExceptionFactory.create("Error getting user email from Sam", e);
@@ -42,7 +46,7 @@ public class SamUserStatusService {
   }
 
   @VisibleForTesting
-  UsersApi samUsersApi(String accessToken) {
+  UsersApi usersApi(String accessToken) {
     return new UsersApi(getApiClient(accessToken));
   }
 
