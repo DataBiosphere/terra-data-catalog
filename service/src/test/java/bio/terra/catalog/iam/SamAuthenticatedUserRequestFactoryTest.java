@@ -1,6 +1,7 @@
 package bio.terra.catalog.iam;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
@@ -37,9 +38,9 @@ class SamAuthenticatedUserRequestFactoryTest {
     var userStatus = new UserStatusInfo().userEmail(email).userSubjectId(subject);
     when(samUserStatusService.getUserStatusInfo(token)).thenReturn(userStatus);
     var user = userFactory.getUser();
-    assertThat(user.getToken(), Matchers.is(token));
-    assertThat(user.getEmail(), Matchers.is(email));
-    assertThat(user.getSubjectId(), Matchers.is(subject));
+    assertThat(user.getToken(), is(token));
+    assertThat(user.getEmail(), is(email));
+    assertThat(user.getSubjectId(), is(subject));
   }
 
   @Test
