@@ -19,8 +19,8 @@ import org.springframework.web.context.WebApplicationContext;
 @Component
 @Scope(proxyMode = ScopedProxyMode.TARGET_CLASS, scopeName = WebApplicationContext.SCOPE_REQUEST)
 public class SamAuthenticatedUserRequestFactory {
-  private static final String OAUTH2_ACCESS_TOKEN = "OAUTH2_CLAIM_access_token";
-  private static final String AUTHORIZATION = "Authorization";
+  static final String OAUTH2_ACCESS_TOKEN = "OAUTH2_CLAIM_access_token";
+  static final String AUTHORIZATION = "Authorization";
   private final SamUserStatusService samService;
   private final HttpServletRequest request;
   private AuthenticatedUserRequest cachedUser;

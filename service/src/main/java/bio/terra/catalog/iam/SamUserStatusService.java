@@ -41,6 +41,7 @@ public class SamUserStatusService {
     } catch (ApiException e) {
       throw SamExceptionFactory.create("Error getting user email from Sam", e);
     } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
       throw SamExceptionFactory.create("Error getting user email from Sam", e);
     }
   }

@@ -3,7 +3,6 @@ package bio.terra.catalog.service;
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.datarepo.DatarepoService;
 import bio.terra.catalog.iam.SamAction;
-import bio.terra.catalog.iam.SamAuthenticatedUserRequestFactory;
 import bio.terra.catalog.iam.SamService;
 import bio.terra.catalog.model.DatasetsListResponse;
 import bio.terra.catalog.service.dataset.Dataset;
@@ -22,20 +21,17 @@ public class DatasetService {
   private final SamService samService;
   private final DatasetDao datasetDao;
   private final ObjectMapper objectMapper;
-  private final SamAuthenticatedUserRequestFactory userFactory;
 
   @Autowired
   public DatasetService(
       DatarepoService datarepoService,
       SamService samService,
       DatasetDao datasetDao,
-      ObjectMapper objectMapper,
-      SamAuthenticatedUserRequestFactory userFactory) {
+      ObjectMapper objectMapper) {
     this.datarepoService = datarepoService;
     this.samService = samService;
     this.datasetDao = datasetDao;
     this.objectMapper = objectMapper;
-    this.userFactory = userFactory;
   }
 
   public DatasetsListResponse listDatasets() {
@@ -58,9 +54,7 @@ public class DatasetService {
 
   private void ensureActionPermission(Dataset dataset, SamAction action) {
     if (!checkStoragePermission(dataset, action) && !samService.hasAction(action)) {
-      throw new UnauthorizedException(
-          String.format(
-              "User %s does not have permission to %s", userFactory.getUser().getEmail(), action));
+      throw new UnauthorizedException(String.format("User does not have permission to %s", action));
     }
   }
 

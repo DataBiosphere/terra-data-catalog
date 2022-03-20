@@ -3,8 +3,6 @@ package bio.terra.catalog.service;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -12,13 +10,11 @@ import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.config.BeanConfig;
 import bio.terra.catalog.datarepo.DatarepoService;
 import bio.terra.catalog.iam.SamAction;
-import bio.terra.catalog.iam.SamAuthenticatedUserRequestFactory;
 import bio.terra.catalog.iam.SamService;
 import bio.terra.catalog.service.dataset.Dataset;
 import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.common.exception.UnauthorizedException;
-import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.model.SnapshotSummaryModel;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
@@ -26,17 +22,20 @@ import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class DatasetServiceTest {
 
   private DatasetService datasetService;
 
-  private final DatarepoService datarepoService = mock(DatarepoService.class);
-  private final DatasetDao datasetDao = mock(DatasetDao.class);
+  @Mock private DatarepoService datarepoService;
+  @Mock private DatasetDao datasetDao;
+  @Mock private SamService samService;
+
   private final ObjectMapper objectMapper = new BeanConfig().objectMapper();
-  private final SamService samService = mock(SamService.class);
-  private final SamAuthenticatedUserRequestFactory userFactory =
-      mock(SamAuthenticatedUserRequestFactory.class);
 
   private final DatasetId datasetId = new DatasetId(UUID.randomUUID());
   private final String sourceId = "sourceId";
@@ -45,9 +44,10 @@ class DatasetServiceTest {
 
   @BeforeEach
   public void beforeEach() {
-    datasetService =
-        new DatasetService(datarepoService, samService, datasetDao, objectMapper, userFactory);
-    when(userFactory.getUser()).thenReturn(mock(AuthenticatedUserRequest.class));
+    datasetService = new DatasetService(datarepoService, samService, datasetDao, objectMapper);
+  }
+
+  private void mockLookup() {
     when(datasetDao.retrieve(datasetId)).thenReturn(dataset);
   }
 
@@ -61,11 +61,13 @@ class DatasetServiceTest {
 
   @Test()
   void testDeleteMetadataWithInvalidUser() {
+    mockLookup();
     assertThrows(UnauthorizedException.class, () -> datasetService.deleteMetadata(datasetId));
   }
 
   @Test()
   void testDeleteMetadata() {
+    mockLookup();
     when(samService.hasAction(SamAction.DELETE_ANY_METADATA)).thenReturn(true);
     datasetService.deleteMetadata(datasetId);
     verify(datasetDao).delete(dataset);
@@ -73,11 +75,13 @@ class DatasetServiceTest {
 
   @Test
   void testGetMetadataWithInvalidUser() {
+    mockLookup();
     assertThrows(UnauthorizedException.class, () -> datasetService.getMetadata(datasetId));
   }
 
   @Test
   void testGetMetadata() {
+    mockLookup();
     when(samService.hasAction(SamAction.READ_ANY_METADATA)).thenReturn(true);
     datasetService.getMetadata(datasetId);
     verify(datasetDao).retrieve(datasetId);
@@ -86,7 +90,6 @@ class DatasetServiceTest {
   @Test
   void testGetMetadataUsingTdrPermission() {
     var tdrDataset = new Dataset(datasetId, sourceId, StorageSystem.TERRA_DATA_REPO, null, null);
-    reset(datasetDao);
     when(datasetDao.retrieve(datasetId)).thenReturn(tdrDataset);
     when(datarepoService.userHasAction(sourceId, SamAction.READ_ANY_METADATA)).thenReturn(true);
     datasetService.getMetadata(datasetId);
@@ -95,12 +98,14 @@ class DatasetServiceTest {
 
   @Test
   void testUpdateMetadataWithInvalidUser() {
+    mockLookup();
     assertThrows(
         UnauthorizedException.class, () -> datasetService.updateMetadata(datasetId, "test"));
   }
 
   @Test
   void testUpdateMetadata() {
+    mockLookup();
     String metadata = "test metadata";
     when(samService.hasAction(SamAction.UPDATE_ANY_METADATA)).thenReturn(true);
     datasetService.updateMetadata(datasetId, metadata);
