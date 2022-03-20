@@ -8,7 +8,6 @@ import static org.mockito.Mockito.when;
 import bio.terra.common.exception.UnauthorizedException;
 import javax.servlet.http.HttpServletRequest;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
