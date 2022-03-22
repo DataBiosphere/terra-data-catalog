@@ -21,6 +21,7 @@ dependencies {
     implementation 'bio.terra:datarepo-client:1.298.0-SNAPSHOT'
     implementation 'javax.ws.rs:javax.ws.rs-api:2.1.1'
     implementation 'org.postgresql:postgresql:42.3.3'
+    implementation 'org.springframework.boot:spring-boot-configuration-processor'
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

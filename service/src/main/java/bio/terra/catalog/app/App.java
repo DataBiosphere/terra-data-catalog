@@ -1,6 +1,8 @@
 package bio.terra.catalog.app;
 
 import bio.terra.common.logging.LoggingInitializer;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.info.Info;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -27,6 +29,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
       // Scan all service-specific packages beneath the current package
       "bio.terra.catalog"
     })
+@OpenAPIDefinition(info = @Info(title = "Terra", version = "2.0"))
+// @ConfigurationPropertiesScan("bio.terra.catalog")
 @ConfigurationPropertiesScan("bio.terra.catalog")
 @EnableRetry
 @EnableTransactionManagement
