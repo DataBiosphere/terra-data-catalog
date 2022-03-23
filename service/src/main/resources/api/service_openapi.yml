@@ -2,28 +2,52 @@ openapi: 3.0.3
 info:
   title: Terra data catalog
   description: |
-      place holder
+    place holder
   version: 0.1.0
 
 paths:
+  /hello:
+    GET:
   /pet/findByStatus:
     get:
       summary: Finds Pets by status, this is a swagger test
       responses:
-      description: |
-        __Below is the list of valid status of the Pet__
+        '200':
+          description: ok
+        '400':
+          description: Bad Request. The API returns below status codes related to content-type and accept headers
+        '401':
+          description:  Unauthorized
+        405:
+          description: Method not supported
 
-        1. Available
-        2. Pending
-           1. Pending in the cart
-           2. Pending in the store
-        3. Sold
 
-        **Below is the list of HTTP Status code this API may return**
-        * 200 - OK
-        * 400 - Bad Request. The API returns below status codes related to content-type and accept headers
-          + 415 - Unsupported Media Type
-          - 406 - Not Acceptable
-        * 401 - Unauthorized
-        * 405 - Method not supported
-
+#openapi: 3.0.3
+#info:
+#  title: Terra data catalog
+#  description: |
+#      place holder
+#  version: 0.1.0
+#
+#paths:
+#  /pet/findByStatus:
+#    get:
+#      summary: Finds Pets by status, this is a swagger test
+#      responses:
+#      description: |
+#        __Below is the list of valid status of the Pet__
+#
+#        1. Available
+#        2. Pending
+#           1. Pending in the cart
+#           2. Pending in the store
+#        3. Sold
+#
+#        **Below is the list of HTTP Status code this API may return**
+#        * 200 - OK
+#        * 400 - Bad Request. The API returns below status codes related to content-type and accept headers
+#          + 415 - Unsupported Media Type
+#          - 406 - Not Acceptable
+#        * 401 - Unauthorized
+#        * 405 - Method not supported
+#
