@@ -131,7 +131,7 @@ class DatasetServiceTest {
         new Dataset(
             datasetId, storageSourceId, StorageSystem.TERRA_DATA_REPO, metadata, Instant.now());
 
-    when(samService.hasAction(user, SamAction.UPDATE_ANY_METADATA)).thenReturn(true);
+    when(samService.hasAction(user, SamAction.CREATE_METADATA)).thenReturn(true);
     when(datasetDao.create(testDataset)).thenReturn(testDatasetWithCreationInfo);
     DatasetId id =
         datasetService.createDataset(
