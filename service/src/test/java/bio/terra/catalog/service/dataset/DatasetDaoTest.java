@@ -10,22 +10,25 @@ import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.service.dataset.exception.DatasetNotFoundException;
 import bio.terra.catalog.service.dataset.exception.InvalidDatasetException;
 import java.util.UUID;
+import javax.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @ContextConfiguration(classes = App.class)
 class DatasetDaoTest {
 
   @Autowired private DatasetDao datasetDao;
-  @Autowired private NamedParameterJdbcTemplate jdbcTemplate;
-  private static final String metadata =
+
+  @MockBean HttpServletRequest httpServletRequest;
+
+  private static final String METADATA =
       """
       {"sampleId": "12345", "species": ["mouse", "human"]}""";
 
@@ -39,22 +42,22 @@ class DatasetDaoTest {
   @Test
   void testDatasetCrudOperations() {
     String storageSourceId = UUID.randomUUID().toString();
-    Dataset dataset = createDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO, metadata);
-    UUID id = dataset.id();
+    Dataset dataset = createDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO, METADATA);
+    DatasetId id = dataset.id();
     Dataset updateRequest =
-        new Dataset(id, storageSourceId, StorageSystem.TERRA_WORKSPACE, metadata, null);
+        new Dataset(id, storageSourceId, StorageSystem.TERRA_WORKSPACE, METADATA, null);
     datasetDao.retrieve(id);
     Dataset updatedDataset = datasetDao.update(updateRequest);
     assertEquals(updatedDataset.storageSystem(), updateRequest.storageSystem());
-    assertTrue(datasetDao.delete(id));
+    assertTrue(datasetDao.delete(dataset));
     assertThrows(DatasetNotFoundException.class, () -> datasetDao.retrieve(id));
   }
 
   @Test
   void testCreateDatasetWithDifferentSources() {
     String storageSourceId = UUID.randomUUID().toString();
-    createDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO, metadata);
-    createDataset(storageSourceId, StorageSystem.TERRA_WORKSPACE, metadata);
+    createDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO, METADATA);
+    createDataset(storageSourceId, StorageSystem.TERRA_WORKSPACE, METADATA);
     long datasetCount =
         datasetDao.enumerate().stream()
             .filter(dataset -> dataset.storageSourceId().equals(storageSourceId))
@@ -65,10 +68,10 @@ class DatasetDaoTest {
   @Test
   void testCreateDuplicateDataset() {
     String storageSourceId = UUID.randomUUID().toString();
-    createDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO, metadata);
+    createDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO, METADATA);
     assertThrows(
         InvalidDatasetException.class,
-        () -> createDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO, metadata));
+        () -> createDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO, METADATA));
     long datasetCount =
         datasetDao.enumerate().stream()
             .filter(dataset -> dataset.storageSourceId().equals(storageSourceId))
@@ -78,12 +81,12 @@ class DatasetDaoTest {
 
   @Test
   void testHandleNonExistentDatasets() {
-    UUID id = UUID.randomUUID();
+    DatasetId id = new DatasetId(UUID.randomUUID());
     String storageSourceId = UUID.randomUUID().toString();
-    Dataset updateRequest =
-        new Dataset(id, storageSourceId, StorageSystem.TERRA_WORKSPACE, metadata, null);
+    Dataset dataset =
+        new Dataset(id, storageSourceId, StorageSystem.TERRA_WORKSPACE, METADATA, null);
     assertThrows(DatasetNotFoundException.class, () -> datasetDao.retrieve(id));
-    assertThrows(DatasetNotFoundException.class, () -> datasetDao.update(updateRequest));
-    assertFalse(datasetDao.delete(id));
+    assertThrows(DatasetNotFoundException.class, () -> datasetDao.update(dataset));
+    assertFalse(datasetDao.delete(dataset));
   }
 }
