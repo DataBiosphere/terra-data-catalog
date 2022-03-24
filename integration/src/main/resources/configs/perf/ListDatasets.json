@@ -13,5 +13,5 @@
       "expectedTimeForEachUnit": "SECONDS"
     }
   ],
-  "testUserFiles": [ "scarlett.json" ]
+  "testUserFiles": [ "user.json", "admin.json" ]
 }
