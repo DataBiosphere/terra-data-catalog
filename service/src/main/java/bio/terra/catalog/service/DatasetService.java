@@ -58,8 +58,7 @@ public class DatasetService {
     // they're a catalog admin user who has permission to perform any operation on any
     // catalog entry.
     if (!checkStoragePermission(dataset, action) && !samService.hasGlobalAction(action)) {
-      throw new UnauthorizedException(
-          String.format("User does not have permission to %s", action));
+      throw new UnauthorizedException(String.format("User does not have permission to %s", action));
     }
   }
 
