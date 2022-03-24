@@ -50,8 +50,105 @@ paths:
                 $ref: '#/components/schemas/DatasetsListResponse'
         '500':
           $ref: '#/components/responses/ServerError'
+    post:
+      tags: [ datasets ]
+      description: Create a new dataset
+      operationId: createDataset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDatasetRequest'
+        required: true
+      responses:
+        200:
+          $ref: '#/components/responses/DatasetResponse'
+        403:
+          description: No permission to modify metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorReport'
+  /api/v1/datasets/{id}:
+    get:
+      summary: Given a dataset ID, return its catalog entry
+      tags: [ datasets ]
+      operationId: getDataset
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: A JSON object of the dataset
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: "Dataset not found"
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      tags: [ datasets ]
+      description: Update the catalog entry for a dataset
+      operationId: updateDataset
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        description: The catalog entry to replace existing entry for this dataset
+        content:
+          application/json:
+            schema:
+              type: string
+        required: true
+      responses:
+        204:
+          description: The catalog entry was updated successfully
+          content: { }
+        403:
+          description: No permission to modify metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorReport'
+        404:
+          description: Not found - dataset id does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorReport'
+    delete:
+      tags: [ datasets ]
+      description: Delete the catalog entry for a dataset
+      operationId: deleteDataset
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        204:
+          description: The catalog entry was deleted successfully
+          content: { }
+        403:
+          description: No permission to modify metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorReport'
+        404:
+          description: Not found - dataset id does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorReport'
 
 components:
+  parameters:
+    Id:
+      name: id
+      in: path
+      description: A UUID to used to identify an object in the catalog
+      required: true
+      schema:
+        type: string
+        format: uuid
 
   responses:
     SystemStatusResponse:
@@ -60,6 +157,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/SystemStatus'
+    DatasetResponse:
+      description: The created dataset's ID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CreatedDatasetId'
 
     # Error Responses
     BadRequest:
@@ -116,6 +219,14 @@ components:
                 items:
                   type: string
 
+    CreatedDatasetId:
+      type: object
+      required: [ id ]
+      properties:
+        id:
+          type: string
+          format: uuid
+
     DatasetsListResponse:
       type: object
       properties:
@@ -136,6 +247,21 @@ components:
           type: string
         build:
           type: string
+
+    CreateDatasetRequest:
+      type: object
+      properties:
+        storageSystem:
+          $ref: '#/components/schemas/StorageSystem'
+        storageSourceId:
+          type: string
+        catalogEntry:
+          type: string
+
+    StorageSystem:
+      type: string
+      description: The storage system for this dataset
+      enum: ['tdr', 'wks', 'ext']
 
   securitySchemes:
     authorization:
