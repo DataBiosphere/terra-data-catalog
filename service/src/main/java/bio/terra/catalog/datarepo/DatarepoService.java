@@ -24,12 +24,10 @@ public class DatarepoService {
   private static final Logger logger = LoggerFactory.getLogger(DatarepoService.class);
   public static final String ADMIN_ROLE_NAME = "admin";
   public static final String CUSTODIAN_ROLE_NAME = "custodian";
-  public static final String STEWARD_ROLE_NAwME = "steward";
   public static final String READER_ROLE_NAME = "reader";
   public static final String DISCOVERER_ROLE_NAME = "discoverer";
 
-  private static final List<String> OWNER_ROLES =
-      List.of(ADMIN_ROLE_NAME, CUSTODIAN_ROLE_NAME, STEWARD_ROLE_NAwME);
+  private static final List<String> OWNER_ROLES = List.of(ADMIN_ROLE_NAME, CUSTODIAN_ROLE_NAME);
   private static final List<String> READER_ROLES =
       List.of(ADMIN_ROLE_NAME, CUSTODIAN_ROLE_NAME, READER_ROLE_NAME, DISCOVERER_ROLE_NAME);
 

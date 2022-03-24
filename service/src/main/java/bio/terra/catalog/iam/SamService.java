@@ -36,16 +36,16 @@ public class SamService {
   }
 
   /**
-   * Checks if a user has any action on a resource.
+   * Checks if a user has an action on all catalog resources.
    *
-   * <p>If user has any action on a resource than we allow that user to list the resource, rather
-   * than have a specific action for listing. That is the Sam convention.
+   * <p>This checks the action against the "global" catalog resource, which is where permissions
+   * for global operations are kept.
    *
    * @param userRequest authenticated user
    * @param action sam action
    * @return true if the user has any actions on that resource; false otherwise.
    */
-  public boolean hasAction(AuthenticatedUserRequest userRequest, SamAction action) {
+  public boolean hasGlobalAction(AuthenticatedUserRequest userRequest, SamAction action) {
     String accessToken = userRequest.getToken();
     ResourcesApi resourceApi = resourcesApi(accessToken);
     try {

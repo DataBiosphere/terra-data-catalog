@@ -73,7 +73,7 @@ class DatasetServiceTest {
 
   @Test()
   void testDeleteMetadata() {
-    when(samService.hasAction(user, SamAction.DELETE_ANY_METADATA)).thenReturn(true);
+    when(samService.hasGlobalAction(user, SamAction.DELETE_ANY_METADATA)).thenReturn(true);
     datasetService.deleteMetadata(user, datasetId);
     verify(datasetDao).delete(dataset);
   }
@@ -85,7 +85,7 @@ class DatasetServiceTest {
 
   @Test
   void testGetMetadata() {
-    when(samService.hasAction(user, SamAction.READ_ANY_METADATA)).thenReturn(true);
+    when(samService.hasGlobalAction(user, SamAction.READ_ANY_METADATA)).thenReturn(true);
     datasetService.getMetadata(user, datasetId);
     verify(datasetDao).retrieve(datasetId);
   }
@@ -110,7 +110,7 @@ class DatasetServiceTest {
   @Test
   void testUpdateMetadata() {
     String metadata = "test metadata";
-    when(samService.hasAction(user, SamAction.UPDATE_ANY_METADATA)).thenReturn(true);
+    when(samService.hasGlobalAction(user, SamAction.UPDATE_ANY_METADATA)).thenReturn(true);
     datasetService.updateMetadata(user, datasetId, metadata);
     verify(datasetDao).update(dataset.withMetadata(metadata));
   }
@@ -131,7 +131,7 @@ class DatasetServiceTest {
         new Dataset(
             datasetId, storageSourceId, StorageSystem.TERRA_DATA_REPO, metadata, Instant.now());
 
-    when(samService.hasAction(user, SamAction.CREATE_METADATA)).thenReturn(true);
+    when(samService.hasGlobalAction(user, SamAction.CREATE_METADATA)).thenReturn(true);
     when(datasetDao.create(testDataset)).thenReturn(testDatasetWithCreationInfo);
     DatasetId id =
         datasetService.createDataset(
