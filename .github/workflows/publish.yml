@@ -30,7 +30,7 @@ jobs:
           ARTIFACTORY_REPO_KEY: "libs-release-local"
 
       - name: Auth to GCR
-        uses: google-github-actions/setup-gcloud@master
+        uses: google-github-actions/setup-gcloud@v0
         with:
           service_account_email: ${{ secrets.GCR_PUBLISH_EMAIL }}
           service_account_key: ${{ secrets.GCR_PUBLISH_KEY_B64 }}
