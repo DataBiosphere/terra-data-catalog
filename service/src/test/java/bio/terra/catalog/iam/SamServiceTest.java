@@ -50,7 +50,7 @@ class SamServiceTest {
     mockResourcesApi();
     var action = SamAction.READ_ANY_METADATA;
     when(resourcesApi.resourceActions(any(), any())).thenReturn(List.of(action.value));
-    assertTrue(samService.hasAction(action));
+    assertTrue(samService.hasGlobalAction(action));
   }
 
   @Test

@@ -53,8 +53,13 @@ public class DatasetService {
   }
 
   private void ensureActionPermission(Dataset dataset, SamAction action) {
-    if (!checkStoragePermission(dataset, action) && !samService.hasAction(action)) {
-      throw new UnauthorizedException(String.format("User does not have permission to %s", action));
+    // Ensure that the current user has permission to perform this action. The current user
+    // can either have permission granted by the storage system that owns the dataset, or if
+    // they're a catalog admin user who has permission to perform any operation on any
+    // catalog entry.
+    if (!checkStoragePermission(dataset, action) && !samService.hasGlobalAction(action)) {
+      throw new UnauthorizedException(
+          String.format("User does not have permission to %s", action));
     }
   }
 
@@ -79,7 +84,7 @@ public class DatasetService {
   public DatasetId createDataset(
       StorageSystem storageSystem, String storageSourceId, String metadata) {
     var dataset = new Dataset(storageSourceId, storageSystem, metadata);
-    ensureActionPermission(dataset, SamAction.UPDATE_ANY_METADATA);
+    ensureActionPermission(dataset, SamAction.CREATE_METADATA);
     return datasetDao.create(dataset).id();
   }
 }
