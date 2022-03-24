@@ -38,8 +38,8 @@ public class SamService {
   /**
    * Checks if a user has an action on all catalog resources.
    *
-   * <p>This checks the action against the "global" catalog resource, which is where permissions
-   * for global operations are kept.
+   * <p>This checks the action against the "global" catalog resource, which is used for global
+   * permission checks.
    *
    * @param userRequest authenticated user
    * @param action sam action

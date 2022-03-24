@@ -61,7 +61,8 @@ public class DatasetService {
     // can either have permission granted by the storage system that owns the dataset, or if
     // they're a catalog admin user who has permission to perform any operation on any
     // catalog entry.
-    if (!checkStoragePermission(user, dataset, action) && !samService.hasGlobalAction(user, action)) {
+    if (!checkStoragePermission(user, dataset, action)
+        && !samService.hasGlobalAction(user, action)) {
       throw new UnauthorizedException(
           String.format("User %s does not have permission to %s", user.getEmail(), action));
     }
