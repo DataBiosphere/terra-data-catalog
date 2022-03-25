@@ -26,6 +26,9 @@ public class SamService {
   private final SamConfiguration samConfig;
   private final OkHttpClient commonHttpClient;
 
+  private static final String CATALOG_RESOURCE_TYPE = "catalog";
+  private static final String CATALOG_RESOURCE_ID = "catalog";
+
   @Autowired
   public SamService(SamConfiguration samConfig) {
     this.samConfig = samConfig;
@@ -33,23 +36,28 @@ public class SamService {
   }
 
   /**
-   * Checks if a user has any action on a resource.
+   * Checks if a user has an action on all catalog resources.
    *
-   * <p>If user has any action on a resource than we allow that user to list the resource, rather
-   * than have a specific action for listing. That is the Sam convention.
+   * <p>This checks the action against the "global" catalog resource, which is used for global
+   * permission checks.
    *
    * @param userRequest authenticated user
    * @param action sam action
    * @return true if the user has any actions on that resource; false otherwise.
    */
-  public boolean hasAction(AuthenticatedUserRequest userRequest, SamAction action)
-      throws InterruptedException {
+  public boolean hasGlobalAction(AuthenticatedUserRequest userRequest, SamAction action) {
     String accessToken = userRequest.getToken();
-    ResourcesApi resourceApi = samResourcesApi(accessToken);
+    ResourcesApi resourceApi = resourcesApi(accessToken);
     try {
       return SamRetry.retry(
-          () -> resourceApi.resourceActions(null, null).contains(action.toString()));
+              () -> resourceApi.resourceActions(CATALOG_RESOURCE_TYPE, CATALOG_RESOURCE_ID))
+          .stream()
+          .map(SamAction::fromValue)
+          .anyMatch(action::equals);
     } catch (ApiException e) {
+      throw SamExceptionFactory.create("Error checking resource permission in Sam", e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
       throw SamExceptionFactory.create("Error checking resource permission in Sam", e);
     }
   }
@@ -60,21 +68,23 @@ public class SamService {
    * @param userToken user token
    * @return {@link UserStatusInfo}
    */
-  public UserStatusInfo getUserStatusInfo(String userToken) throws InterruptedException {
-    UsersApi usersApi = samUsersApi(userToken);
+  public UserStatusInfo getUserStatusInfo(String userToken) {
+    UsersApi usersApi = usersApi(userToken);
     try {
       return SamRetry.retry(usersApi::getUserStatusInfo);
     } catch (ApiException e) {
+      throw SamExceptionFactory.create("Error getting user email from Sam", e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
       throw SamExceptionFactory.create("Error getting user email from Sam", e);
     }
   }
 
   public SystemStatusSystems status() {
     // No access token needed since this is an unauthenticated API.
-    StatusApi statusApi = new StatusApi(getApiClient(null));
     try {
       // Don't retry status check
-      SystemStatus samStatus = statusApi.getSystemStatus();
+      SystemStatus samStatus = statusApi().getSystemStatus();
       var result = new SystemStatusSystems().ok(samStatus.getOk());
       var samSystems = samStatus.getSystems();
       // Populate error message if Sam status is non-ok
@@ -92,13 +102,18 @@ public class SamService {
   }
 
   @VisibleForTesting
-  UsersApi samUsersApi(String accessToken) {
+  UsersApi usersApi(String accessToken) {
     return new UsersApi(getApiClient(accessToken));
   }
 
   @VisibleForTesting
-  ResourcesApi samResourcesApi(String accessToken) {
+  ResourcesApi resourcesApi(String accessToken) {
     return new ResourcesApi(getApiClient(accessToken));
+  }
+
+  @VisibleForTesting
+  StatusApi statusApi() {
+    return new StatusApi(getApiClient(null));
   }
 
   private ApiClient getApiClient(String accessToken) {
