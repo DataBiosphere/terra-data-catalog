@@ -1,0 +1,85 @@
+name: Publish Test Results
+
+on:
+  push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      # Sparse check out terra-helmfile repo version directories
+      - uses: ./.github/actions/checkout-helm-versions
+        with:
+          repository: broadinstitute/terra-helmfile
+          ref: master
+          token: ${{ secrets.BROADBOT_TOKEN }}
+          path: integration/terra-helmfile
+
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Gradle build service
+        run: ./gradlew --build-cache :service:build -x test
+
+  jib:
+    needs: [ build ]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Construct docker image name and tag
+        id: image-name
+        run: |
+          GITHUB_REPO=$(basename ${{ github.repository }})
+          GIT_SHORT_HASH=$(git rev-parse --short HEAD)
+          echo ::set-output name=name::${GITHUB_REPO}:${GIT_SHORT_HASH}
+
+      - name: Build image locally with jib
+        run: |
+          ./gradlew --build-cache :service:jibDockerBuild \
+            --image=${{ steps.image-name.outputs.name }} \
+            -Djib.console=plain
+
+      - name: Run Trivy vulnerability scanner
+        uses: broadinstitute/dsp-appsec-trivy-action@v1
+        with:
+          image: ${{ steps.image-name.outputs.name }}
+
+  test-runner:
+    needs: [ build ]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Render GitHub Secrets
+        run: |
+          echo "${{ secrets.DEV_FIRECLOUD_ACCOUNT_B64 }}" | base64 -d > "integration/src/main/resources/rendered/user-delegated-sa.json"
+          echo "${{ secrets.PERF_TESTRUNNER_ACCOUNT_B64 }}" | base64 -d > "integration/src/main/resources/rendered/testrunner-sa.json"
+
+      - name: Run perf test suite
+        run: |
+          cd integration
+          ../gradlew --build-cache :integration:runTest --scan --args="suites/FullPerf.json build/reports"
+          echo "Upload test results to Google Bucket"
+          ./gradlew :integration:uploadResults --args="CompressDirectoryToTerraKernelK8S.json build/reports"

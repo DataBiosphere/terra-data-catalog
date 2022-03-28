@@ -3,7 +3,7 @@ import org.springframework.boot.gradle.plugin.SpringBootPlugin
 plugins {
     id 'bio.terra.catalog.java-application-conventions'
     id 'io.spring.dependency-management'
-    id 'bio.terra.test-runner-plugin'
+    id 'bio.terra.test-runner-plugin' version '0.1.3-SNAPSHOT'
 }
 
 dependencyManagement {
@@ -21,7 +21,7 @@ dependencies {
     implementation 'com.google.auth:google-auth-library-oauth2-http:1.4.0'
 
     // Terra Test Runner Library
-    implementation 'bio.terra:terra-test-runner:0.1.1-SNAPSHOT'
+    implementation 'bio.terra:terra-test-runner:0.1.3-SNAPSHOT'
 
     // Requires client library
     implementation project(':client')
