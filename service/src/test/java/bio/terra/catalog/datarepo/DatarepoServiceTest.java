@@ -16,8 +16,8 @@ import bio.terra.datarepo.api.UnauthenticatedApi;
 import bio.terra.datarepo.client.ApiException;
 import bio.terra.datarepo.model.EnumerateSnapshotModel;
 import bio.terra.datarepo.model.RepositoryStatusModel;
-import bio.terra.datarepo.model.SnapshotSummaryModel;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,18 +52,18 @@ class DatarepoServiceTest {
 
   @Test
   void getSnapshots() throws Exception {
-    var items = List.of(new SnapshotSummaryModel());
-    var esm = new EnumerateSnapshotModel().items(items);
+    var items = Map.of("id", List.of("role"));
+    var esm = new EnumerateSnapshotModel().roleMap(items);
     when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any()))
         .thenReturn(esm);
-    assertThat(datarepoService.getSnapshots(user), is(items));
+    assertThat(datarepoService.getSnapshotIdsAndRoles(user), is(items));
   }
 
   @Test
   void getSnapshotsException() throws Exception {
     when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any()))
         .thenThrow(new ApiException());
-    assertThrows(DatarepoException.class, () -> datarepoService.getSnapshots(user));
+    assertThrows(DatarepoException.class, () -> datarepoService.getSnapshotIdsAndRoles(user));
   }
 
   @Test

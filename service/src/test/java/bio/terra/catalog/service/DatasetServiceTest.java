@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import bio.terra.catalog.common.StorageSystem;
+import bio.terra.catalog.config.BeanConfig;
 import bio.terra.catalog.datarepo.DatarepoService;
 import bio.terra.catalog.iam.SamAction;
 import bio.terra.catalog.iam.SamService;
@@ -17,62 +18,74 @@ import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
-import bio.terra.datarepo.model.SnapshotSummaryModel;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-@ContextConfiguration(classes = {DatasetService.class})
+@ExtendWith(MockitoExtension.class)
 class DatasetServiceTest {
 
-  @Autowired private DatasetService datasetService;
+  private DatasetService datasetService;
 
-  @MockBean private DatarepoService datarepoService;
+  @Mock private DatarepoService datarepoService;
 
-  @MockBean private DatasetDao datasetDao;
+  @Mock private DatasetDao datasetDao;
 
-  @MockBean private ObjectMapper objectMapper;
+  @Mock private SamService samService;
 
-  @MockBean private SamService samService;
+  private final ObjectMapper objectMapper = new BeanConfig().objectMapper();
 
   private final AuthenticatedUserRequest user = mock(AuthenticatedUserRequest.class);
   private final DatasetId datasetId = new DatasetId(UUID.randomUUID());
   private final String sourceId = "sourceId";
+  private final String metadata = """
+        {"name":"name"}""";
   private final Dataset dataset =
-      new Dataset(datasetId, sourceId, StorageSystem.EXTERNAL, null, null);
+      new Dataset(datasetId, sourceId, StorageSystem.EXTERNAL, metadata, null);
 
   @BeforeEach
   public void beforeEach() {
+    datasetService = new DatasetService(datarepoService, samService, datasetDao, objectMapper);
+  }
+
+  private void mockDataset() {
     when(datasetDao.retrieve(datasetId)).thenReturn(dataset);
   }
 
   @Test
   void listDatasets() {
-    var model = new SnapshotSummaryModel().id(UUID.randomUUID()).name("test");
-    when(datarepoService.getSnapshots(user)).thenReturn(List.of(model));
-    when(objectMapper.createObjectNode()).thenReturn(new ObjectMapper().createObjectNode());
-    var result = datasetService.listDatasets(user);
-    assertThat(result, is(notNullValue()));
+    var id = "id";
+    var role = "role";
+    var idToRole = Map.of(id, List.of(role));
+    when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(idToRole);
+    var tdrDataset =
+        new Dataset(
+            new DatasetId(UUID.randomUUID()), id, StorageSystem.TERRA_DATA_REPO, metadata, null);
+    when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
+        .thenReturn(List.of(tdrDataset));
+    ObjectNode json = (ObjectNode) datasetService.listDatasets(user).getResult().get(0);
+    assertThat(json.get("name").asText(), is("name"));
+    assertThat(json.get("id").asText(), is(tdrDataset.id().toValue()));
+    assertThat(json.get("roles").get(0).asText(), is(role));
   }
 
   @Test()
   void testDeleteMetadataWithInvalidUser() {
+    mockDataset();
     assertThrows(UnauthorizedException.class, () -> datasetService.deleteMetadata(user, datasetId));
   }
 
   @Test()
   void testDeleteMetadata() {
+    mockDataset();
     when(samService.hasGlobalAction(user, SamAction.DELETE_ANY_METADATA)).thenReturn(true);
     datasetService.deleteMetadata(user, datasetId);
     verify(datasetDao).delete(dataset);
@@ -80,11 +93,13 @@ class DatasetServiceTest {
 
   @Test
   void testGetMetadataWithInvalidUser() {
+    mockDataset();
     assertThrows(UnauthorizedException.class, () -> datasetService.getMetadata(user, datasetId));
   }
 
   @Test
   void testGetMetadata() {
+    mockDataset();
     when(samService.hasGlobalAction(user, SamAction.READ_ANY_METADATA)).thenReturn(true);
     datasetService.getMetadata(user, datasetId);
     verify(datasetDao).retrieve(datasetId);
@@ -103,12 +118,14 @@ class DatasetServiceTest {
 
   @Test
   void testUpdateMetadataWithInvalidUser() {
+    mockDataset();
     assertThrows(
         UnauthorizedException.class, () -> datasetService.updateMetadata(user, datasetId, "test"));
   }
 
   @Test
   void testUpdateMetadata() {
+    mockDataset();
     String metadata = "test metadata";
     when(samService.hasGlobalAction(user, SamAction.UPDATE_ANY_METADATA)).thenReturn(true);
     datasetService.updateMetadata(user, datasetId, metadata);
