@@ -4,7 +4,6 @@
   "serverSpecificationFile": "catalog-local.json",
   "testConfigurationFiles": [
     "integration/GetStatus.json",
-    "integration/GetVersion.json",
-    "integration/ListDatasets.json"
+    "integration/GetVersion.json"
   ]
 }

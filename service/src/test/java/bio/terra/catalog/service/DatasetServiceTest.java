@@ -62,19 +62,29 @@ class DatasetServiceTest {
 
   @Test
   void listDatasets() {
-    var id = "id";
     var role = "role";
-    var idToRole = Map.of(id, List.of(role));
+    var idToRole = Map.of(sourceId, List.of(role));
     when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(idToRole);
     var tdrDataset =
-        new Dataset(
-            new DatasetId(UUID.randomUUID()), id, StorageSystem.TERRA_DATA_REPO, metadata, null);
+        new Dataset(dataset.id(), sourceId, StorageSystem.TERRA_DATA_REPO, metadata, null);
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
         .thenReturn(List.of(tdrDataset));
     ObjectNode json = (ObjectNode) datasetService.listDatasets(user).getResult().get(0);
     assertThat(json.get("name").asText(), is("name"));
     assertThat(json.get("id").asText(), is(tdrDataset.id().toValue()));
     assertThat(json.get("roles").get(0).asText(), is(role));
+  }
+
+  @Test
+  void listDatasetsIllegalMetadata() {
+    var badDataset =
+        new Dataset(dataset.id(), sourceId, StorageSystem.TERRA_DATA_REPO, "invalid", null);
+    var idToRole = Map.of(sourceId, List.<String>of());
+    when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(idToRole);
+    when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
+        .thenReturn(List.of(badDataset));
+    assertThrows(
+        DatasetService.IllegalMetadataException.class, () -> datasetService.listDatasets(user));
   }
 
   @Test()

@@ -11,7 +11,6 @@ import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -39,13 +38,19 @@ public class DatasetService {
     this.objectMapper = objectMapper;
   }
 
-  private JsonNode toJsonNode(String json) {
+  public static class IllegalMetadataException extends RuntimeException {
+    public IllegalMetadataException(Throwable cause) {
+      super(cause);
+    }
+  }
+
+  private ObjectNode toJsonNode(String json) {
     try {
-      return objectMapper.readValue(json, JsonNode.class);
+      return objectMapper.readValue(json, ObjectNode.class);
     } catch (JsonProcessingException e) {
       // This shouldn't occur, as the data stored in postgres must be valid JSON, because it's
       // stored as JSONB.
-      throw new RuntimeException(e);
+      throw new IllegalMetadataException(e);
     }
   }
 
@@ -60,11 +65,11 @@ public class DatasetService {
 
     // Merge the permission (role) data into the metadata results.
     for (Dataset dataset : datasets) {
-      ObjectNode node = (ObjectNode) toJsonNode(dataset.metadata());
       ArrayNode roles = objectMapper.createArrayNode();
       for (String role : roleMap.get(dataset.storageSourceId())) {
         roles.add(TextNode.valueOf(role));
       }
+      ObjectNode node = toJsonNode(dataset.metadata());
       node.set("roles", roles);
       node.set("id", TextNode.valueOf(dataset.id().toValue()));
       response.addResultItem(node);
