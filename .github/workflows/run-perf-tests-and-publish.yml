@@ -9,15 +9,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-
-      # Sparse check out terra-helmfile repo version directories
-      - uses: ./.github/actions/checkout-helm-versions
-        with:
-          repository: broadinstitute/terra-helmfile
-          ref: master
-          token: ${{ secrets.BROADBOT_TOKEN }}
-          path: integration/terra-helmfile
-
       - name: Set up JDK
         uses: actions/setup-java@v2
         with:
@@ -65,6 +56,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      # Sparse check out terra-helmfile repo version directories
+      - uses: ./.github/actions/checkout-helm-versions
+        with:
+          repository: broadinstitute/terra-helmfile
+          ref: master
+          token: ${{ secrets.BROADBOT_TOKEN }}
+          path: integration/terra-helmfile
+
       - name: Set up JDK
         uses: actions/setup-java@v2
         with:
