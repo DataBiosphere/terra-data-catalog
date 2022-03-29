@@ -34,8 +34,8 @@ idea.module.generatedSourceDirs = [file(swaggerOutputSrc)]
 sourceSets.main.java.srcDir swaggerOutputSrc
 compileJava.dependsOn generateSwaggerCode
 
-// Copy the result of the openapi build into the built resources
-// so it is available for the swagger_ui.html endpoint
+// Copy the common openapi yaml into the service build resources
+// so it is available to be included by the swagger_ui.html source.
 task copyOpenApiToResources(type: Copy) {
     description 'Copy the openapi results into build resources to support swagger_ui'
     from '../common/openapi.yml'

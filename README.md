@@ -40,7 +40,7 @@ render-configs.sh      # render service account credentials needed for tests
 ```
 
 To run performance tests, execute:
-s
+
 ```sh
 render-configs.sh perf
 ./gradlew :integration:runTest --args="suites/FullPerf.json /tmp/test"
