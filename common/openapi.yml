@@ -52,7 +52,10 @@ paths:
           $ref: '#/components/responses/ServerError'
     post:
       tags: [ datasets ]
-      description: Create a new dataset
+      description: |
+        ⚠️ Do not add sensitive data. All catalog entries are publicly accessible to all Terra users ⚠️
+      
+        Create a new dataset
       operationId: createDataset
       requestBody:
         content:
@@ -89,7 +92,10 @@ paths:
           $ref: '#/components/responses/ServerError'
     put:
       tags: [ datasets ]
-      description: Update the catalog entry for a dataset
+      description: |
+        ⚠️ Do not add sensitive data. All catalog entries are publicly accessible to all Terra users ⚠️
+        
+        Update the catalog entry for a dataset
       operationId: updateDataset
       parameters:
         - $ref: '#/components/parameters/Id'
