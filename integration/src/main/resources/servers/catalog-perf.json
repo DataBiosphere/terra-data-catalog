@@ -26,8 +26,8 @@
       "description": "Version from https://github.com/broadinstitute/terra-helmfile",
       "parametersMap": {
         "app-name": "catalog",
-        "base-file-path": "../terra-helmfile/dev.yaml",
-        "override-file-path": "../terra-helmfile/perf.yaml"
+        "base-file-path": "terra-helmfile/versions/app/dev.yaml",
+        "override-file-path": "terra-helmfile/environments/live/perf.yaml"
       }
     },
     {
