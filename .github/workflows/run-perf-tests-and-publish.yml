@@ -58,25 +58,26 @@ jobs:
       - uses: actions/checkout@v2
 
       # Sparse check out terra-helmfile repo version directories
-      - uses: ./.github/actions/checkout-helm-versions
-        with:
-          repository: broadinstitute/terra-helmfile
-          ref: master
-          token: ${{ secrets.BROADBOT_TOKEN }}
-          path: integration/terra-helmfile
+#      - uses: ./.github/actions/checkout-helm-versions
+#        with:
+#          repository: broadinstitute/terra-helmfile
+#          ref: master
+#          token: ${{ secrets.BROADBOT_TOKEN }}
+#          path: integration/terra-helmfile
 
-      - name: Get version files
+      - name: Use GitHub API to check out terra-helmfile repo version
         run: |
+          mkdir -p terra-helmfile
           curl -H 'Authorization: token ${{ secrets.BROADBOT_TOKEN }}' \
             -H 'Accept: application/vnd.github.v3.raw' \
             -O \
-            -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/versions/app/dev.yaml > dev.yaml
+            -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/versions/app/dev.yaml > "terra-helmfile/dev.yaml"
           curl -H 'Authorization: token ${{ secrets.BROADBOT_TOKEN }}' \
             -H 'Accept: application/vnd.github.v3.raw' \
             -O \
-            -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/environments/live/perf.yaml > perf.yaml
-          cat dev.yaml
-          cat perf.yaml
+            -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/environments/live/perf.yaml > "terra-helmfile/perf.yaml"
+          cat terra-helmfile/dev.yaml
+          cat terra-helmfile/perf.yaml
 
       - name: Set up JDK
         uses: actions/setup-java@v2
