@@ -65,6 +65,19 @@ jobs:
           token: ${{ secrets.BROADBOT_TOKEN }}
           path: integration/terra-helmfile
 
+      - name: Get version files
+        run: |
+          curl -H 'Authorization: token ${{ secrets.BROADBOT_TOKEN }}' \
+            -H 'Accept: application/vnd.github.v3.raw' \
+            -O \
+            -L https://api.github.com/repos/broadinstitute/terra-helmfile/versions/app/dev.yaml > dev.yaml
+          curl -H 'Authorization: token ${{ secrets.BROADBOT_TOKEN }}' \
+            -H 'Accept: application/vnd.github.v3.raw' \
+            -O \
+            -L https://api.github.com/repos/broadinstitute/terra-helmfile/environments/live/perf.yaml > perf.yaml
+          cat dev.yaml
+          cat perf.yaml
+
       - name: Set up JDK
         uses: actions/setup-java@v2
         with:
@@ -80,6 +93,5 @@ jobs:
       - name: Run perf test suite
         run: |
           ./gradlew --build-cache runTest --scan --args="suites/FullPerf.json build/reports"
-          echo "Upload test results to Google Bucket"
-          ./gradlew --build-cache uploadResults --args="CompressDirectoryToTerraKernelK8S.json build/reports"
+
 
