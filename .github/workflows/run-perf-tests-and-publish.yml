@@ -68,6 +68,7 @@ jobs:
       - name: Use GitHub API to check out terra-helmfile repo version
         run: |
           mkdir -p terra-helmfile
+          ls -l
           curl -H 'Authorization: token ${{ secrets.BROADBOT_TOKEN }}' \
             -H 'Accept: application/vnd.github.v3.raw' \
             -O \
@@ -76,6 +77,7 @@ jobs:
             -H 'Accept: application/vnd.github.v3.raw' \
             -O \
             -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/environments/live/perf.yaml > terra-helmfile/perf.yaml
+          ls -l terra-helmfile
           cat terra-helmfile/dev.yaml
           cat terra-helmfile/perf.yaml
 
