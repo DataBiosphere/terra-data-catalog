@@ -22,7 +22,6 @@ dependencies {
     implementation 'bio.terra:datarepo-client:1.298.0-SNAPSHOT'
     implementation 'javax.ws.rs:javax.ws.rs-api:2.1.1'
     implementation 'org.postgresql:postgresql:42.3.3'
-    implementation 'org.springframework.boot:spring-boot-configuration-processor'
 
     liquibaseRuntime 'org.liquibase:liquibase-core:3.10.0'
     liquibaseRuntime 'info.picocli:picocli:4.6.1'
