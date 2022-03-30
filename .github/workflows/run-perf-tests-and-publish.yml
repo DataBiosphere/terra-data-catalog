@@ -63,7 +63,7 @@ jobs:
           repository: broadinstitute/terra-helmfile
           ref: master
           token: ${{ secrets.BROADBOT_TOKEN }}
-          path: terra-helmfile
+          path: integration/terra-helmfile
 
       - name: Set up JDK
         uses: actions/setup-java@v2
