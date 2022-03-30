@@ -15,7 +15,7 @@
     "apiComponentLabel":  "catalog"
   },
   "deploymentScript": {},
-  "testRunnerServiceAccountFile": "testrunner-sa.json",
+  "testRunnerServiceAccountFile": "testrunner-perf.json",
 
   "skipDeployment": true,
   "skipKubernetes": true,

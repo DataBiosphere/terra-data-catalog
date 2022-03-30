@@ -4,7 +4,7 @@
 
   "catalogUri": "http://localhost:8080",
 
-  "testRunnerServiceAccountFile": "delegate-user-sa.json",
+  "testRunnerServiceAccountFile": "testrunner-perf.json",
 
   "skipDeployment": true,
   "skipKubernetes": true
