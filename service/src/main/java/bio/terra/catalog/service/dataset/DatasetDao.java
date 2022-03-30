@@ -128,7 +128,7 @@ public class DatasetDao {
   @ReadTransaction
   public List<Dataset> find(StorageSystem storageSystem, Collection<String> ids) {
     String sql =
-        "SELECT * FROM dataset where storage_system = :storageSystem AND storage_source_id IN (:ids)";
+        "SELECT * FROM dataset WHERE storage_system = :storageSystem AND storage_source_id IN (:ids)";
     var params = Map.of("storageSystem", String.valueOf(storageSystem), "ids", ids);
     return jdbcTemplate.query(sql, params, new DatasetMapper());
   }
