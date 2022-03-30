@@ -71,12 +71,12 @@ jobs:
           ls -l
           curl -H 'Authorization: token ${{ secrets.BROADBOT_TOKEN }}' \
             -H 'Accept: application/vnd.github.v3.raw' \
-            -O \
-            -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/versions/app/dev.yaml > "terra-helmfile/dev.yaml"
+            -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/versions/app/dev.yaml \
+            -o "terra-helmfile/dev.yaml"
           curl -H 'Authorization: token ${{ secrets.BROADBOT_TOKEN }}' \
             -H 'Accept: application/vnd.github.v3.raw' \
-            -O \
-            -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/environments/live/perf.yaml > "terra-helmfile/perf.yaml"
+            -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/environments/live/perf.yaml \
+            -o "terra-helmfile/perf.yaml"
           ls -l terra-helmfile
           cat terra-helmfile/dev.yaml
           cat terra-helmfile/perf.yaml
