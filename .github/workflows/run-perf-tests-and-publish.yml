@@ -72,14 +72,14 @@ jobs:
           curl -H 'Authorization: token ${{ secrets.BROADBOT_TOKEN }}' \
             -H 'Accept: application/vnd.github.v3.raw' \
             -O \
-            -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/versions/app/dev.yaml > dev.yaml
+            -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/versions/app/dev.yaml > "terra-helmfile/dev.yaml"
           curl -H 'Authorization: token ${{ secrets.BROADBOT_TOKEN }}' \
             -H 'Accept: application/vnd.github.v3.raw' \
             -O \
-            -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/environments/live/perf.yaml > perf.yaml
-          ls -l .
-          cat dev.yaml
-          cat perf.yaml
+            -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/environments/live/perf.yaml > "terra-helmfile/perf.yaml"
+          ls -l terra-helmfile
+          cat terra-helmfile/dev.yaml
+          cat terra-helmfile/perf.yaml
 
       - name: Set up JDK
         uses: actions/setup-java@v2
