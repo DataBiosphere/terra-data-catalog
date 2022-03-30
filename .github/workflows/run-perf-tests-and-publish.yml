@@ -63,7 +63,7 @@ jobs:
           repository: broadinstitute/terra-helmfile
           ref: master
           token: ${{ secrets.BROADBOT_TOKEN }}
-          path: integration/terra-helmfile
+          path: terra-helmfile
 
       - name: Set up JDK
         uses: actions/setup-java@v2
@@ -79,7 +79,7 @@ jobs:
 
       - name: Run perf test suite
         run: |
-          cd integration
-          ../gradlew --build-cache :integration:runTest --scan --args="suites/FullPerf.json build/reports"
-          echo "Upload test results to Google Bucket"
-          ../gradlew :integration:uploadResults --args="CompressDirectoryToTerraKernelK8S.json build/reports"
+#          cd integration
+          ./gradlew --build-cache :integration:runTest --scan --args="suites/FullPerf.json build/reports"
+#          echo "Upload test results to Google Bucket"
+#          ../gradlew :integration:uploadResults --args="CompressDirectoryToTerraKernelK8S.json build/reports"

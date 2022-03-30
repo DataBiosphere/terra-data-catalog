@@ -34,7 +34,7 @@
       "name": "ReadFromGitCommitLog",
       "description": "Hash of git branch from Git Commit Log",
       "parametersMap": {
-        "git-dir": "../.git"
+        "git-dir": ".git"
       }
     }
   ]
