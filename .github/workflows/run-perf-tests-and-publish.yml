@@ -79,7 +79,4 @@ jobs:
 
       - name: Run perf test suite
         run: |
-#          cd integration
           ./gradlew --build-cache :integration:runTest --scan --args="suites/FullPerf.json build/reports"
-#          echo "Upload test results to Google Bucket"
-#          ../gradlew :integration:uploadResults --args="CompressDirectoryToTerraKernelK8S.json build/reports"
