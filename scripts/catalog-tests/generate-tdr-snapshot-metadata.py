@@ -11,28 +11,6 @@
 import json, os
 import sys
 import requests
-# import json, os, re, uuid
-# from urllib.request import Request, urlopen
-# from urllib.error import HTTPError
-
-def enumerate_snapshots():
-    auth, token = os.environ["AUTH_TOKEN"].split(": ", 1)
-
-    req = Request('')
-    req.add_header("accept", "application/json")
-    req.add_header(auth, token)
-
-    try:
-        res = urlopen(req)
-    except HTTPError as err:
-        if err.code == 401:
-            raise err
-        if err.code == 404:
-            raise err
-
-    snapshots = json.load(res)
-
-    return snapshots
 
 urlRoot = 'http://localhost:8080'
 
