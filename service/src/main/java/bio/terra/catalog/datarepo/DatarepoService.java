@@ -9,9 +9,9 @@ import bio.terra.datarepo.api.UnauthenticatedApi;
 import bio.terra.datarepo.client.ApiClient;
 import bio.terra.datarepo.client.ApiException;
 import bio.terra.datarepo.model.RepositoryStatusModel;
-import bio.terra.datarepo.model.SnapshotSummaryModel;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import javax.ws.rs.client.Client;
 import org.slf4j.Logger;
@@ -40,11 +40,11 @@ public class DatarepoService {
     this.commonHttpClient = new ApiClient().getHttpClient();
   }
 
-  public List<SnapshotSummaryModel> getSnapshots(AuthenticatedUserRequest user) {
+  public Map<String, List<String>> getSnapshotIdsAndRoles(AuthenticatedUserRequest user) {
     try {
       return snapshotsApi(user)
           .enumerateSnapshots(null, null, null, null, null, null, null)
-          .getItems();
+          .getRoleMap();
     } catch (ApiException e) {
       throw new DatarepoException("Enumerate snapshots failed", e);
     }

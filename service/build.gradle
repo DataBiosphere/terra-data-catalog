@@ -19,7 +19,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.retry:spring-retry'
     implementation 'org.broadinstitute.dsde.workbench:sam-client_2.12:0.1-61135c7'
-    implementation 'bio.terra:datarepo-client:1.298.0-SNAPSHOT'
+    implementation 'bio.terra:datarepo-client:1.313.0-SNAPSHOT'
     implementation 'javax.ws.rs:javax.ws.rs-api:2.1.1'
     implementation 'org.postgresql:postgresql:42.3.3'
 
