@@ -2,7 +2,6 @@ package bio.terra.catalog.service;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -79,7 +78,7 @@ class DatasetServiceTest {
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
         .thenReturn(List.of(badDataset));
     assertThrows(
-        DatasetService.IllegalMetadataException.class, () -> datasetService.listDatasets(user));
+        DatasetService.IllegalMetadataException.class, () -> datasetService.listDatasets());
   }
 
   @Test()

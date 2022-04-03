@@ -55,6 +55,7 @@ class DatarepoServiceTest {
 
   @Test
   void getSnapshots() throws Exception {
+    mockSnapshotsApi();
     var items = Map.of("id", List.of("role"));
     var esm = new EnumerateSnapshotModel().roleMap(items);
     when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any()))
