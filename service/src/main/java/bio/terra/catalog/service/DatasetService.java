@@ -10,8 +10,13 @@ import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.datarepo.model.SnapshotSummaryModel;
+import bio.terra.common.iam.AuthenticatedUserRequest;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,14 +39,46 @@ public class DatasetService {
     this.objectMapper = objectMapper;
   }
 
-  public DatasetsListResponse listDatasets() {
-    var response = new DatasetsListResponse();
-    for (SnapshotSummaryModel model : datarepoService.getSnapshots()) {
-      ObjectNode node = objectMapper.createObjectNode();
-      node.put("id", model.getId().toString());
-      node.put("dct:title", model.getName());
+  public static class IllegalMetadataException extends RuntimeException {
+    public IllegalMetadataException(Throwable cause) {
+      super(cause);
+    }
+  }
+
+  private ObjectNode toJsonNode(String json) {
+    try {
+      return objectMapper.readValue(json, ObjectNode.class);
+    } catch (JsonProcessingException e) {
+      // This shouldn't occur, as the data stored in postgres must be valid JSON, because it's
+      // stored as JSONB.
+      throw new IllegalMetadataException(e);
+    }
+  }
+
+  private void collectDatarepoDatasets(DatasetsListResponse response) {
+    // For this storage system, get the collection of visible datasets and the user's roles for
+    // each dataset.
+    var roleMap = datarepoService.getSnapshotIdsAndRoles();
+
+    // Using the storage system's source IDs, look up the metadata for each of these datasets.
+    List<Dataset> datasets = datasetDao.find(StorageSystem.TERRA_DATA_REPO, roleMap.keySet());
+
+    // Merge the permission (role) data into the metadata results.
+    for (Dataset dataset : datasets) {
+      ArrayNode roles = objectMapper.createArrayNode();
+      for (String role : roleMap.get(dataset.storageSourceId())) {
+        roles.add(TextNode.valueOf(role));
+      }
+      ObjectNode node = toJsonNode(dataset.metadata());
+      node.set("roles", roles);
+      node.set("id", TextNode.valueOf(dataset.id().toValue()));
       response.addResultItem(node);
     }
+  }
+
+  public DatasetsListResponse listDatasets() {
+    var response = new DatasetsListResponse();
+    collectDatarepoDatasets(response);
     return response;
   }
 

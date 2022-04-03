@@ -1,12 +1,15 @@
 openapi: 3.0.3
 info:
   title: Terra Data Catalog
-  description: An indexed catalog of data for use in Terra
+  description: |
+    An indexed catalog of data for use in Terra.
+
+    ⚠️ Do not add sensitive data. All catalog entries are publicly accessible to all Terra users ⚠️
   version: 0.0.1
 paths:
   /status:
     get:
-      summary: Check status of the service.
+      summary: Check status of the service
       tags: [ public ]
       operationId: getStatus
       security: [ ]
@@ -20,7 +23,7 @@ paths:
 
   /version:
     get:
-      summary: Get version info of the deployed service.
+      summary: Get version info of the deployed service
       tags: [ public ]
       operationId: getVersion
       security: [ ]
@@ -38,7 +41,7 @@ paths:
 
   /api/v1/datasets:
     get:
-      summary: Lists the available catalog datasets.
+      summary: Lists the available catalog datasets
       tags: [ datasets ]
       operationId: listDatasets
       responses:
@@ -51,8 +54,10 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
     post:
+      summary: Create a new dataset
       tags: [ datasets ]
-      description: Create a new dataset
+      description: |
+        ⚠️ Do not add sensitive data. All catalog entries are publicly accessible to all Terra users ⚠️
       operationId: createDataset
       requestBody:
         content:
@@ -88,8 +93,10 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
     put:
+      summary: Update the catalog entry for a dataset
       tags: [ datasets ]
-      description: Update the catalog entry for a dataset
+      description: |
+        ⚠️ Do not add sensitive data. All catalog entries are publicly accessible to all Terra users ⚠️
       operationId: updateDataset
       parameters:
         - $ref: '#/components/parameters/Id'
@@ -117,8 +124,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorReport'
     delete:
+      summary: Delete the catalog entry for a dataset
       tags: [ datasets ]
-      description: Delete the catalog entry for a dataset
       operationId: deleteDataset
       parameters:
         - $ref: '#/components/parameters/Id'
@@ -249,6 +256,8 @@ components:
           type: string
 
     CreateDatasetRequest:
+      description: |
+        ⚠️ Do not add sensitive data. All catalog entries are publicly accessible to all Terra users ⚠️
       type: object
       properties:
         storageSystem:

@@ -16,10 +16,11 @@ import bio.terra.catalog.service.dataset.Dataset;
 import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.common.exception.UnauthorizedException;
-import bio.terra.datarepo.model.SnapshotSummaryModel;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,35 +41,56 @@ class DatasetServiceTest {
 
   private final DatasetId datasetId = new DatasetId(UUID.randomUUID());
   private final String sourceId = "sourceId";
+  private final String metadata = """
+        {"name":"name"}""";
   private final Dataset dataset =
-      new Dataset(datasetId, sourceId, StorageSystem.EXTERNAL, null, null);
+      new Dataset(datasetId, sourceId, StorageSystem.EXTERNAL, metadata, null);
 
   @BeforeEach
   public void beforeEach() {
     datasetService = new DatasetService(datarepoService, samService, datasetDao, objectMapper);
   }
 
-  private void mockLookup() {
+  private void mockDataset() {
     when(datasetDao.retrieve(datasetId)).thenReturn(dataset);
   }
 
   @Test
   void listDatasets() {
-    var model = new SnapshotSummaryModel().id(UUID.randomUUID()).name("test");
-    when(datarepoService.getSnapshots()).thenReturn(List.of(model));
-    var result = datasetService.listDatasets();
-    assertThat(result, is(notNullValue()));
+    var role = "role";
+    var idToRole = Map.of(sourceId, List.of(role));
+    when(datarepoService.getSnapshotIdsAndRoles()).thenReturn(idToRole);
+    var tdrDataset =
+        new Dataset(dataset.id(), sourceId, StorageSystem.TERRA_DATA_REPO, metadata, null);
+    when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
+        .thenReturn(List.of(tdrDataset));
+    ObjectNode json = (ObjectNode) datasetService.listDatasets().getResult().get(0);
+    assertThat(json.get("name").asText(), is("name"));
+    assertThat(json.get("id").asText(), is(tdrDataset.id().toValue()));
+    assertThat(json.get("roles").get(0).asText(), is(role));
+  }
+
+  @Test
+  void listDatasetsIllegalMetadata() {
+    var badDataset =
+        new Dataset(dataset.id(), sourceId, StorageSystem.TERRA_DATA_REPO, "invalid", null);
+    var idToRole = Map.of(sourceId, List.<String>of());
+    when(datarepoService.getSnapshotIdsAndRoles()).thenReturn(idToRole);
+    when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
+        .thenReturn(List.of(badDataset));
+    assertThrows(
+        DatasetService.IllegalMetadataException.class, () -> datasetService.listDatasets(user));
   }
 
   @Test()
   void testDeleteMetadataWithInvalidUser() {
-    mockLookup();
+    mockDataset();
     assertThrows(UnauthorizedException.class, () -> datasetService.deleteMetadata(datasetId));
   }
 
   @Test()
   void testDeleteMetadata() {
-    mockLookup();
+    mockDataset();
     when(samService.hasGlobalAction(SamAction.DELETE_ANY_METADATA)).thenReturn(true);
     datasetService.deleteMetadata(datasetId);
     verify(datasetDao).delete(dataset);
@@ -76,13 +98,13 @@ class DatasetServiceTest {
 
   @Test
   void testGetMetadataWithInvalidUser() {
-    mockLookup();
+    mockDataset();
     assertThrows(UnauthorizedException.class, () -> datasetService.getMetadata(datasetId));
   }
 
   @Test
   void testGetMetadata() {
-    mockLookup();
+    mockDataset();
     when(samService.hasGlobalAction(SamAction.READ_ANY_METADATA)).thenReturn(true);
     datasetService.getMetadata(datasetId);
     verify(datasetDao).retrieve(datasetId);
@@ -99,14 +121,14 @@ class DatasetServiceTest {
 
   @Test
   void testUpdateMetadataWithInvalidUser() {
-    mockLookup();
+    mockDataset();
     assertThrows(
         UnauthorizedException.class, () -> datasetService.updateMetadata(datasetId, "test"));
   }
 
   @Test
   void testUpdateMetadata() {
-    mockLookup();
+    mockDataset();
     String metadata = "test metadata";
     when(samService.hasGlobalAction(SamAction.UPDATE_ANY_METADATA)).thenReturn(true);
     datasetService.updateMetadata(datasetId, metadata);
