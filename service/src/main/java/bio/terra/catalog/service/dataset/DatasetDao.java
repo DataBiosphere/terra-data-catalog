@@ -8,7 +8,9 @@ import bio.terra.common.db.ReadTransaction;
 import bio.terra.common.db.WriteTransaction;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -121,5 +123,13 @@ public class DatasetDao {
           rs.getString(METADATA_FIELD),
           rs.getTimestamp(CREATED_DATE_FIELD).toInstant());
     }
+  }
+
+  @ReadTransaction
+  public List<Dataset> find(StorageSystem storageSystem, Collection<String> ids) {
+    String sql =
+        "SELECT * FROM dataset WHERE storage_system = :storageSystem AND storage_source_id IN (:ids)";
+    var params = Map.of("storageSystem", String.valueOf(storageSystem), "ids", ids);
+    return jdbcTemplate.query(sql, params, new DatasetMapper());
   }
 }
