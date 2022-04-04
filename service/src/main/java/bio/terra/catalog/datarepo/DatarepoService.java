@@ -31,8 +31,8 @@ public class DatarepoService {
   private static final List<String> READER_ROLES =
       List.of(ADMIN_ROLE_NAME, STEWARD_ROLE_NAME, READER_ROLE_NAME, DISCOVERER_ROLE_NAME);
 
-  // This is the maximum number of datasets returned. If we have more than 1000 datasets in TDR
-  // that are in the catalog, this number will need to be increased.
+  // This is the maximum number of datasets returned. If we have more than this number of datasets
+  // in TDR that are in the catalog, this number will need to be increased.
   private static final int MAX_DATASETS = 1000;
 
   private final DatarepoConfiguration datarepoConfig;
