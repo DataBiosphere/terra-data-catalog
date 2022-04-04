@@ -3,9 +3,10 @@ plugins {
     id 'jacoco'
     id 'java'
 
+    id 'io.spring.dependency-management'
     id 'com.diffplug.spotless'
     id 'com.github.spotbugs'
-    id 'org.hidetake.swagger.generator'
+    id 'org.openapi.generator'
 }
 
 boolean isCiServer = System.getenv().containsKey("CI")
@@ -41,8 +42,6 @@ repositories {
 
 dependencies {
     compileOnly "com.google.code.findbugs:annotations:3.0.1"
-    implementation 'io.swagger.core.v3:swagger-annotations:2.2.0'
-    swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli:3.0.31'
 
     implementation 'org.slf4j:slf4j-api:1.7.35'
 
