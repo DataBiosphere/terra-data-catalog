@@ -43,7 +43,7 @@ def updateMetadataInCatalog(datasetId, resourceJson, accessToken):
     elif existsResponse.status_code == 500:
       print('Adding new dataset... POST /api/v1/datasets')
       addResponse = requests.post(f'{urlRoot}/api/v1/datasets', headers=headers, data=json.dumps(resourceJson[datasetId]))
-      print(addResponse.json())
+      print('errored?', addResponse.json())
     else:
       print('There was an unexpected error, ignored')
   else:
