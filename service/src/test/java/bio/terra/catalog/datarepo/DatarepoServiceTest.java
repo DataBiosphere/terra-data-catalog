@@ -78,7 +78,7 @@ class DatarepoServiceTest {
   void userHasActionOwner() throws Exception {
     var id = UUID.randomUUID();
     when(snapshotsApi.retrieveUserSnapshotRoles(id))
-        .thenReturn(List.of(DatarepoService.ADMIN_ROLE_NAME));
+        .thenReturn(List.of(DatarepoService.STEWARD_ROLE_NAME));
     assertTrue(datarepoService.userHasAction(user, id.toString(), SamAction.CREATE_METADATA));
   }
 
