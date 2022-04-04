@@ -4,39 +4,30 @@ dependencies {
     implementation 'org.glassfish.jersey.core:jersey-client'
     implementation 'org.glassfish.jersey.media:jersey-media-json-jackson'
     implementation 'org.glassfish.jersey.media:jersey-media-multipart'
-
-    implementation 'io.swagger.core.v3:swagger-annotations'
-    swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli'
 }
 
 def artifactGroup = "${group}.catalog"
 
-generateSwaggerCode {
-    inputFile = file('../common/openapi.yml')
-    language = 'java'
-    library = 'jersey2'
+openApiGenerate {
+    inputSpec = "$rootDir/common/openapi.yml"
+    generatorName = 'java'
 
-    // For Swagger Codegen v3 on Java 16+
-    // See https://github.com/swagger-api/swagger-codegen/issues/10966
-    jvmArgs = ['--add-opens=java.base/java.util=ALL-UNNAMED']
+    generateApiDocumentation = false
+    generateApiTests = false
+    generateModelDocumentation = false
+    generateModelTests = false
 
-    components = [
-        apiDocs  : false, apiTests: false,
-        modelDocs: false, modelTests: false
-    ]
+    apiPackage = "${artifactGroup}.api"
+    modelPackage = "${artifactGroup}.model"
+    invokerPackage = "${artifactGroup}.client"
 
-    additionalProperties = [
-        modelPackage  : "${artifactGroup}.model",
-        apiPackage    : "${artifactGroup}.api",
-        invokerPackage: "${artifactGroup}.client",
+    configOptions = [
         dateLibrary   : 'java11',
-        java8         : true
+        java8         : 'true'
     ]
-
-    rawOptions = ['--ignore-file-override', "${projectDir}/.swagger-codegen-ignore"]
 }
 
-idea.module.generatedSourceDirs = [file("${generateSwaggerCode.outputDir}/src/main/java")]
-sourceSets.main.java.srcDir "${generateSwaggerCode.outputDir}/src/main/java"
-compileJava.dependsOn generateSwaggerCode
-sourcesJar.dependsOn generateSwaggerCode
+idea.module.generatedSourceDirs = [file("${openApiGenerate.outputDir}/main/src/main/java")]
+sourceSets.main.java.srcDir "${openApiGenerate.outputDir}/main/src/main/java"
+compileJava.dependsOn tasks.openApiGenerate
+sourcesJar.dependsOn tasks.openApiGenerate
