@@ -5,7 +5,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -13,9 +12,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
     exclude = {
       // We don't make use of DataSource in this application, so exclude it from scanning.
       DataSourceAutoConfiguration.class,
-    })
-@ComponentScan(
-    basePackages = {
+    },
+    scanBasePackages = {
       // Scan for logging-related components & configs
       "bio.terra.common.logging",
       // Scan for Liquibase migration components & configs
