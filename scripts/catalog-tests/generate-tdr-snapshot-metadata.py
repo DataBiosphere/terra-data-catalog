@@ -5,9 +5,10 @@
 # pulling the metadata from the resources JSON file
 # 
 # Before Running:
-#   python3 -m pip install requests argparse
+#   python3 -m pip install requests
 #   
 #   Authorization: Access the password in the vault using the appropriate command:
+#   vault login -method=github token=$(cat ~/.github-token)
 #   vault read secret/dsde/terra/kernel/dev/dev/catalog/tests/user
 #   vault read secret/dsde/terra/kernel/dev/dev/catalog/tests/userAdmin
 # Run: python3 generate-tdr-snapshot-metadata.py
