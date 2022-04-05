@@ -7,10 +7,10 @@ python3 -m venv .env
 source .env/bin/activate
 pip install --upgrade pip
 pip install black tqdm
-4. generate and save a AUTH_TOKEN which is required to make API requests.
+4. Generate and save an `AUTH_TOKEN` which is required to make API requests:
+
 ```sh
 AUTH_TOKEN="Authorization: Bearer $(gcloud auth application-default print-access-token)"
-```
 5. run python code to extract the project and snapshot data as json files. ```create-hca-collection``` combines the two to create a collection file
 ```sh
 python3 extract-hca-projects.py
