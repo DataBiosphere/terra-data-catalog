@@ -16,6 +16,7 @@ AUTH_TOKEN="Authorization: Bearer $(gcloud auth application-default print-access
 ```
 
 4. Extract the HCA project and snapshot data as JSON files. `create-hca-collection.py` combines the two to create a collection file.
+
 ```sh
 python3 extract-hca-projects.py
 python3 extract-hca-snapshots.py
