@@ -1,18 +1,12 @@
 ## Building the code
 
-1. Create a Python Virtual Environment for so some lines of code can run.
+1. Create and activate the Python virtual environment and install dependencies:
+
 ```sh
 python3 -m venv .env
-```
-2. ```.env/bin/activate``` engages the environment so  pip and black tqm can be installed.
-```sh
 source .env/bin/activate
-```
-3. install python dependencies
-```sh
 pip install --upgrade pip
 pip install black tqdm
-```
 4. generate and save a AUTH_TOKEN which is required to make API requests.
 ```sh
 AUTH_TOKEN="Authorization: Bearer $(gcloud auth application-default print-access-token)"
