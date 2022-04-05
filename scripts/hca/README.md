@@ -24,4 +24,3 @@ python3 create-hca-collection
 source .env/bin/activate
 python3 ingest-hca-collection.py
 
-Currrently Missing command to delete files generated after testing
