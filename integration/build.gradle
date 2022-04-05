@@ -23,6 +23,8 @@ dependencies {
     // Terra Test Runner Library
     implementation 'bio.terra:terra-test-runner:0.1.1-SNAPSHOT'
 
+    implementation 'bio.terra:datarepo-client:1.313.0-SNAPSHOT'
+
     // Requires client library
     implementation project(':client')
 }

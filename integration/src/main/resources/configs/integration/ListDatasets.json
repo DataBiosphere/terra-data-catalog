@@ -6,12 +6,12 @@
   "application": {},
   "testScripts": [
     {
-      "name": "ListDatasets",
+      "name": "DatasetServiceTest",
       "numberOfUserJourneyThreadsToRun": 1,
       "userJourneyThreadPoolSize": 2,
       "expectedTimeForEach": 5,
       "expectedTimeForEachUnit": "SECONDS"
     }
   ],
-  "testUserFiles": [ "user.json" ]
+  "testUserFiles": [ "admin.json" ]
 }
