@@ -1,4 +1,4 @@
-## Building the code
+## Running the code
 
 1. Create and activate the Python virtual environment and install dependencies:
 
