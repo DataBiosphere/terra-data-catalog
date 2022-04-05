@@ -18,10 +18,10 @@ python3 extract-hca-projects.py
 python3 extract-hca-snapshots.py
 python3 create-hca-collection
 
-6. ```.env/bin/activate``` must be used to create an environment so  ```ingest-hca-collection``` script can run and to avoid a tpq error.
+6. `.env/bin/activate` must be used to activate the virtual env to avoid a `tqdm` error in `ingest-hca-collection.py`.
+
 ```sh
 source .env/bin/activate
 python3 ingest-hca-collection.py
-```
 
 Currrently Missing command to delete files generated after testing
