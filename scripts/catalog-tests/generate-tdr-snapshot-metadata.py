@@ -5,6 +5,9 @@
 # pulling the metadata from the resources JSON file
 # 
 # Before Running:
+#   python3 -m venv .env
+#   source .env/bin/activate
+#   pip install --upgrade pip
 #   python3 -m pip install requests argparse
 #   
 #   Authorization: Access the password in the vault using the appropriate command:
