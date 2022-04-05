@@ -32,31 +32,46 @@ def getAccessToken():
 
   return out.decode('ASCII').strip()
 
-def updateMetadataInCatalog(datasetId, resourceJson, accessToken):
-  if datasetId in resourceJson:
-    print(datasetId, ': updating with metadata')
-    urlDatasetsWithId = f'{urlDatasets}/{datasetId}'
-    headers = {
-      'Authorization': f'Bearer {accessToken}',
-      'Content-Type': 'application/json'
-    }
-    data = json.dumps(resourceJson[datasetId])
-    existsResponse = requests.get(urlDatasetsWithId, headers=headers)
-    if existsResponse.status_code == 200:
-      addResponse = requests.put(urlDatasetsWithId, headers=headers, data=data)
-    elif existsResponse.status_code == 500:
-      addResponse = requests.post(urlDatasets, headers=headers, data=data)
-      print('errored?', addResponse.json())
-    else:
-      print('There was an unexpected error, ignored')
-  else:
-    print(datasetId, ': ignored')
+def updateMetadataInCatalog(resourceJson, accessToken):
+  print('Updating metadata for datasets in the catalog')
+  headers = {
+    'Authorization': f'Bearer {accessToken}',
+    'Content-Type': 'application/json'
+  }
+  existsResponse = requests.get(urlDatasets, headers=headers)
+  datasetList = json.loads(existsResponse.text)['result']
+  print('datasetList', datasetList)
+
+  for dataset in datasetList:
+    datasetId = dataset['id']
+    datasetTitle = dataset['dct:title']
+    if datasetTitle in resourceJson:
+      metadata = json.dumps(resourceJson[datasetTitle])
+      updateMetadataForDataset(datasetId, datasetTitle, metadata, accessToken)
+    # else:
+    #   print(f'No testing metadata found for this dataset name/type: {datasetTitle}')
+
+def updateMetadataForDataset(datasetId, datasetTitle, metadata, accessToken):
+  print(f'\nUpdating dataset ({datasetId}, {datasetTitle})')
+  urlDatasetsWithId = f'{urlDatasets}/{datasetId}'
+  headers = {
+    'Authorization': f'Bearer {accessToken}',
+    'Content-Type': 'application/json'
+  }
+
+  addResponse = requests.put(urlDatasetsWithId, headers=headers, data=metadata)
+  if addResponse.status_code == 500:
+    print('---------------------------------------------------')
+    print(f'There was a problem updating metadata for ({datasetId}, {datasetTitle})')
+    print(json.loads(addResponse.text)['message'])
+    print('\nRequest:')
+    print(f'\t{addResponse.request.url}')
+    print(f'\t{addResponse.request.headers}')
+    print(f'\t{addResponse.request.body}')
+    print('---------------------------------------------------')
 
 def main():
   print('Adding TDR Snapshot Metadata')
-
-  # Get dataset ids from cmd line
-  datasetIds = sys.argv[1:]
 
   # Obtain google user credentials
   accessToken = getAccessToken()
@@ -65,8 +80,7 @@ def main():
   resourceFile = open('resources.json')
   resourceJson = json.load(resourceFile)
 
-  for datasetId in datasetIds:
-    updateMetadataInCatalog(datasetId, resourceJson, accessToken)
+  updateMetadataInCatalog(resourceJson, accessToken)
 
   # Close file
   resourceFile.close()
