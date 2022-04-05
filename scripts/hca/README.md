@@ -24,6 +24,7 @@ python3 create-hca-collection
 ```
 
 5. `.env/bin/activate` must be used to activate the virtual env to avoid a `tqdm` error in `ingest-hca-collection.py`.
+
 ```sh
 source .env/bin/activate
 python3 ingest-hca-collection.py
