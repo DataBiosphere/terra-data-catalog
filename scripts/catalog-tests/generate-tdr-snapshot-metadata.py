@@ -20,9 +20,6 @@ urlRoot = os.environ.get('catalogServiceUrl') or 'http://localhost:8080'
 urlDatasets = f'{urlRoot}/api/v1/datasets'
 user = os.environ.get('gcloudUser') or 'datacataloguser@test.firecloud.org'
 
-# def parseArguments():
-
-
 def getAccessToken():
   proc = subprocess.Popen([f'gcloud auth login {user} --brief'], stdout=subprocess.PIPE, shell=True)
   proc.communicate()
@@ -48,8 +45,8 @@ def updateMetadataInCatalog(resourceJson, accessToken):
     if datasetTitle in resourceJson:
       metadata = json.dumps(resourceJson[datasetTitle])
       updateMetadataForDataset(datasetId, datasetTitle, metadata, accessToken)
-    # else:
-    #   print(f'No testing metadata found for this dataset name/type: {datasetTitle}')
+    else:
+      print(f'No testing metadata found for this dataset name/type: {datasetTitle}')
 
 def updateMetadataForDataset(datasetId, datasetTitle, metadata, accessToken):
   print(f'\nUpdating dataset ({datasetId}, {datasetTitle})')
