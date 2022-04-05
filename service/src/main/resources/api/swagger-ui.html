@@ -11,6 +11,63 @@
   />
   <title>Data Catalog SwaggerUI</title>
   <link rel="stylesheet" type="text/css" href="/webjars/swagger-ui-dist/swagger-ui.css" >
+  <style>
+    html
+    {
+      box-sizing: border-box;
+      overflow: -moz-scrollbars-vertical;
+      overflow-y: scroll;
+    }
+
+    *,
+    *:before,
+    *:after
+    {
+      box-sizing: inherit;
+    }
+
+    body
+    {
+      margin:0;
+      background: #fafafa;
+    }
+
+    /* make the schema display full-width */
+    .swagger-ui .model-example .model-box {
+      display: block;
+    }
+
+    /* these take a lot of vertical space by default */
+    .swagger-ui div.info {
+      margin: 25px 0;
+    }
+
+    .swagger-ui .opblock .renderedMarkdown p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.2;
+    }
+
+    /* Fix up header text styling */
+    .swagger-ui details {
+      margin-bottom: 20px;
+    }
+    .swagger-ui details summary {
+      cursor: pointer;
+    }
+
+    /* Support classes for header pinning */
+    .swagger-ui .scheme-container {
+      position: relative;
+    }
+    .swagger-ui .scheme-container.pinned {
+      position: fixed;
+      top: 0;
+      right: 0;
+      left: 0;
+      z-index: 100;
+    }
+  </style>
 </head>
 
 <body>
