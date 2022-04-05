@@ -10,7 +10,7 @@
 #   Authorization: Access the password in the vault using the appropriate command:
 #   vault read secret/dsde/terra/kernel/dev/dev/catalog/tests/user
 #   vault read secret/dsde/terra/kernel/dev/dev/catalog/tests/userAdmin
-# Run: python3 generate-tdr-snapshot-metadata.py datasetId datasetId2
+# Run: python3 generate-tdr-snapshot-metadata.py
 #------------------------------------------------------------------------------
 import json
 import os, subprocess, sys
