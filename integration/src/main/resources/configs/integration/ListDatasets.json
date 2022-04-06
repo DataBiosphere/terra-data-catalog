@@ -6,7 +6,7 @@
   "application": {},
   "testScripts": [
     {
-      "name": "DatasetServiceTest",
+      "name": "SnapshotDatasetOperations",
       "numberOfUserJourneyThreadsToRun": 1,
       "userJourneyThreadPoolSize": 2,
       "expectedTimeForEach": 5,
