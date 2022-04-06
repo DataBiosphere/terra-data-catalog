@@ -4,6 +4,7 @@
   "serverSpecificationFile": "catalog-perf.json",
   "testConfigurationFiles": [
     "perf/GetStatus.json",
-    "perf/GetVersion.json"
+    "perf/GetVersion.json",
+    "perf/SnapshotDatasetOperations.json"
   ]
 }
