@@ -4,7 +4,7 @@ info:
   description: |
     An indexed catalog of data for use in Terra.
 
-    ⚠️ Do not add sensitive data. All catalog entries are publicly accessible to all Terra users ⚠️
+    ⚠️ Do not add sensitive data. All catalog entries are publicly accessible to all Terra users. ⚠️
   version: 0.0.1
 paths:
   /status:
@@ -57,7 +57,7 @@ paths:
       summary: Create a new dataset
       tags: [ datasets ]
       description: |
-        ⚠️ Do not add sensitive data. All catalog entries are publicly accessible to all Terra users ⚠️
+        ⚠️ Do not add sensitive data. All catalog entries are publicly accessible to all Terra users. ⚠️
       operationId: createDataset
       requestBody:
         content:
@@ -96,7 +96,7 @@ paths:
       summary: Update the catalog entry for a dataset
       tags: [ datasets ]
       description: |
-        ⚠️ Do not add sensitive data. All catalog entries are publicly accessible to all Terra users ⚠️
+        ⚠️ Do not add sensitive data. All catalog entries are publicly accessible to all Terra users. ⚠️
       operationId: updateDataset
       parameters:
         - $ref: '#/components/parameters/Id'
@@ -257,7 +257,7 @@ components:
 
     CreateDatasetRequest:
       description: |
-        ⚠️ Do not add sensitive data. All catalog entries are publicly accessible to all Terra users ⚠️
+        ⚠️ Do not add sensitive data. All catalog entries are publicly accessible to all Terra users. ⚠️
       type: object
       properties:
         storageSystem:
