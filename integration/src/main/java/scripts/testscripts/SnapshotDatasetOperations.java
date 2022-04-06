@@ -1,11 +1,13 @@
 package scripts.testscripts;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import bio.terra.catalog.api.DatasetsApi;
 import bio.terra.catalog.client.ApiException;
@@ -59,8 +61,8 @@ public class SnapshotDatasetOperations extends TestScript {
     snapshotsApi = new SnapshotsApi(datarepoClient);
     var request =
         new SnapshotRequestModel()
-            .name("pshapiro_test_1")
-            .description("test snapshot")
+            .name("catalog_integration_test_" + System.currentTimeMillis())
+            .description("catalog test snapshot")
             .profileId(dataset.getDefaultProfileId())
             .addContentsItem(
                 new SnapshotRequestContentsModel()
@@ -112,7 +114,7 @@ public class SnapshotDatasetOperations extends TestScript {
     // Retrieve all datasets
     var datasets = datasetsApi.listDatasets();
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
-    assertThat(datasets.getResult(), is(not(empty())));
+    validateListResult(datasets.getResult());
 
     // Modify the entry
     datasetsApi.updateDataset(METADATA_2, datasetId);
@@ -127,8 +129,26 @@ public class SnapshotDatasetOperations extends TestScript {
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_NO_CONTENT));
 
     // Verify delete success.
-    assertThrows(ApiException.class, () -> datasetsApi.getDataset(datasetId));
+    var apiException = assertThrows(ApiException.class, () -> datasetsApi.getDataset(datasetId));
+    assertThat(apiException.getCode(), is(HttpStatusCodes.STATUS_CODE_NOT_FOUND));
+    assertThat(apiException.getResponseBody(), containsString(datasetId.toString()));
     datasetId = null;
+  }
+
+  private void validateListResult(List<Object> listResult) {
+    for (Object datasetObj : listResult) {
+      @SuppressWarnings("unchecked")
+      Map<Object, Object> dataset = (Map<Object, Object>) datasetObj;
+      if (dataset.get("id").equals(datasetId.toString())) {
+        assertThat(dataset, hasEntry(is("name"), is("test")));
+        assertThat(dataset, hasEntry(is("id"), is(datasetId.toString())));
+        @SuppressWarnings("unchecked")
+        List<Object> roles = (List<Object>) dataset.get("roles");
+        assertThat(roles, containsInAnyOrder("steward", "admin"));
+        return;
+      }
+    }
+    fail("Dataset not returned in list result, expected id " + datasetId);
   }
 
   @Override
