@@ -15,11 +15,14 @@ first.
 Ensure you have Java 17 and that it is the default. To check this while in the
 `terra-data-catalog` directory, type `java --version`.
 
-Then, to build the code, run:
+Then, to build the code without executing tests, run:
 
 ```sh
-./gradlew build
+./gradlew build -x test
 ```
+
+If you don't include `-x test` ensure the Postgres database is initialized as
+described below.
 
 ## Running the tests
 
