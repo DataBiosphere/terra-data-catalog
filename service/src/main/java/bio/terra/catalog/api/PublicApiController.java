@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
@@ -43,5 +44,11 @@ public class PublicApiController implements PublicApi {
   @RequestMapping(value = "/")
   public String index() {
     return "redirect:swagger-ui.html";
+  }
+
+  @RequestMapping(value = "/swagger-ui.html")
+  public String getSwagger(Model model) {
+    model.addAttribute("clientId", "placeholder"); // oauthConfig.getClientId()
+    return "index";
   }
 }
