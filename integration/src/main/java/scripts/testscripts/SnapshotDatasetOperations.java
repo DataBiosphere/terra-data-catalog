@@ -2,12 +2,13 @@ package scripts.testscripts;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import bio.terra.catalog.api.DatasetsApi;
+import bio.terra.catalog.client.ApiException;
 import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.StorageSystem;
 import bio.terra.datarepo.api.JobsApi;
@@ -17,7 +18,6 @@ import bio.terra.datarepo.model.SnapshotRequestContentsModel;
 import bio.terra.datarepo.model.SnapshotRequestModel;
 import bio.terra.testrunner.runner.TestScript;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.http.HttpStatusCodes;
 import java.util.List;
 import java.util.Map;
@@ -37,8 +37,6 @@ public class SnapshotDatasetOperations extends TestScript {
 
   private static final Logger log = LoggerFactory.getLogger(SnapshotDatasetOperations.class);
   private static final String TEST_DATASET_NAME = "CatalogTestDataset";
-
-  private final ObjectMapper objectMapper = new ObjectMapper();
 
   // TDR APIs
   private SnapshotsApi snapshotsApi;
@@ -86,20 +84,17 @@ public class SnapshotDatasetOperations extends TestScript {
   }
 
   private static final String METADATA_1 = """
-      {"name":"test"}""";
+      {"name": "test"}""";
 
   private static final String METADATA_2 = """
-      {"name":"test2"}""";
+      {"name": "test2"}""";
 
-  // Given a snapshot, create a catalog entry.
-  // - retrieve the entry
-  // - retrieve all datasets
-  // - modify the entry, verify
-  // - delete the entry, verify
   @Override
   public void userJourney(TestUserSpecification testUser) throws Exception {
     var client = new CatalogClient(server, testUser);
     datasetsApi = new DatasetsApi(client);
+
+    // Given a snapshot, create a catalog entry.
     var request =
         new CreateDatasetRequest()
             .catalogEntry(METADATA_1)
@@ -110,25 +105,30 @@ public class SnapshotDatasetOperations extends TestScript {
     assertThat(datasetId, notNullValue());
     log.info("created dataset " + datasetId);
 
-    // Need to build expected roles and add ID, or convert to Map and assert "name"
+    // Retrieve the entry
     assertThat(datasetsApi.getDataset(datasetId), is(METADATA_1));
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
 
+    // Retrieve all datasets
     var datasets = datasetsApi.listDatasets();
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
     assertThat(datasets.getResult(), is(not(empty())));
 
+    // Modify the entry
     datasetsApi.updateDataset(METADATA_2, datasetId);
-    assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_ACCEPTED));
+    assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_NO_CONTENT));
 
+    // Verify modify success
     assertThat(datasetsApi.getDataset(datasetId), is(METADATA_2));
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
 
+    // Delete the entry
     datasetsApi.deleteDataset(datasetId);
-    assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_ACCEPTED));
+    assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_NO_CONTENT));
 
-    assertThat(datasetsApi.getDataset(datasetId), is(emptyOrNullString()));
-    assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_NOT_FOUND));
+    // Verify delete success.
+    assertThrows(ApiException.class, () -> datasetsApi.getDataset(datasetId));
+    datasetId = null;
   }
 
   @Override
