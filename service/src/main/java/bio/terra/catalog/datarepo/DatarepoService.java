@@ -9,9 +9,9 @@ import bio.terra.datarepo.api.UnauthenticatedApi;
 import bio.terra.datarepo.client.ApiClient;
 import bio.terra.datarepo.client.ApiException;
 import bio.terra.datarepo.model.RepositoryStatusModel;
-import bio.terra.datarepo.model.SnapshotSummaryModel;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import javax.ws.rs.client.Client;
 import org.slf4j.Logger;
@@ -23,13 +23,17 @@ import org.springframework.stereotype.Component;
 public class DatarepoService {
   private static final Logger logger = LoggerFactory.getLogger(DatarepoService.class);
   public static final String ADMIN_ROLE_NAME = "admin";
-  public static final String CUSTODIAN_ROLE_NAME = "custodian";
+  public static final String STEWARD_ROLE_NAME = "steward";
   public static final String READER_ROLE_NAME = "reader";
   public static final String DISCOVERER_ROLE_NAME = "discoverer";
 
-  private static final List<String> OWNER_ROLES = List.of(ADMIN_ROLE_NAME, CUSTODIAN_ROLE_NAME);
+  private static final List<String> OWNER_ROLES = List.of(ADMIN_ROLE_NAME, STEWARD_ROLE_NAME);
   private static final List<String> READER_ROLES =
-      List.of(ADMIN_ROLE_NAME, CUSTODIAN_ROLE_NAME, READER_ROLE_NAME, DISCOVERER_ROLE_NAME);
+      List.of(ADMIN_ROLE_NAME, STEWARD_ROLE_NAME, READER_ROLE_NAME, DISCOVERER_ROLE_NAME);
+
+  // This is the maximum number of datasets returned. If we have more than this number of datasets
+  // in TDR that are in the catalog, this number will need to be increased.
+  private static final int MAX_DATASETS = 1000;
 
   private final DatarepoConfiguration datarepoConfig;
   private final Client commonHttpClient;
@@ -40,11 +44,11 @@ public class DatarepoService {
     this.commonHttpClient = new ApiClient().getHttpClient();
   }
 
-  public List<SnapshotSummaryModel> getSnapshots(AuthenticatedUserRequest user) {
+  public Map<String, List<String>> getSnapshotIdsAndRoles(AuthenticatedUserRequest user) {
     try {
       return snapshotsApi(user)
-          .enumerateSnapshots(null, null, null, null, null, null, null)
-          .getItems();
+          .enumerateSnapshots(null, MAX_DATASETS, null, null, null, null, null)
+          .getRoleMap();
     } catch (ApiException e) {
       throw new DatarepoException("Enumerate snapshots failed", e);
     }
