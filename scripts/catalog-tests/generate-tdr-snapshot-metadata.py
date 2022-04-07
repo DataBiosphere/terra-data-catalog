@@ -22,7 +22,8 @@ import requests
 
 urlRoot = os.environ.get('catalogServiceUrl') or 'http://localhost:8080'
 urlDatasets = f'{urlRoot}/api/v1/datasets'
-user = os.environ.get('gcloudUser') or 'datacataloguser@test.firecloud.org'
+urlDataRepoList = "https://jade.datarepo-dev.broadinstitute.org/api/repository/v1/snapshots"
+user = os.environ.get('gcloudUser') or 'datacatalogadmin@test.firecloud.org'
 
 def getAccessToken():
   proc = subprocess.Popen([f'gcloud auth login {user} --brief'], stdout=subprocess.PIPE, shell=True)
@@ -39,37 +40,74 @@ def updateMetadataInCatalog(resourceJson, accessToken):
     'Authorization': f'Bearer {accessToken}',
     'Content-Type': 'application/json'
   }
-  existsResponse = requests.get(urlDatasets, headers=headers)
-  datasetList = json.loads(existsResponse.text)['result']
-  print('datasetList', datasetList)
+
+  # Get dataset list once in case of collision later
+  response = requests.get(urlDatasets, headers=headers)
+  responseData = json.loads(response.text)
+  datasetList = responseData['result'] if 'result' in responseData else []
+  datasetMap = {}
+  print('loaded dataset list from catalog service')
 
   for dataset in datasetList:
-    datasetId = dataset['id']
-    datasetTitle = dataset['dct:title']
-    if datasetTitle in resourceJson:
-      metadata = json.dumps(resourceJson[datasetTitle])
-      updateMetadataForDataset(datasetId, datasetTitle, metadata, accessToken)
-    else:
-      print(f'No testing metadata found for this dataset name/type: {datasetTitle}')
+    datasetMap[dataset['dct:identifier']] = dataset['id']
 
-def updateMetadataForDataset(datasetId, datasetTitle, metadata, accessToken):
-  print(f'\nUpdating dataset ({datasetId}, {datasetTitle})')
-  urlDatasetsWithId = f'{urlDatasets}/{datasetId}'
+  for resource in resourceJson:
+    existsResponse = requests.get(f'{urlDataRepoList}?filter={resource}', headers=headers)
+    print('retrieved snapshot from TDR')
+    tdrDatasetId = json.loads(existsResponse.text)['items'][0]['id']
+    catalogEntry = resourceJson[resource]
+    catalogEntry['dct:identifier'] = tdrDatasetId
+
+    if tdrDatasetId in datasetMap:
+      updateDataset(datasetMap[tdrDatasetId], resource, catalogEntry, accessToken)
+    else:
+      createDataset(tdrDatasetId, resource, catalogEntry, accessToken)
+
+def updateDataset(datasetId, datasetTitle, metadata, accessToken):
+  print(f'\nUpdating existing dataset ({datasetId}, {datasetTitle})')
   headers = {
     'Authorization': f'Bearer {accessToken}',
     'Content-Type': 'application/json'
   }
+  response = requests.put(f'{urlDatasets}/{datasetId}', headers=headers, data=json.dumps(metadata))
 
-  addResponse = requests.put(urlDatasetsWithId, headers=headers, data=metadata)
-  if addResponse.status_code == 500:
+  if response.status_code == 500:
     print('---------------------------------------------------')
-    print(f'There was a problem updating metadata for ({datasetId}, {datasetTitle})')
-    print(json.loads(addResponse.text)['message'])
+    print(f'There was a problem updating dataset with metadata for ({datasetId}, {datasetTitle})')
+    print(json.loads(response.text)['message'])
     print('\nRequest:')
-    print(f'\t{addResponse.request.url}')
-    print(f'\t{addResponse.request.headers}')
-    print(f'\t{addResponse.request.body}')
+    print(f'\t{response.request.url}')
+    print(f'\t{response.request.headers}')
+    print(f'\t{response.request.body}')
     print('---------------------------------------------------')
+  else:
+    print('success!', response.text)
+
+
+def createDataset(datasetId, datasetTitle, metadata, accessToken):
+  print(f'\nCreating dataset ({datasetId}, {datasetTitle})')
+  headers = {
+    'Authorization': f'Bearer {accessToken}',
+    'Content-Type': 'application/json'
+  }
+  metadata = {
+      'storageSystem': 'tdr',
+      'storageSourceId': datasetId,
+      'catalogEntry': json.dumps(metadata)
+    }
+  response = requests.post(urlDatasets, headers=headers, data=json.dumps(metadata))
+
+  if response.status_code == 500:
+    print('---------------------------------------------------')
+    print(f'There was a problem creating dataset with metadata for ({datasetId}, {datasetTitle})')
+    print(json.loads(response.text)['message'])
+    print('\nRequest:')
+    print(f'\t{response.request.url}')
+    print(f'\t{response.request.headers}')
+    print(f'\t{response.request.body}')
+    print('---------------------------------------------------')
+  else:
+    print('success!', response.text)
 
 def main():
   print('Adding TDR Snapshot Metadata')
