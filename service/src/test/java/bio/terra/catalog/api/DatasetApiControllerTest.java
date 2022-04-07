@@ -17,6 +17,7 @@ import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.DatasetsListResponse;
 import bio.terra.catalog.service.DatasetService;
 import bio.terra.catalog.service.dataset.DatasetId;
+import bio.terra.catalog.service.dataset.exception.DatasetNotFoundException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.common.iam.AuthenticatedUserRequestFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,7 +35,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {DatasetApiController.class, DatasetService.class})
+@ContextConfiguration(
+    classes = {DatasetApiController.class, DatasetService.class, GlobalExceptionHandler.class})
 @WebMvcTest
 class DatasetApiControllerTest {
 
@@ -82,6 +84,13 @@ class DatasetApiControllerTest {
     var datasetId = new DatasetId(UUID.randomUUID());
     mockMvc.perform(get(API_ID, datasetId.uuid())).andExpect(status().isOk());
     verify(datasetService).getMetadata(user, datasetId);
+  }
+
+  @Test
+  void getDatasetNoRecordFound() throws Exception {
+    var datasetId = new DatasetId(UUID.randomUUID());
+    when(datasetService.getMetadata(user, datasetId)).thenThrow(new DatasetNotFoundException(""));
+    mockMvc.perform(get(API_ID, datasetId.uuid())).andExpect(status().isNotFound());
   }
 
   @Test
