@@ -11,8 +11,8 @@
 #   python3 -m pip install requests
 #   
 #   Authorization: Access the password in the vault using the appropriate command:
+#      (you will need this for the auth dialog that the script will pull up)
 #   vault login -method=github token=$(cat ~/.github-token)
-#   vault read secret/dsde/terra/kernel/dev/dev/catalog/tests/user
 #   vault read secret/dsde/terra/kernel/dev/dev/catalog/tests/userAdmin
 # Run: python3 generate-tdr-snapshot-metadata.py
 #------------------------------------------------------------------------------
@@ -20,10 +20,23 @@ import json
 import os, subprocess, sys
 import requests
 
-urlRoot = os.environ.get('catalogServiceUrl') or 'http://localhost:8080'
+urlRoot = os.environ.get('CATALOG_SERVICE_URL') or 'http://localhost:8080'
 urlDatasets = f'{urlRoot}/api/v1/datasets'
-urlDataRepoList = "https://jade.datarepo-dev.broadinstitute.org/api/repository/v1/snapshots"
-user = os.environ.get('gcloudUser') or 'datacatalogadmin@test.firecloud.org'
+urlDataRepoList = 'https://jade.datarepo-dev.broadinstitute.org/api/repository/v1/snapshots'
+user = os.environ.get('GCLOUD_USER') or 'datacatalogadmin@test.firecloud.org'
+
+def logResponse(response, message):
+  if 200 <= response.status_code and response.status_code < 300:
+    print('success!', response.text)
+  else:
+    print('---------------------------------------------------')
+    print(f'There was a problem running this request: ', message)
+    # print(json.loads(response.text)['message'])
+    print('\nRequest:')
+    print(f'\t{response.request.url}')
+    print(f'\t{response.request.headers}')
+    print(f'\t{response.request.body}')
+    print('---------------------------------------------------')
 
 def getAccessToken():
   proc = subprocess.Popen([f'gcloud auth login {user} --brief'], stdout=subprocess.PIPE, shell=True)
@@ -70,19 +83,7 @@ def updateDataset(datasetId, datasetTitle, metadata, accessToken):
     'Content-Type': 'application/json'
   }
   response = requests.put(f'{urlDatasets}/{datasetId}', headers=headers, data=json.dumps(metadata))
-
-  if response.status_code == 500:
-    print('---------------------------------------------------')
-    print(f'There was a problem updating dataset with metadata for ({datasetId}, {datasetTitle})')
-    print(json.loads(response.text)['message'])
-    print('\nRequest:')
-    print(f'\t{response.request.url}')
-    print(f'\t{response.request.headers}')
-    print(f'\t{response.request.body}')
-    print('---------------------------------------------------')
-  else:
-    print('success!', response.text)
-
+  logResponse(response, f'updating dataset with metadata for ({datasetId}, {datasetTitle})')
 
 def createDataset(datasetId, datasetTitle, metadata, accessToken):
   print(f'\nCreating dataset ({datasetId}, {datasetTitle})')
@@ -96,18 +97,7 @@ def createDataset(datasetId, datasetTitle, metadata, accessToken):
       'catalogEntry': json.dumps(metadata)
     }
   response = requests.post(urlDatasets, headers=headers, data=json.dumps(metadata))
-
-  if response.status_code == 500:
-    print('---------------------------------------------------')
-    print(f'There was a problem creating dataset with metadata for ({datasetId}, {datasetTitle})')
-    print(json.loads(response.text)['message'])
-    print('\nRequest:')
-    print(f'\t{response.request.url}')
-    print(f'\t{response.request.headers}')
-    print(f'\t{response.request.body}')
-    print('---------------------------------------------------')
-  else:
-    print('success!', response.text)
+  logResponse(response, f'creating dataset with metadata for ({datasetId}, {datasetTitle})')
 
 def main():
   print('Adding TDR Snapshot Metadata')
