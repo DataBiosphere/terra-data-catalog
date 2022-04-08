@@ -84,7 +84,7 @@
           var authBar;
           document.addEventListener('scroll', function() {
             if (offsetY === undefined) {
-              // Note: the auth bar is not a React component so we can't use the standard plugin approach to modify
+              // Note: the auth bar is not a React component, so we can't use the standard plugin approach to modify
               var authBars = document.getElementsByClassName('scheme-container');
               if (authBars.length > 0) {
                 authBar = authBars[0];
