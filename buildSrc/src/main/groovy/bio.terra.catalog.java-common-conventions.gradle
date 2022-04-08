@@ -83,8 +83,10 @@ spotbugs {
 }
 spotbugsMain {
     reports {
-        sarif {
-            enabled = true
+        if (isCiServer) {
+            sarif.enabled = true
+        } else {
+            html.enabled = true
         }
     }
 }
