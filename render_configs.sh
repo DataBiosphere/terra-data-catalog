@@ -15,7 +15,7 @@ if ! [ -x "$(command -v vault)" ]; then
 fi
 
 $VAULT_COMMAND -field=data -format=json "secret/dsde/firecloud/$ENV/common/firecloud-account.json" >"$INTEGRATION_OUTPUT_LOCATION/user-delegated-sa.json"
-$VAULT_COMMAND -field=swagger-client-id "$ECM_VAULT_PATH" >"$SERVICE_OUTPUT_LOCATION/swagger-client-id"
+$VAULT_COMMAND -field=swagger-client-id "$CATALOG_VAULT_PATH" >"$SERVICE_OUTPUT_LOCATION/swagger-client-id"
 
 if [ $ENV == perf ]; then
   $VAULT_COMMAND -field=key "$COMMON_VAULT_PATH/testrunner/testrunner-sa" | base64 -d > "$INTEGRATION_OUTPUT_LOCATION/testrunner-sa.json"
