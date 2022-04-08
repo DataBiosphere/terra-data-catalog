@@ -114,7 +114,7 @@ public class SnapshotDatasetOperations extends TestScript {
     // Retrieve all datasets
     var datasets = datasetsApi.listDatasets();
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
-    validateListResult(datasets.getResult());
+    resultHasDatasetWithRoles(datasets.getResult());
 
     // Modify the entry
     datasetsApi.updateDataset(METADATA_2, datasetId);
@@ -135,8 +135,8 @@ public class SnapshotDatasetOperations extends TestScript {
     datasetId = null;
   }
 
-  private void validateListResult(List<Object> listResult) {
-    for (Object datasetObj : listResult) {
+  private void resultHasDatasetWithRoles(List<Object> datasets) {
+    for (Object datasetObj : datasets) {
       @SuppressWarnings("unchecked")
       Map<Object, Object> dataset = (Map<Object, Object>) datasetObj;
       if (dataset.get("id").equals(datasetId.toString())) {
