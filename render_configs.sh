@@ -3,7 +3,7 @@ VAULT_TOKEN=${2:-$(cat "$HOME"/.vault-token)}
 
 VAULT_ADDR="https://clotho.broadinstitute.org:8200"
 COMMON_VAULT_PATH="secret/dsde/terra/kernel/$ENV/common"
-ECM_VAULT_PATH="secret/dsde/terra/kernel/$ENV/$ENV/catalog"
+CATALOG_VAULT_PATH="secret/dsde/terra/kernel/$ENV/$ENV/catalog"
 
 VAULT_COMMAND="vault read"
 
