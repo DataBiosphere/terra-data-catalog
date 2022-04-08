@@ -14,7 +14,15 @@
 #      (you will need this for the auth dialog that the script will pull up)
 #   vault login -method=github token=$(cat ~/.github-token)
 #   vault read secret/dsde/terra/kernel/dev/dev/catalog/tests/userAdmin
-# Run: python3 generate-tdr-snapshot-metadata.py
+#
+# Run:
+#   `python3 generate-tdr-snapshot-metadata.py`
+#   `GCLOUD_USER={your-email} python3 generate-tdr-snapshot-metadata.py`
+#
+# Environment Variables:
+#   GCLOUD_USER: user account email
+#   CATALOG_SERVICE_URL: url for the catalog service to update the updata in
+#   DATA_REPO_URL: url for the data repo to use to extract testing snapshot information
 #------------------------------------------------------------------------------
 import json
 import os, subprocess, sys
@@ -22,7 +30,7 @@ import requests
 
 urlRoot = os.environ.get('CATALOG_SERVICE_URL') or 'http://localhost:8080'
 urlDatasets = f'{urlRoot}/api/v1/datasets'
-urlDataRepoList = 'https://jade.datarepo-dev.broadinstitute.org/api/repository/v1/snapshots'
+urlDataRepoList = os.environ.get('DATA_REPO_URL') or 'https://jade.datarepo-dev.broadinstitute.org/api/repository/v1/snapshots'
 user = os.environ.get('GCLOUD_USER') or 'datacatalogadmin@test.firecloud.org'
 
 def logResponse(response, message):
@@ -31,7 +39,7 @@ def logResponse(response, message):
   else:
     print('---------------------------------------------------')
     print(f'There was a problem running this request: ', message)
-    # print(json.loads(response.text)['message'])
+    print(json.loads(response.text)['message'])
     print('\nRequest:')
     print(f'\t{response.request.url}')
     print(f'\t{response.request.headers}')
