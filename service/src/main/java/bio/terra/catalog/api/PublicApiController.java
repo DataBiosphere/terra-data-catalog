@@ -4,7 +4,10 @@ import bio.terra.catalog.config.VersionConfiguration;
 import bio.terra.catalog.model.SystemStatus;
 import bio.terra.catalog.model.VersionProperties;
 import bio.terra.catalog.service.CatalogStatusService;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
@@ -27,13 +30,19 @@ public class PublicApiController implements PublicApi {
     this.versionConfiguration = versionConfiguration;
 
     String clientId = "";
+
     try {
-      clientId =
-          new String(
-              new ClassPathResource("rendered/swagger-client-id").getInputStream().readAllBytes());
+      try (var reader =
+          new BufferedReader(
+              new InputStreamReader(
+                  new ClassPathResource("rendered/swagger-client-id").getInputStream(),
+                  StandardCharsets.UTF_8))) {
+        clientId = reader.readLine();
+      }
     } catch (IOException e) {
       log.error(
           "It doesn't look like configs have been rendered! Unable to parse swagger client id.", e);
+      clientId = "";
     }
     swaggerClientId = clientId;
   }
