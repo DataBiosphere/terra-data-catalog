@@ -127,18 +127,7 @@
       ],
       layout: 'StandaloneLayout',
       displayOperationId: true,
-      docExpansion: 'none',
-      defaultModelsExpandDepth: -1, // hide the huge list of schemas under the routes
-      defaultModelExpandDepth: 2, // affects the schema shown for a request or response
-      oauth2RedirectUrl: window.location.protocol + '//' + window.location.host + '/webjars/swagger-ui-dist/oauth2-redirect.html',
-      tagsSorter: function (a, b) {
-        // Sort function to ensure that upper case tags show up first (e.g. ASCII sort)
-        if (a === b) {
-          return 0;
-        } else {
-          return a < b ? -1 : 1;
-        }
-      }
+      docExpansion: 'none'
     })
     // End Swagger UI call region
 
