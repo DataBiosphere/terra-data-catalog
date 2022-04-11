@@ -7,7 +7,6 @@ import bio.terra.catalog.service.CatalogStatusService;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -33,9 +32,9 @@ public class PublicApiController implements PublicApi {
     try {
       clientId =
           new String(
-              new ClassPathResource("rendered/swagger-client-id").getInputStream().readAllBytes(),
+              getClass().getResourceAsStream("/rendered/swagger-client-id").readAllBytes(),
               StandardCharsets.UTF_8);
-    } catch (IOException e) {
+    } catch (IOException | NullPointerException e) {
       log.error(
           "It doesn't look like configs have been rendered! Unable to parse swagger client id.", e);
     }
