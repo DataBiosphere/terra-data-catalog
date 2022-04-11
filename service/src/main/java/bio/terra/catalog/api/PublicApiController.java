@@ -72,7 +72,7 @@ public class PublicApiController implements PublicApi {
 
   @GetMapping(value = "/swagger-ui.html")
   public String getSwagger(Model model) {
-    model.addAttribute("clientId", swaggerClientId); // oauthConfig.getClientId()
+    model.addAttribute("clientId", swaggerClientId);
     return "index";
   }
 }
