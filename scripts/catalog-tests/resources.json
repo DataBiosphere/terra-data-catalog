@@ -78,25 +78,25 @@
                 "correspondingContributor": false
             },
             {
-                "email": "wteh@ebi.ac.uk",
+                "email": "ekahfra@testing.ac.uk",
                 "laboratory": "HCA DCP",
-                "contactName": "Wei Kheng,,Teh",
+                "contactName": "Khafra,,Elizabeth",
                 "institution": "EMBL-EBI",
                 "projectRole": "data curator",
                 "correspondingContributor": false
             },
             {
-                "email": "Emily.Stephenson2@newcastle.ac.uk",
+                "email": "Emily.Jacobs@testing.ac.uk",
                 "laboratory": "Faculty of Medical Sciences",
-                "contactName": "Emily,,Stephenson",
+                "contactName": "Emily,,Jacobs",
                 "institution": "Newcastle University",
                 "projectRole": "experimental scientist",
                 "correspondingContributor": false
             },
             {
-                "email": "m.a.haniffa@newcastle.ac.uk",
+                "email": "m.a.johnson@newcastle.ac.uk",
                 "laboratory": "Faculty of Medical Sciences",
-                "contactName": "Muzlifah,,Haniffa",
+                "contactName": "Manny,,Johnson",
                 "institution": "Newcastle University",
                 "projectRole": "principal investigator",
                 "correspondingContributor": true
@@ -229,31 +229,31 @@
         },
         "contributors": [
             {
-                "email": "rsatija@nygenome.org",
-                "laboratory": "Satija Lab",
-                "contactName": "Rahul,,Satija",
+                "email": "ahartmut@testing.org",
+                "laboratory": "Hartmut Lab",
+                "contactName": "Hartmut,,Adrian",
                 "institution": "New York Genome Center",
                 "projectRole": "principal investigator",
                 "correspondingContributor": true
             },
             {
-                "email": "szheng@nygenome.org",
-                "laboratory": "Satija Lab",
-                "contactName": "Shiwei,,Zheng",
+                "email": "achestibor@testing.org",
+                "laboratory": "Augusta Chestibor",
+                "contactName": "Chestibor,,Augusta",
                 "institution": "New York Genome Center",
                 "projectRole": "experimental scientist",
                 "correspondingContributor": false
             },
             {
-                "email": "psmibert@nygenome.org",
+                "email": "cmroberts@testing.org",
                 "laboratory": "Technology Development and Innovation",
-                "contactName": "Peter,,Smibert",
+                "contactName": "Roberts,M,Castiel",
                 "institution": "New York Genome Center",
                 "projectRole": "co-investigator",
                 "correspondingContributor": true
             },
             {
-                "email": "mstoeckius@nygenome.org",
+                "email": "mstoeckius@testing.org",
                 "laboratory": "Technology Development and Innovation",
                 "contactName": "Marlon,,Stoeckius",
                 "institution": "New York Genome Center",
@@ -261,9 +261,9 @@
                 "correspondingContributor": false
             },
             {
-                "email": "wisulliv@ucsc.edu",
+                "email": "elolivia@tester.edu",
                 "laboratory": "Human Cell Atlas Data Coordination Platform",
-                "contactName": "William,G,Sullivan",
+                "contactName": "Elhanan,G,Olivia",
                 "institution": "University of California Santa Cruz",
                 "projectRole": "data curator",
                 "correspondingContributor": false
