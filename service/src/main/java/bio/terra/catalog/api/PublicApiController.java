@@ -33,13 +33,10 @@ public class PublicApiController implements PublicApi {
     String clientId = "";
 
     try {
-      try (var reader =
-          new BufferedReader(
-              new InputStreamReader(
-                  new ClassPathResource("rendered/swagger-client-id").getInputStream(),
-                  StandardCharsets.UTF_8))) {
-        clientId = reader.readLine();
-      }
+      clientId =
+          new String(
+              new ClassPathResource("rendered/swagger-client-id").getInputStream().readAllBytes(),
+              StandardCharsets.UTF_8);
     } catch (IOException e) {
       log.error(
           "It doesn't look like configs have been rendered! Unable to parse swagger client id.", e);
