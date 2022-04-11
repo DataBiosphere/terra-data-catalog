@@ -19,7 +19,7 @@ public class GetVersion extends TestScript {
     var versionProperties = publicApi.getVersion();
 
     // check the response code
-    assertThat(publicApi.getApiClient().getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
+    assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
 
     // check the response body
     assertThat(versionProperties.getGitHash(), notNullValue());
