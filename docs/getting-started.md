@@ -106,8 +106,6 @@ and **Community** (open-source). We recommend the Ultimate Edition to Broad
 employees for its database navigation capabilities. Alternatively, the Community
 Edition has all the features needed for development, and this version can be
 installed by switching `intellij-idea` with `intellij-idea-ce` in the Brewfile.
-8. [Temurin](https://adoptium.net/) is the code name for the free and
-open-source version of Java 17 provided by the Eclipse Adoptium Working Group.
 
 Unfortunately, some manual configuration is also necessary:
 
