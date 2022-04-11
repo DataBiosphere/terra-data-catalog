@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 @Controller
 public class PublicApiController implements PublicApi {
@@ -42,7 +43,6 @@ public class PublicApiController implements PublicApi {
     } catch (IOException e) {
       log.error(
           "It doesn't look like configs have been rendered! Unable to parse swagger client id.", e);
-      clientId = "";
     }
     swaggerClientId = clientId;
   }
