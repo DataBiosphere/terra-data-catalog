@@ -3,6 +3,7 @@ package bio.terra.catalog.api;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import bio.terra.catalog.config.VersionConfiguration;
@@ -61,5 +62,15 @@ class PublicApiControllerTest {
         .andExpect(jsonPath("$.gitHash").value(gitHash))
         .andExpect(jsonPath("$.github").value(github))
         .andExpect(jsonPath("$.build").value(build));
+  }
+
+  @Test
+  void testGetSwagger() throws Exception {
+    this.mockMvc.perform(get("/swagger-ui.html")).andExpect(status().isOk());
+  }
+
+  @Test
+  void testIndex() throws Exception {
+    this.mockMvc.perform(get("/")).andExpect(redirectedUrl("swagger-ui.html"));
   }
 }
