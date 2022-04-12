@@ -1,36 +1,30 @@
 package scripts.testscripts;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 
 import bio.terra.catalog.api.PublicApi;
 import bio.terra.testrunner.runner.TestScript;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
 import com.google.api.client.http.HttpStatusCodes;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import scripts.client.CatalogClient;
 
 public class GetVersion extends TestScript {
-
-  private static final Logger log = LoggerFactory.getLogger(GetStatus.class);
-
   @Override
   public void userJourney(TestUserSpecification testUser) throws Exception {
-    log.info("Checking the version endpoint.");
-    var publicApi = new PublicApi(new CatalogClient(server));
+    CatalogClient client = new CatalogClient(server);
+    var publicApi = new PublicApi(client);
 
     var versionProperties = publicApi.getVersion();
 
     // check the response code
-    var httpCode = publicApi.getApiClient().getStatusCode();
-    assertEquals(HttpStatusCodes.STATUS_CODE_OK, httpCode);
-    log.info("Service status return code: {}", httpCode);
+    assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
 
     // check the response body
-    assertNotNull(versionProperties.getGitHash());
-    assertNotNull(versionProperties.getGitTag());
-    assertNotNull(versionProperties.getGithub());
-    assertNotNull(versionProperties.getBuild());
+    assertThat(versionProperties.getGitHash(), notNullValue());
+    assertThat(versionProperties.getGitTag(), notNullValue());
+    assertThat(versionProperties.getGithub(), notNullValue());
+    assertThat(versionProperties.getBuild(), notNullValue());
   }
 }

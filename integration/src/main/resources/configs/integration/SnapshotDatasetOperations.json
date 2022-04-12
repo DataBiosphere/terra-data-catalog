@@ -1,17 +1,17 @@
 {
-  "name": "ListDatasets",
-  "description": "List datasets",
+  "name": "SnapshotDatasetOperations",
+  "description": "Snapshot Dataset Operations",
   "serverSpecificationFile": "catalog-local.json",
   "kubernetes": {},
   "application": {},
   "testScripts": [
     {
-      "name": "ListDatasets",
+      "name": "SnapshotDatasetOperations",
       "numberOfUserJourneyThreadsToRun": 1,
       "userJourneyThreadPoolSize": 2,
       "expectedTimeForEach": 5,
       "expectedTimeForEachUnit": "SECONDS"
     }
   ],
-  "testUserFiles": [ "user.json" ]
+  "testUserFiles": [ "admin.json" ]
 }

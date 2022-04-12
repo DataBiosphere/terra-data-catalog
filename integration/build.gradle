@@ -16,6 +16,7 @@ dependencies {
     implementation 'org.slf4j:slf4j-api'
     implementation 'org.glassfish.jersey.inject:jersey-hk2'
     implementation 'org.junit.jupiter:junit-jupiter-api'
+    implementation 'org.hamcrest:hamcrest'
 
     // Google Dependencies
     implementation 'com.google.auth:google-auth-library-oauth2-http:1.4.0'
