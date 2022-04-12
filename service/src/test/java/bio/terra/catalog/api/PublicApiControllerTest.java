@@ -77,20 +77,4 @@ class PublicApiControllerTest {
   void testIndex() throws Exception {
     this.mockMvc.perform(get("/")).andExpect(redirectedUrl("swagger-ui.html"));
   }
-
-//  @Test
-//  void testPublicApiController() throws Exception {
-//    PublicApiController con = new PublicApiController(this.statusService, this.versionConfiguration);
-//  }
-
-  //  @Test
-  //  public void testSwaggerClientId() {
-  //    File file = new File("service/build/resources/rendered/swagger-client-id");
-  //    assertTrue(file.exists());
-  //
-  //    //    ClassLoader classLoader = this.getClass().getClassLoader();
-  //    //    File file = new
-  // File(classLoader.getResource("/rendered/swagger-client-id").getFile());
-  //    //    assertTrue(file.exists());
-  //  }
 }
