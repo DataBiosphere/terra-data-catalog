@@ -8,18 +8,18 @@ import com.google.auth.oauth2.GoogleCredentials;
 import java.io.IOException;
 import java.util.Objects;
 
-public class DataRepoClient extends ApiClient {
+public class DatarepoClient extends ApiClient {
   /**
-   * Build the API client object for the given test user and catalog server. The test user's token
+   * Build the API client object for the given test user and datarepo server. The test user's token
    * is always refreshed. If a test user isn't configured (e.g. when running locally), return an
    * un-authenticated client.
    *
    * @param server the server we are testing against
    * @param testUser the test user whose credentials are supplied to the API client object
    */
-  public DataRepoClient(ServerSpecification server, TestUserSpecification testUser)
+  public DatarepoClient(ServerSpecification server, TestUserSpecification testUser)
       throws IOException {
-    setBasePath(Objects.requireNonNull(server.datarepoUri, "Catalog URI required"));
+    setBasePath(Objects.requireNonNull(server.datarepoUri, "Datarepo URI required"));
 
     if (testUser != null) {
       GoogleCredentials userCredential =

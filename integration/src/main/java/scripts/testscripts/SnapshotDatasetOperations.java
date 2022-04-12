@@ -27,7 +27,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scripts.client.CatalogClient;
-import scripts.client.DataRepoClient;
+import scripts.client.DatarepoClient;
 
 /**
  * A test for dataset operations using the catalog service endpoints, with TDR snapshots as the
@@ -50,7 +50,7 @@ public class SnapshotDatasetOperations extends TestScript {
 
   @Override
   public void setup(List<TestUserSpecification> testUsers) throws Exception {
-    DataRepoClient datarepoClient = new DataRepoClient(server, testUsers.get(0));
+    DatarepoClient datarepoClient = new DatarepoClient(server, testUsers.get(0));
     var datasetsApi = new bio.terra.datarepo.api.DatasetsApi(datarepoClient);
     var dataset =
         datasetsApi
