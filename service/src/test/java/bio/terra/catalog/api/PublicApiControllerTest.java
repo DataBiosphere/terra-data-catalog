@@ -3,6 +3,7 @@ package bio.terra.catalog.api;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -66,11 +67,25 @@ class PublicApiControllerTest {
 
   @Test
   void testGetSwagger() throws Exception {
-    this.mockMvc.perform(get("/swagger-ui.html")).andExpect(status().isOk());
+    this.mockMvc
+        .perform(get("/swagger-ui.html"))
+        .andExpect(status().isOk())
+        .andExpect(model().attributeExists("clientId"));
   }
 
   @Test
   void testIndex() throws Exception {
     this.mockMvc.perform(get("/")).andExpect(redirectedUrl("swagger-ui.html"));
   }
+
+  //  @Test
+  //  public void testSwaggerClientId() {
+  //    File file = new File("service/build/resources/rendered/swagger-client-id");
+  //    assertTrue(file.exists());
+  //
+  //    //    ClassLoader classLoader = this.getClass().getClassLoader();
+  //    //    File file = new
+  // File(classLoader.getResource("/rendered/swagger-client-id").getFile());
+  //    //    assertTrue(file.exists());
+  //  }
 }
