@@ -3,9 +3,11 @@ VAULT_TOKEN=${2:-$(cat "$HOME"/.vault-token)}
 
 VAULT_ADDR="https://clotho.broadinstitute.org:8200"
 COMMON_VAULT_PATH="secret/dsde/terra/kernel/$ENV/common"
+CATALOG_VAULT_PATH="secret/dsde/terra/kernel/$ENV/$ENV/catalog"
 
 VAULT_COMMAND="vault read"
 
+SERVICE_OUTPUT_LOCATION="$(dirname "$0")/service/src/main/resources/rendered"
 INTEGRATION_OUTPUT_LOCATION="$(dirname "$0")/integration/src/main/resources/rendered"
 
 if ! [ -x "$(command -v vault)" ]; then
@@ -13,6 +15,7 @@ if ! [ -x "$(command -v vault)" ]; then
 fi
 
 $VAULT_COMMAND -field=data -format=json "secret/dsde/firecloud/$ENV/common/firecloud-account.json" >"$INTEGRATION_OUTPUT_LOCATION/user-delegated-sa.json"
+$VAULT_COMMAND -field=swagger-client-id "$CATALOG_VAULT_PATH" >"$SERVICE_OUTPUT_LOCATION/swagger-client-id"
 
 if [ $ENV == perf ]; then
   $VAULT_COMMAND -field=key "$COMMON_VAULT_PATH/testrunner/testrunner-sa" | base64 -d > "$INTEGRATION_OUTPUT_LOCATION/testrunner-sa.json"
