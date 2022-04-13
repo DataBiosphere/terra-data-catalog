@@ -40,7 +40,6 @@ public class DatasetApiController implements DatasetsApi {
     return ResponseEntity.ok()
         .cacheControl(CacheControl.noStore())
         .body(datasetService.listDatasets(getUser()));
-    // return ResponseEntity.ok(datasetService.listDatasets(getUser()));
   }
 
   @Override
