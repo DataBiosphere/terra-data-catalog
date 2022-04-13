@@ -145,6 +145,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorReport'
+  /api/v1/datasets/{id}/preview-metadata:
+    get:
+      summary: Given a dataset ID, return its preview metadata
+      tags: [ datasets ]
+      operationId: getDatasetPreviewMetadata
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: A JSON object of the preview metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatasetPreviewMetadataResponse'
+        '404':
+          description: "Dataset not found"
+        '500':
+          $ref: '#/components/responses/ServerError'
 
 components:
   parameters:
@@ -170,6 +188,7 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/CreatedDatasetId'
+
 
     # Error Responses
     BadRequest:
@@ -266,6 +285,115 @@ components:
           type: string
         catalogEntry:
           type: string
+
+    DatasetPreviewMetadataResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tables:
+          type: array
+          items:
+            $ref: '#/components/schemas/TableModel'
+        dataProject:
+          type: string
+          description: Project id of the snapshot data project
+      description: >
+        DatasetPreviewMetadataResponse returns information about the table structure of a dataset.
+
+    TableModel:
+      required:
+        - columns
+        - name
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/ObjectNameProperty'
+        columns:
+          type: array
+          items:
+            $ref: '#/components/schemas/ColumnModel'
+        primaryKey:
+          type: array
+          items:
+            $ref: '#/components/schemas/ObjectNameProperty'
+        partitionMode:
+          type: string
+          default: none
+          enum:
+            - none
+            - date
+            - int
+        datePartitionOptions:
+          $ref: '#/components/schemas/DatePartitionOptionsModel'
+        intPartitionOptions:
+          $ref: '#/components/schemas/IntPartitionOptionsModel'
+        rowCount:
+          type: integer
+      description: one table in a schema
+
+    ObjectNameProperty:
+      maxLength: 63
+      minLength: 1
+      pattern: ^[_a-zA-Z0-9][_a-zA-Z0-9]*$
+      type: string
+      description: >
+        Table and column names follow this pattern. It follows BigQuery naming rules. For table and column names, this is shorter than what BigQuery allows.
+    TableDataType:
+      type: string
+      enum: [ string, boolean, bytes, date, datetime, dirref, fileref, float, float64, integer, int64, numeric, record, text, time, timestamp ]
+      description: >
+        The type of a column in a table.
+    ColumnModel:
+      required:
+        - datatype
+        - name
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/ObjectNameProperty'
+        datatype:
+          $ref: '#/components/schemas/TableDataType'
+        array_of:
+          type: boolean
+          description: if true, make this column an array of type datatype.
+          default: false
+      description: one column of a table
+    DatePartitionOptionsModel:
+      required:
+        - column
+      type: object
+      properties:
+        column:
+          $ref: '#/components/schemas/ObjectNameProperty'
+      description: Describes how a date partition should be configured.
+    IntPartitionOptionsModel:
+      required:
+        - column
+        - interval
+        - max
+        - min
+      type: object
+      properties:
+        column:
+          $ref: '#/components/schemas/ObjectNameProperty'
+        min:
+          type: integer
+          description: >
+            The smallest value to partition within the target column. Any rows with a value smaller than this will be unpartitioned.
+          format: int64
+        max:
+          type: integer
+          description: >
+            The largest value to partition within the target column. Any rows with a value larger than this will be unpartitioned.
+          format: int64
+        interval:
+          type: integer
+          description: >
+            The size to use when dividing the partitioning range into "buckets". (max - min) / (this value) cannot be larger than 4,000.
+          format: int64
+      description: Describes how an int partition should be configured.
 
     StorageSystem:
       type: string

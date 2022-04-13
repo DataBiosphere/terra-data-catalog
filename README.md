@@ -37,8 +37,8 @@ After the database is initialized, then run integration tests:
 
 ```sh
 ./gradlew bootRun &    # start up a local instance of the data catalog service
-sleep 5                # wait until service comes up
-render-configs.sh      # render service account credentials needed for tests
+sleep 5 &              # wait until service comes up
+./render_configs.sh    # render service account credentials needed for tests
 ./gradlew :integration:runTest --args="suites/FullIntegration.json /tmp/test"
 ```
 
@@ -99,3 +99,13 @@ generate a report, run using `--info`:
 ```shell
 ./gradlew sonarqube --info
 ```
+## Common Errors:
+If you see the following error when running `./gradlew build`:
+```
+./gradlew build
+> Task :buildSrc:validatePlugins FAILED
+
+FAILURE: Build failed with an exception.
+```
+
+You should try installing gradle using the command `brew install gradle` for MacOS, and then run via `gradle build`
