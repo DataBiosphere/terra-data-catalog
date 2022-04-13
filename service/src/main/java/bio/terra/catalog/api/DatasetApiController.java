@@ -11,6 +11,7 @@ import bio.terra.common.iam.AuthenticatedUserRequestFactory;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
@@ -36,7 +37,10 @@ public class DatasetApiController implements DatasetsApi {
 
   @Override
   public ResponseEntity<DatasetsListResponse> listDatasets() {
-    return ResponseEntity.ok(datasetService.listDatasets(getUser()));
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.noStore())
+        .body(datasetService.listDatasets(getUser()));
+    // return ResponseEntity.ok(datasetService.listDatasets(getUser()));
   }
 
   @Override
@@ -47,7 +51,9 @@ public class DatasetApiController implements DatasetsApi {
 
   @Override
   public ResponseEntity<String> getDataset(UUID id) {
-    return ResponseEntity.ok(datasetService.getMetadata(getUser(), new DatasetId(id)));
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.noStore())
+        .body(datasetService.getMetadata(getUser(), new DatasetId(id)));
   }
 
   @Override
