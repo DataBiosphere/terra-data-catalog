@@ -126,7 +126,13 @@ git clone https://github.com/broadinstitute/dsp-appsec-gitsecrets-client.git
 ./dsp-appsec-gitsecrets-client/gitsecrets.sh
 ```
 
-## 6. Install Postgres 12
+## 6. Install Java 17
+
+Java 17 is required to run the Terra Data Catalog. The latest release can be
+found on the [Adoptium releases](https://adoptium.net/temurin/releases/) page.
+Ensure you install the latest JDK 17 package ending in `.pkg`.
+
+## 7. Install Postgres 12
 
 [Postgres](https://www.postgresql.org/) is an advanced open-source database.
 **Postgres.app** is used to manage a local installation of Postgres. The latest
@@ -141,7 +147,7 @@ create a new version 12 database as follows:
 3. Add `/Applications/Postgres.app/Contents/Versions/latest/bin` to your path
 (there are multiple ways to achieve this)
 
-## 7. Create GitHub token
+## 8. Create GitHub token
 
 The GitHub token verifies team permissions. This token is necessary for the next
 step, [Login to Vault](#8-login-to-vault). To create a token:
@@ -159,7 +165,7 @@ GITHUB_TOKEN=<<GITHUB TOKEN VALUE>>
 echo $GITHUB_TOKEN > ~/.github-token
 ```
 
-## 8. Login to Vault
+## 9. Login to Vault
 
 Vault access tokens can be obtained using the GitHub token from earlier as
 follows:
@@ -171,7 +177,7 @@ vault login -method=github token=$(cat ~/.github-token)
 > Vault access tokens expire after 30 days, so if you get a `403` error trying
 to use `vault`, re-run the `vault login` command to refresh your access token.
 
-## 9. Code Checkout
+## 10. Code Checkout
 
 > It may be useful to create a folder for Broad projects in your home directory.
 
