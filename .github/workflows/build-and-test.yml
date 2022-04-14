@@ -35,6 +35,8 @@ jobs:
       - uses: actions/checkout@v2
       - uses: psf/black@stable
       - uses: ludeeus/action-shellcheck@1.1.0
+        with:
+          scandir: 'scripts'
 
   jib:
     needs: [ build ]
