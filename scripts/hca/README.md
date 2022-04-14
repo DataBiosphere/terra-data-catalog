@@ -20,7 +20,7 @@ AUTH_TOKEN="Authorization: Bearer $(gcloud auth application-default print-access
 ```sh
 python3 extract-hca-projects.py
 python3 extract-hca-snapshots.py
-python3 create-hca-collection
+python3 create-hca-collection.py
 ```
 
 5. `.env/bin/activate` must be used to activate the virtual env to avoid a `tqdm` error in `ingest-hca-collection.py`.
