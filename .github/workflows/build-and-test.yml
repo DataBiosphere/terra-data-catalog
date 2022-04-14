@@ -28,12 +28,15 @@ jobs:
         with:
           sarif_file: service/build/reports/spotbugs/main.sarif
 
-  black:
+  linters:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
       - uses: psf/black@stable
+      - uses: ludeeus/action-shellcheck@1.1.0
+        with:
+          scandir: 'scripts'
 
   jib:
     needs: [ build ]
@@ -176,7 +179,7 @@ jobs:
         run: ./gradlew --build-cache :integration:runTest --args="suites/FullIntegration.json /tmp/foo"
 
   notify-slack:
-    needs: [ build, black, jib, unit-tests-and-sonarqube, source-clear, integration-tests ]
+    needs: [ build, linters, jib, unit-tests-and-sonarqube, source-clear, integration-tests ]
     runs-on: ubuntu-latest
 
     if: failure() && github.ref == 'refs/heads/main'
@@ -195,7 +198,7 @@ jobs:
           username: 'Data Explorer GitHub Action'
 
   dispatch-tag:
-    needs: [ build, black, jib, unit-tests-and-sonarqube, source-clear, integration-tests ]
+    needs: [ build, linters, jib, unit-tests-and-sonarqube, source-clear, integration-tests ]
     runs-on: ubuntu-latest
 
     if: success() && github.ref == 'refs/heads/main'

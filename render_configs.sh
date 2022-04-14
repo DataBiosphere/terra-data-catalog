@@ -1,3 +1,5 @@
+#!/bin/sh
+
 ENV=${1:-dev}
 VAULT_TOKEN=${2:-$(cat "$HOME"/.vault-token)}
 
@@ -14,6 +16,6 @@ fi
 
 $VAULT_COMMAND -field=data -format=json "secret/dsde/firecloud/$ENV/common/firecloud-account.json" >"$INTEGRATION_OUTPUT_LOCATION/user-delegated-sa.json"
 
-if [ $ENV == perf ]; then
+if [ "$ENV" = "perf" ]; then
   $VAULT_COMMAND -field=key "$COMMON_VAULT_PATH/testrunner/testrunner-sa" | base64 -d > "$INTEGRATION_OUTPUT_LOCATION/testrunner-sa.json"
 fi
