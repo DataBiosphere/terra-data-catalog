@@ -5,7 +5,7 @@ import bio.terra.catalog.datarepo.DatarepoService;
 import bio.terra.catalog.iam.SamAction;
 import bio.terra.catalog.iam.SamService;
 import bio.terra.catalog.model.ColumnModel;
-import bio.terra.catalog.model.DatasetPreviewMetadataResponse;
+import bio.terra.catalog.model.DatasetPreviewTablesResponse;
 import bio.terra.catalog.model.DatasetsListResponse;
 import bio.terra.catalog.model.TableDataType;
 import bio.terra.catalog.model.TableModel;
@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import java.util.Collections;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -100,8 +99,8 @@ public class DatasetService {
       AuthenticatedUserRequest user, Dataset dataset) {
     return switch (dataset.storageSystem()) {
       case TERRA_DATA_REPO -> convertDatarepoTablesToCatalogTables(
-          datarepoService.getPreviewMetadata(user, dataset.storageSourceId()).getTables());
-      case TERRA_WORKSPACE, EXTERNAL -> Collections.emptyList();
+          datarepoService.getPreviewTables(user, dataset.storageSourceId()).getTables());
+      case TERRA_WORKSPACE, EXTERNAL -> List.of();
     };
   }
 
@@ -146,14 +145,12 @@ public class DatasetService {
     return datasetDao.create(dataset).id();
   }
 
-  public DatasetPreviewMetadataResponse getDatasetPreviewMetadata(
+  public DatasetPreviewTablesResponse getDatasetPreviewTables(
       AuthenticatedUserRequest user, DatasetId datasetId) {
     var dataset = datasetDao.retrieve(datasetId);
     ensureActionPermission(user, dataset, SamAction.READ_ANY_METADATA);
-    // Right now, this code makes an assumption that all datasets are snapshots.
-    // Eventually this will not be true and this should change.
     var tableModels = generateTableInformation(user, dataset);
-    return new DatasetPreviewMetadataResponse().tables(tableModels);
+    return new DatasetPreviewTablesResponse().tables(tableModels);
   }
 
   private List<TableModel> convertDatarepoTablesToCatalogTables(

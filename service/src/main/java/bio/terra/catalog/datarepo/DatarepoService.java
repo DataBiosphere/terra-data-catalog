@@ -56,7 +56,7 @@ public class DatarepoService {
     }
   }
 
-  public SnapshotModel getPreviewMetadata(AuthenticatedUserRequest user, String snapshotId) {
+  public SnapshotModel getPreviewTables(AuthenticatedUserRequest user, String snapshotId) {
     try {
       UUID id = UUID.fromString(snapshotId);
       return snapshotsApi(user)
