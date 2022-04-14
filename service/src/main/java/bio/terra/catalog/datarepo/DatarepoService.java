@@ -3,7 +3,6 @@ package bio.terra.catalog.datarepo;
 import bio.terra.catalog.config.DatarepoConfiguration;
 import bio.terra.catalog.iam.SamAction;
 import bio.terra.catalog.model.SystemStatusSystems;
-import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.api.SnapshotsApi;
 import bio.terra.datarepo.api.UnauthenticatedApi;
@@ -12,7 +11,6 @@ import bio.terra.datarepo.client.ApiException;
 import bio.terra.datarepo.model.RepositoryStatusModel;
 import bio.terra.datarepo.model.SnapshotModel;
 import bio.terra.datarepo.model.SnapshotRetrieveIncludeModel;
-import bio.terra.datarepo.model.SnapshotSummaryModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import java.util.List;
@@ -59,15 +57,16 @@ public class DatarepoService {
     }
   }
 
-  public SnapshotModel getPreviewMetadata(AuthenticatedUserRequest user, DatasetId id) {
+  public SnapshotModel getPreviewMetadata(AuthenticatedUserRequest user, String snapshotId) {
     try {
+      UUID id = UUID.fromString(snapshotId);
       return snapshotsApi(user)
           .retrieveSnapshot(
-              id.uuid(),
+              id,
               ImmutableList.of(
                   SnapshotRetrieveIncludeModel.DATA_PROJECT, SnapshotRetrieveIncludeModel.TABLES));
     } catch (ApiException e) {
-      throw new DatarepoException("Get Preview Metadata Failed", e);
+      throw new DatarepoException(e.getMessage(), e.getCause());
     }
   }
 

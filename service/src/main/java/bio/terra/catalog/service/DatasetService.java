@@ -21,7 +21,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -145,45 +147,83 @@ public class DatasetService {
     ensureActionPermission(user, dataset, SamAction.READ_ANY_METADATA);
     // Right now, this code makes an assumption that all datasets are snapshots.
     // Eventually this will not be true and this should change.
-    var snapshotMetadata = datarepoService.getPreviewMetadata(user, datasetId);
+    var snapshotMetadata = datarepoService.getPreviewMetadata(user, dataset.storageSourceId());
     return new DatasetPreviewMetadataResponse()
         .id(snapshotMetadata.getId())
         .dataProject(snapshotMetadata.getDataProject())
-        .tables(
-            snapshotMetadata.getTables().stream()
-                .map(this::convertDatarepoTableModelToCatalogTableModel)
-                .collect(Collectors.toList()));
+        .tables(convertDatarepoTablesToCatalogTables(snapshotMetadata.getTables()));
   }
 
-  private TableModel convertDatarepoTableModelToCatalogTableModel(
-      bio.terra.datarepo.model.TableModel datarepoTableModel) {
-    return new TableModel()
-        .name(datarepoTableModel.getName())
-        .columns(
-            datarepoTableModel.getColumns().stream()
-                .map(this::convertDataRepoColumnModelToCatalogColumnModel)
-                .collect(Collectors.toList()))
-        .primaryKey(datarepoTableModel.getPrimaryKey())
-        .partitionMode(
-            TableModel.PartitionModeEnum.fromValue(
-                datarepoTableModel.getPartitionMode().getValue()))
-        .datePartitionOptions(
-            new DatePartitionOptionsModel()
-                .column(datarepoTableModel.getDatePartitionOptions().getColumn()))
-        .intPartitionOptions(
-            new IntPartitionOptionsModel()
-                .column(datarepoTableModel.getIntPartitionOptions().getColumn())
-                .min(datarepoTableModel.getIntPartitionOptions().getMin())
-                .max(datarepoTableModel.getIntPartitionOptions().getMax())
-                .interval(datarepoTableModel.getIntPartitionOptions().getInterval()))
-        .rowCount(datarepoTableModel.getRowCount());
+  private List<TableModel> convertDatarepoTablesToCatalogTables(
+      List<bio.terra.datarepo.model.TableModel> datarepoTables) {
+    return Optional.ofNullable(datarepoTables)
+        .map(
+            tableModels ->
+                tableModels.stream()
+                    .map(
+                        tableModel ->
+                            new TableModel()
+                                .name(tableModel.getName())
+                                .columns(
+                                    convertDataRepoColumnsToCatalogColumns(tableModel.getColumns()))
+                                .primaryKey(tableModel.getPrimaryKey())
+                                .partitionMode(
+                                    convertDatarepoPartiotionMode(tableModel.getPartitionMode()))
+                                .datePartitionOptions(
+                                    convertDatarepoDatePartionsOptionsModel(
+                                        tableModel.getDatePartitionOptions()))
+                                .intPartitionOptions(
+                                    convertDatarepoIntPartionsOptionsModel(
+                                        tableModel.getIntPartitionOptions()))
+                                .rowCount(tableModel.getRowCount()))
+                    .collect(Collectors.toList()))
+        .orElse(Collections.emptyList());
   }
 
-  private ColumnModel convertDataRepoColumnModelToCatalogColumnModel(
-      bio.terra.datarepo.model.ColumnModel datarepoColumnModel) {
-    return new ColumnModel()
-        .name(datarepoColumnModel.getName())
-        .datatype(TableDataType.fromValue(datarepoColumnModel.getDatatype().getValue()))
-        .arrayOf(datarepoColumnModel.isArrayOf());
+  private TableModel.PartitionModeEnum convertDatarepoPartiotionMode(
+      bio.terra.datarepo.model.TableModel.PartitionModeEnum datarepoPartitionModeEnum) {
+    return TableModel.PartitionModeEnum.fromValue(
+        Optional.ofNullable(datarepoPartitionModeEnum)
+            .map(bio.terra.datarepo.model.TableModel.PartitionModeEnum::getValue)
+            .orElse(TableModel.PartitionModeEnum.NONE.toString()));
+  }
+
+  private DatePartitionOptionsModel convertDatarepoDatePartionsOptionsModel(
+      bio.terra.datarepo.model.DatePartitionOptionsModel datarepoDatePartionsOptionsModel) {
+    return Optional.ofNullable(datarepoDatePartionsOptionsModel)
+        .map(
+            datePartitionOptionsModel ->
+                new DatePartitionOptionsModel().column(datePartitionOptionsModel.getColumn()))
+        .orElse(null);
+  }
+
+  private IntPartitionOptionsModel convertDatarepoIntPartionsOptionsModel(
+      bio.terra.datarepo.model.IntPartitionOptionsModel datarepoIntPartitionsOptionsModel) {
+    return Optional.ofNullable(datarepoIntPartitionsOptionsModel)
+        .map(
+            intPartitionOptionsModel ->
+                new IntPartitionOptionsModel()
+                    .column(intPartitionOptionsModel.getColumn())
+                    .min(intPartitionOptionsModel.getMin())
+                    .max(intPartitionOptionsModel.getMax())
+                    .interval(intPartitionOptionsModel.getInterval()))
+        .orElse(null);
+  }
+
+  private List<ColumnModel> convertDataRepoColumnsToCatalogColumns(
+      List<bio.terra.datarepo.model.ColumnModel> datarepoColumns) {
+    return Optional.ofNullable(datarepoColumns)
+        .map(
+            columnModels ->
+                columnModels.stream()
+                    .map(
+                        columnModel ->
+                            new ColumnModel()
+                                .name(columnModel.getName())
+                                .datatype(
+                                    TableDataType.fromValue(columnModel.getDatatype().getValue()))
+                                .arrayOf(columnModel.isArrayOf()))
+                    .collect(Collectors.toList()))
+        .orElse(Collections.emptyList());
   }
 }
