@@ -50,7 +50,7 @@ public class SamService {
     ResourcesApi resourceApi = resourcesApi(accessToken);
     try {
       return SamRetry.retry(
-              () -> resourceApi.resourceActions(CATALOG_RESOURCE_TYPE, CATALOG_RESOURCE_ID))
+              () -> resourceApi.resourceActions(CATALOG_RESOURCE_TYPE, samConfig.resourceId()))
           .stream()
           .map(SamAction::fromValue)
           .anyMatch(action::equals);
