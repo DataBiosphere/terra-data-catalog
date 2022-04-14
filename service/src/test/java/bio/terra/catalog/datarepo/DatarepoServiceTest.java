@@ -16,6 +16,8 @@ import bio.terra.datarepo.api.UnauthenticatedApi;
 import bio.terra.datarepo.client.ApiException;
 import bio.terra.datarepo.model.EnumerateSnapshotModel;
 import bio.terra.datarepo.model.RepositoryStatusModel;
+import bio.terra.datarepo.model.SnapshotModel;
+import bio.terra.datarepo.model.SnapshotRetrieveIncludeModel;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -110,5 +112,16 @@ class DatarepoServiceTest {
     when(unauthenticatedApi.serviceStatus()).thenThrow(new ApiException());
     var status = datarepoService.status();
     assertFalse(status.isOk());
+  }
+
+  @Test
+  void getPreviewTables() throws Exception {
+    var id = UUID.randomUUID();
+    when(snapshotsApi.retrieveSnapshot(
+            id,
+            List.of(
+                SnapshotRetrieveIncludeModel.DATA_PROJECT, SnapshotRetrieveIncludeModel.TABLES)))
+        .thenReturn(new SnapshotModel());
+    assertThat(datarepoService.getPreviewTables(user, id.toString()), is(new SnapshotModel()));
   }
 }
