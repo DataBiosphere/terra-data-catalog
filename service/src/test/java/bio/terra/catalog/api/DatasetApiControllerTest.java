@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -68,6 +69,7 @@ class DatasetApiControllerTest {
     mockMvc
         .perform(get(API))
         .andExpect(status().isOk())
+        .andExpect(header().string("Cache-Control", "no-store"))
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.result[0].id").value("id"));
   }
@@ -82,7 +84,10 @@ class DatasetApiControllerTest {
   @Test
   void getDataset() throws Exception {
     var datasetId = new DatasetId(UUID.randomUUID());
-    mockMvc.perform(get(API_ID, datasetId.uuid())).andExpect(status().isOk());
+    mockMvc
+        .perform(get(API_ID, datasetId.uuid()))
+        .andExpect(status().isOk())
+        .andExpect(header().string("Cache-Control", "no-store"));
     verify(datasetService).getMetadata(user, datasetId);
   }
 
