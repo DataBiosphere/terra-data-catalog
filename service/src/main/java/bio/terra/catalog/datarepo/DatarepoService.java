@@ -12,7 +12,6 @@ import bio.terra.datarepo.model.RepositoryStatusModel;
 import bio.terra.datarepo.model.SnapshotModel;
 import bio.terra.datarepo.model.SnapshotRetrieveIncludeModel;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -63,7 +62,7 @@ public class DatarepoService {
       return snapshotsApi(user)
           .retrieveSnapshot(
               id,
-              ImmutableList.of(
+              List.of(
                   SnapshotRetrieveIncludeModel.DATA_PROJECT, SnapshotRetrieveIncludeModel.TABLES));
     } catch (ApiException e) {
       throw new DatarepoException(e.getMessage(), e.getCause());
