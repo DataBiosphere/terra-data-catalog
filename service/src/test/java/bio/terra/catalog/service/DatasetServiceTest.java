@@ -21,6 +21,7 @@ import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.model.ColumnModel;
 import bio.terra.datarepo.model.SnapshotModel;
+import bio.terra.datarepo.model.TableDataType;
 import bio.terra.datarepo.model.TableModel;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -181,7 +182,12 @@ class DatasetServiceTest {
             new SnapshotModel()
                 .tables(
                     List.of(
-                        new TableModel().columns(List.of(new ColumnModel().name("column a"))))));
+                        new TableModel()
+                            .columns(
+                                List.of(
+                                    new ColumnModel()
+                                        .datatype(TableDataType.INTEGER)
+                                        .name("column a"))))));
     DatasetPreviewTablesResponse results =
         datasetService.getDatasetPreviewTables(user, tdrDataset.id());
     // Test that all the data conversion works as expected
