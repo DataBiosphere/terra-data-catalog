@@ -236,6 +236,7 @@ components:
 
     DatasetsListResponse:
       type: object
+      required: [result]
       properties:
         result:
           type: array
