@@ -4,6 +4,8 @@
 # $ brew cask install google-cloud-sdk
 # $ gcloud components install cloud_sql_proxy
 # $ PATH=$PATH:/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/bin/
+# OR
+# $ ln -s /usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/bin/cloud_sql_proxy /usr/local/bin/cloud_sql_proxy
 #
 # Use this script to connect to cloud Postgres for a specific Catalog instance.
 # For example, to connect to the dev catalog database, run:
@@ -17,18 +19,14 @@
 : "${ENV:?}"
 PORT=${PORT:-5431}
 
-VAULT_PATH="secret/dsde/terra/kernel/${ENV}/${ENV}/catalog/postgres"
+VAULT_PATH=secret/dsde/terra/kernel/${ENV}/${ENV}/catalog/postgres
 
-INSTANCE_DATA=$(vault read -field=data -format=json "${VAULT_PATH}/instance")
-NAME=$(echo "${INSTANCE_DATA}" | jq -r '.name')
-PROJECT=$(echo "${INSTANCE_DATA}" | jq -r '.project')
-REGION=$(echo "${INSTANCE_DATA}" | jq -r '.region')
+INSTANCE=$(vault read -field=data -format=json "${VAULT_PATH}/instance" |
+           jq -r '"\(.project):\(.region):\(.name)"')
 
-DB_DATA=$(vault read -field=data -format=json "${VAULT_PATH}/db-creds")
-DB=$(echo "${DB_DATA}" | jq -r '.db')
-USER=$(echo "${DB_DATA}" | jq -r '.username')
-PASSWORD=$(echo "${DB_DATA}" | jq -r '.password')
+JDBC_URL=jdbc:postgresql://localhost:$PORT/$(vault read -field=data -format=json "${VAULT_PATH}/db-creds" |
+          jq -r '"\(.db)?user=\(.username)&password=\(.password)"')
 
-echo "Starting a proxy for $ENV. Connection: jdbc:postgresql://localhost:$PORT/$DB?user=$USER&password=$PASSWORD"
+echo "Starting a proxy for $ENV. Connection: $JDBC_URL"
 
-cloud_sql_proxy -instances="${PROJECT}:${REGION}:${NAME}=tcp:${PORT}"
+cloud_sql_proxy -instances="${INSTANCE}" -dir=/tmp
