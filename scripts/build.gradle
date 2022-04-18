@@ -1,0 +1,63 @@
+import java.nio.file.Files
+
+plugins {
+    id 'base'
+    id "com.felipefzdz.gradle.shellcheck" version "1.4.6"
+}
+
+shellcheck {
+    useDocker = false
+    sources = files("$projectDir")
+}
+
+// Doesn't work; current spotless extension for python doesn't support the current black version.
+//spotless {
+//    python {
+//        target '**/*.py'
+//        black()
+//    }
+//}
+
+task blackApply(group: 'verification') {
+    def tree = fileTree(dir: "$projectDir", include: '**/*.py')
+    inputs.files(tree.getFiles())
+    outputs.upToDateWhen { true }
+    def command = ['black', '-q']
+    command.addAll(inputs.files)
+    doLast {
+        exec {
+            commandLine command
+        }
+    }
+}
+
+task blackCheck(group: 'verification') {
+    def tree = fileTree(dir: "$projectDir", include: '**/*.py')
+    inputs.files(tree.getFiles())
+    def blackOutput = file("$buildDir/black.out")
+    outputs.file(blackOutput)
+    doLast {
+        def out = new ByteArrayOutputStream()
+        def command = ['black', '--check']
+        command.addAll(inputs.files)
+        def exitValue = exec {
+            commandLine command
+            errorOutput out
+            ignoreExitValue true
+        }.exitValue
+        Files.write(blackOutput.toPath(), out.toString().bytes)
+        if (exitValue != 0) {
+            throw new GradleException("Black check failed. See the report at: " + blackOutput)
+        }
+    }
+}
+
+boolean isCiServer = System.getenv().containsKey("CI")
+check {
+    if (isCiServer) {
+        dependsOn(blackCheck)
+    } else {
+        dependsOn(blackApply)
+    }
+    dependsOn(tasks.shellcheck)
+}
