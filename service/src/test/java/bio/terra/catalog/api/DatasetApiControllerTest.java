@@ -75,7 +75,7 @@ class DatasetApiControllerTest {
   }
 
   @Test
-  void EmptyListDatasets() throws Exception {
+  void emptyListDatasets() throws Exception {
     DatasetsListResponse response = new DatasetsListResponse();
     ObjectNode node = new ObjectMapper().createObjectNode();
     response.addResultItem(node);
