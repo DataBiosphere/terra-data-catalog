@@ -3,6 +3,7 @@
   "description": "Catalog Local env.",
 
   "catalogUri": "http://localhost:8080",
+  "datarepoUri": "https://jade.datarepo-dev.broadinstitute.org/",
 
   "testRunnerServiceAccountFile": "delegate-user-sa.json",
 

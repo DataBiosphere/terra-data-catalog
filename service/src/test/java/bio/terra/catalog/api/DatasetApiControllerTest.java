@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -17,6 +18,7 @@ import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.DatasetsListResponse;
 import bio.terra.catalog.service.DatasetService;
 import bio.terra.catalog.service.dataset.DatasetId;
+import bio.terra.catalog.service.dataset.exception.DatasetNotFoundException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.common.iam.AuthenticatedUserRequestFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,7 +36,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {DatasetApiController.class, DatasetService.class})
+@ContextConfiguration(
+    classes = {DatasetApiController.class, DatasetService.class, GlobalExceptionHandler.class})
 @WebMvcTest
 class DatasetApiControllerTest {
 
@@ -66,6 +69,7 @@ class DatasetApiControllerTest {
     mockMvc
         .perform(get(API))
         .andExpect(status().isOk())
+        .andExpect(header().string("Cache-Control", "no-store"))
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.result[0].id").value("id"));
   }
@@ -80,8 +84,18 @@ class DatasetApiControllerTest {
   @Test
   void getDataset() throws Exception {
     var datasetId = new DatasetId(UUID.randomUUID());
-    mockMvc.perform(get(API_ID, datasetId.uuid())).andExpect(status().isOk());
+    mockMvc
+        .perform(get(API_ID, datasetId.uuid()))
+        .andExpect(status().isOk())
+        .andExpect(header().string("Cache-Control", "no-store"));
     verify(datasetService).getMetadata(user, datasetId);
+  }
+
+  @Test
+  void getDatasetNoRecordFound() throws Exception {
+    var datasetId = new DatasetId(UUID.randomUUID());
+    when(datasetService.getMetadata(user, datasetId)).thenThrow(new DatasetNotFoundException(""));
+    mockMvc.perform(get(API_ID, datasetId.uuid())).andExpect(status().isNotFound());
   }
 
   @Test
