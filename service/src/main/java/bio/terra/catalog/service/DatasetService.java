@@ -4,16 +4,15 @@ import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.datarepo.DatarepoService;
 import bio.terra.catalog.iam.SamAction;
 import bio.terra.catalog.iam.SamService;
-import bio.terra.catalog.model.ColumnModel;
 import bio.terra.catalog.model.DatasetPreviewTablesResponse;
 import bio.terra.catalog.model.DatasetsListResponse;
-import bio.terra.catalog.model.TableDataType;
-import bio.terra.catalog.model.TableModel;
+import bio.terra.catalog.model.TableMetadata;
 import bio.terra.catalog.service.dataset.Dataset;
 import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
+import bio.terra.datarepo.model.TableModel;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -95,7 +94,7 @@ public class DatasetService {
     };
   }
 
-  private List<TableModel> generateTableInformation(
+  private List<TableMetadata> generateTableInformation(
       AuthenticatedUserRequest user, Dataset dataset) {
     return switch (dataset.storageSystem()) {
       case TERRA_DATA_REPO -> convertDatarepoTablesToCatalogTables(
@@ -148,33 +147,18 @@ public class DatasetService {
   public DatasetPreviewTablesResponse getDatasetPreviewTables(
       AuthenticatedUserRequest user, DatasetId datasetId) {
     var dataset = datasetDao.retrieve(datasetId);
-    ensureActionPermission(user, dataset, SamAction.READ_ANY_METADATA);
-    var tableModels = generateTableInformation(user, dataset);
-    return new DatasetPreviewTablesResponse().tables(tableModels);
+    var tableMetadataList = generateTableInformation(user, dataset);
+    return new DatasetPreviewTablesResponse().tables(tableMetadataList);
   }
 
-  private List<TableModel> convertDatarepoTablesToCatalogTables(
-      List<bio.terra.datarepo.model.TableModel> datarepoTables) {
+  private List<TableMetadata> convertDatarepoTablesToCatalogTables(
+      List<TableModel> datarepoTables) {
     return datarepoTables.stream()
         .map(
             tableModel ->
-                new TableModel()
+                new TableMetadata()
                     .name(tableModel.getName())
-                    .columns(convertDataRepoColumnsToCatalogColumns(tableModel.getColumns()))
-                    .primaryKey(tableModel.getPrimaryKey())
-                    .rowCount(tableModel.getRowCount()))
-        .toList();
-  }
-
-  private List<ColumnModel> convertDataRepoColumnsToCatalogColumns(
-      List<bio.terra.datarepo.model.ColumnModel> datarepoColumns) {
-    return datarepoColumns.stream()
-        .map(
-            columnModel ->
-                new ColumnModel()
-                    .name(columnModel.getName())
-                    .datatype(TableDataType.fromValue(columnModel.getDatatype().getValue()))
-                    .arrayOf(columnModel.isArrayOf()))
+                    .hasData(tableModel.getRowCount() > 0))
         .toList();
   }
 }

@@ -59,11 +59,7 @@ public class DatarepoService {
   public SnapshotModel getPreviewTables(AuthenticatedUserRequest user, String snapshotId) {
     try {
       UUID id = UUID.fromString(snapshotId);
-      return snapshotsApi(user)
-          .retrieveSnapshot(
-              id,
-              List.of(
-                  SnapshotRetrieveIncludeModel.DATA_PROJECT, SnapshotRetrieveIncludeModel.TABLES));
+      return snapshotsApi(user).retrieveSnapshot(id, List.of(SnapshotRetrieveIncludeModel.TABLES));
     } catch (ApiException e) {
       throw new DatarepoException(e.getMessage(), e.getCause());
     }

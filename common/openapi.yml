@@ -292,53 +292,20 @@ components:
         tables:
           type: array
           items:
-            $ref: '#/components/schemas/TableModel'
+            $ref: '#/components/schemas/TableMetadata'
       description: >
         DatasetPreviewTablesResponse returns information about the table structure of a dataset.
 
-    TableModel:
+    TableMetadata:
       required:
-        - columns
         - name
       type: object
       properties:
         name:
-          $ref: '#/components/schemas/ObjectNameProperty'
-        columns:
-          type: array
-          items:
-            $ref: '#/components/schemas/ColumnModel'
-        primaryKey:
-          type: array
-          items:
-            $ref: '#/components/schemas/ObjectNameProperty'
-        rowCount:
-          type: integer
-      description: one table in a schema
-
-    ObjectNameProperty:
-      type: string
-      description: Used to represent table and column names
-    TableDataType:
-      type: string
-      enum: [ string, boolean, bytes, date, datetime, dirref, fileref, float, float64, integer, int64, numeric, record, text, time, timestamp ]
-      description: >
-        The type of a column in a table.
-    ColumnModel:
-      required:
-        - datatype
-        - name
-      type: object
-      properties:
-        name:
-          $ref: '#/components/schemas/ObjectNameProperty'
-        datatype:
-          $ref: '#/components/schemas/TableDataType'
-        array_of:
+          type: string
+        hasData:
           type: boolean
-          description: if true, make this column an array of type datatype.
-          default: false
-      description: one column of a table
+
     StorageSystem:
       type: string
       description: The storage system for this dataset

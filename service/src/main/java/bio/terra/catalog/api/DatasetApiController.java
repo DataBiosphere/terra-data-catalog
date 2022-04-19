@@ -76,8 +76,7 @@ public class DatasetApiController implements DatasetsApi {
 
   @Override
   public ResponseEntity<DatasetPreviewTablesResponse> getDatasetPreviewTables(UUID id) {
-    return ResponseEntity
-        .ok()
+    return ResponseEntity.ok()
         .cacheControl(CacheControl.noStore())
         .body(datasetService.getDatasetPreviewTables(getUser(), new DatasetId(id)));
   }
