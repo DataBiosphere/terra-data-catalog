@@ -14,7 +14,7 @@ fi
 RESOURCE_TYPE="catalog"
 
 ENV=$1
-SAM_URL="https://http://sam.dsde-${ENV}.broadinstitute.org"
+SAM_URL="https://sam.dsde-${ENV}.broadinstitute.org"
 RESOURCE_ID="catalog-${ENV}"
 ADMIN_GROUP_NAME="CatalogAdmins-${ENV}"
 

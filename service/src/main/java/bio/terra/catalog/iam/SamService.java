@@ -27,7 +27,6 @@ public class SamService {
   private final OkHttpClient commonHttpClient;
 
   private static final String CATALOG_RESOURCE_TYPE = "catalog";
-  private static final String CATALOG_RESOURCE_ID = "catalog";
 
   @Autowired
   public SamService(SamConfiguration samConfig) {
