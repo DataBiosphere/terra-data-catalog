@@ -117,10 +117,7 @@ class DatarepoServiceTest {
   @Test
   void getPreviewTables() throws Exception {
     var id = UUID.randomUUID();
-    when(snapshotsApi.retrieveSnapshot(
-            id,
-            List.of(
-                SnapshotRetrieveIncludeModel.DATA_PROJECT, SnapshotRetrieveIncludeModel.TABLES)))
+    when(snapshotsApi.retrieveSnapshot(id, List.of(SnapshotRetrieveIncludeModel.TABLES)))
         .thenReturn(new SnapshotModel());
     assertThat(datarepoService.getPreviewTables(user, id.toString()), is(new SnapshotModel()));
   }
