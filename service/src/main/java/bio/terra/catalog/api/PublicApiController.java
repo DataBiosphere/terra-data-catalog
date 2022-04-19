@@ -4,10 +4,14 @@ import bio.terra.catalog.config.VersionConfiguration;
 import bio.terra.catalog.model.SystemStatus;
 import bio.terra.catalog.model.VersionProperties;
 import bio.terra.catalog.service.CatalogStatusService;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
@@ -15,11 +19,26 @@ public class PublicApiController implements PublicApi {
   private final CatalogStatusService statusService;
   private final VersionConfiguration versionConfiguration;
 
+  private final String swaggerClientId;
+
   @Autowired
   public PublicApiController(
       CatalogStatusService statusService, VersionConfiguration versionConfiguration) {
     this.statusService = statusService;
     this.versionConfiguration = versionConfiguration;
+
+    String clientId = "";
+
+    try {
+      clientId =
+          new String(
+              getClass().getResourceAsStream("/rendered/swagger-client-id").readAllBytes(),
+              StandardCharsets.UTF_8);
+    } catch (IOException | NullPointerException e) {
+      log.error(
+          "It doesn't look like configs have been rendered! Unable to parse swagger client id.", e);
+    }
+    swaggerClientId = clientId;
   }
 
   @Override
@@ -43,5 +62,11 @@ public class PublicApiController implements PublicApi {
   @RequestMapping(value = "/")
   public String index() {
     return "redirect:swagger-ui.html";
+  }
+
+  @GetMapping(value = "/swagger-ui.html")
+  public String getSwagger(Model model) {
+    model.addAttribute("clientId", swaggerClientId);
+    return "index";
   }
 }
