@@ -9,6 +9,8 @@ import bio.terra.datarepo.api.UnauthenticatedApi;
 import bio.terra.datarepo.client.ApiClient;
 import bio.terra.datarepo.client.ApiException;
 import bio.terra.datarepo.model.RepositoryStatusModel;
+import bio.terra.datarepo.model.SnapshotModel;
+import bio.terra.datarepo.model.SnapshotRetrieveIncludeModel;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +53,15 @@ public class DatarepoService {
           .getRoleMap();
     } catch (ApiException e) {
       throw new DatarepoException("Enumerate snapshots failed", e);
+    }
+  }
+
+  public SnapshotModel getPreviewTables(AuthenticatedUserRequest user, String snapshotId) {
+    try {
+      UUID id = UUID.fromString(snapshotId);
+      return snapshotsApi(user).retrieveSnapshot(id, List.of(SnapshotRetrieveIncludeModel.TABLES));
+    } catch (ApiException e) {
+      throw new DatarepoException(e);
     }
   }
 

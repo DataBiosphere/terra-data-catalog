@@ -4,12 +4,15 @@ import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.datarepo.DatarepoService;
 import bio.terra.catalog.iam.SamAction;
 import bio.terra.catalog.iam.SamService;
+import bio.terra.catalog.model.DatasetPreviewTablesResponse;
 import bio.terra.catalog.model.DatasetsListResponse;
+import bio.terra.catalog.model.TableMetadata;
 import bio.terra.catalog.service.dataset.Dataset;
 import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
+import bio.terra.datarepo.model.TableModel;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -91,6 +94,15 @@ public class DatasetService {
     };
   }
 
+  private List<TableMetadata> generateTableInformation(
+      AuthenticatedUserRequest user, Dataset dataset) {
+    return switch (dataset.storageSystem()) {
+      case TERRA_DATA_REPO -> convertDatarepoTablesToCatalogTables(
+          datarepoService.getPreviewTables(user, dataset.storageSourceId()).getTables());
+      case TERRA_WORKSPACE, EXTERNAL -> List.of();
+    };
+  }
+
   private void ensureActionPermission(
       AuthenticatedUserRequest user, Dataset dataset, SamAction action) {
     // Ensure that the current user has permission to perform this action. The current user
@@ -130,5 +142,23 @@ public class DatasetService {
     var dataset = new Dataset(storageSourceId, storageSystem, metadata);
     ensureActionPermission(user, dataset, SamAction.CREATE_METADATA);
     return datasetDao.create(dataset).id();
+  }
+
+  public DatasetPreviewTablesResponse getDatasetPreviewTables(
+      AuthenticatedUserRequest user, DatasetId datasetId) {
+    var dataset = datasetDao.retrieve(datasetId);
+    var tableMetadataList = generateTableInformation(user, dataset);
+    return new DatasetPreviewTablesResponse().tables(tableMetadataList);
+  }
+
+  private List<TableMetadata> convertDatarepoTablesToCatalogTables(
+      List<TableModel> datarepoTables) {
+    return datarepoTables.stream()
+        .map(
+            tableModel ->
+                new TableMetadata()
+                    .name(tableModel.getName())
+                    .hasData(tableModel.getRowCount() > 0))
+        .toList();
   }
 }
