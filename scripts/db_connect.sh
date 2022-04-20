@@ -22,11 +22,16 @@ PORT=${PORT:-5431}
 VAULT_PATH="secret/dsde/terra/kernel/${ENV}/${ENV}/catalog/postgres"
 
 INSTANCE=$(vault read -field=data -format=json "${VAULT_PATH}/instance" |
-           jq -r '"\(.project):\(.region):\(.name)"')
+           jq -r '"\(.project):\(.region):\(.name)"')=tcp:$PORT
 
-JDBC_URL=jdbc:postgresql://localhost:$PORT/$(vault read -field=data -format=json "${VAULT_PATH}/db-creds" |
+DB_CREDS_DATA=$(vault read -field=data -format=json "${VAULT_PATH}/db-creds")
+
+JDBC_URL=jdbc:postgresql://localhost:$PORT/$(echo "${DB_CREDS_DATA}" |
           jq -r '"\(.db)?user=\(.username)&password=\(.password)"')
 
-echo "Starting a proxy for $ENV. Connection: $JDBC_URL"
+PSQL_COMMAND=$(echo "${DB_CREDS_DATA}" |
+          jq -r '"psql postgresql://\(.username):\(.password)@localhost/\(.db)\\?port="')$PORT
+
+echo "Starting a proxy for $ENV. Connect using: \"$JDBC_URL\" or run: \"$PSQL_COMMAND\""
 
 cloud_sql_proxy -instances="${INSTANCE}" -dir=/tmp
