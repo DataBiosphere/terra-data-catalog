@@ -83,7 +83,7 @@ class DatasetApiControllerTest {
         .andExpect(status().isOk())
         .andExpect(header().string("Cache-Control", "no-store"))
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.result").isEmpty());
+        .andExpect(jsonPath("$.result").isArray());
   }
 
   @Test
