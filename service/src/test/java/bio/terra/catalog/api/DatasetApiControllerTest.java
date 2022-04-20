@@ -15,7 +15,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.model.CreateDatasetRequest;
+import bio.terra.catalog.model.DatasetPreviewTablesResponse;
 import bio.terra.catalog.model.DatasetsListResponse;
+import bio.terra.catalog.model.TableMetadata;
 import bio.terra.catalog.service.DatasetService;
 import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.catalog.service.dataset.exception.DatasetNotFoundException;
@@ -45,6 +47,7 @@ class DatasetApiControllerTest {
   private static final String API_ID = API + "/{id}";
   private static final String METADATA = """
       {"some": "metadata"}""";
+  private static final String PREVIEW_TABLES_API = API_ID + "/tables";
 
   @Autowired private MockMvc mockMvc;
 
@@ -139,5 +142,20 @@ class DatasetApiControllerTest {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.id").value(uuid.toString()));
     verify(datasetService).createDataset(user, storageSystem, id, METADATA);
+  }
+
+  @Test
+  void getDatasetPreviewTables() throws Exception {
+    var datasetId = new DatasetId(UUID.randomUUID());
+    DatasetPreviewTablesResponse response = new DatasetPreviewTablesResponse();
+    TableMetadata node = new TableMetadata().name("a").hasData(true);
+    response.addTablesItem(node);
+    when(datasetService.getDatasetPreviewTables(user, datasetId)).thenReturn(response);
+    mockMvc
+        .perform(get(PREVIEW_TABLES_API, datasetId.uuid()))
+        .andExpect(status().isOk())
+        .andExpect(header().string("Cache-Control", "no-store"))
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.tables[0].name").value("a"));
   }
 }
