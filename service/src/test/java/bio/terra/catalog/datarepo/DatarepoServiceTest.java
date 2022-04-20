@@ -16,6 +16,8 @@ import bio.terra.datarepo.api.UnauthenticatedApi;
 import bio.terra.datarepo.client.ApiException;
 import bio.terra.datarepo.model.EnumerateSnapshotModel;
 import bio.terra.datarepo.model.RepositoryStatusModel;
+import bio.terra.datarepo.model.SnapshotModel;
+import bio.terra.datarepo.model.SnapshotRetrieveIncludeModel;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -26,6 +28,7 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -110,5 +113,27 @@ class DatarepoServiceTest {
     when(unauthenticatedApi.serviceStatus()).thenThrow(new ApiException());
     var status = datarepoService.status();
     assertFalse(status.isOk());
+  }
+
+  @Test
+  void getPreviewTables() throws Exception {
+    var id = UUID.randomUUID();
+    when(snapshotsApi.retrieveSnapshot(id, List.of(SnapshotRetrieveIncludeModel.TABLES)))
+        .thenReturn(new SnapshotModel());
+    assertThat(datarepoService.getPreviewTables(user, id.toString()), is(new SnapshotModel()));
+  }
+
+  @Test
+  void getPreviewTablesDatarepoException() throws Exception {
+    var id = UUID.randomUUID();
+    var errorMessage = "Oops, I have errored";
+    when(snapshotsApi.retrieveSnapshot(id, List.of(SnapshotRetrieveIncludeModel.TABLES)))
+        .thenThrow(new ApiException(HttpStatus.NOT_FOUND.value(), errorMessage));
+    DatarepoException t =
+        assertThrows(
+            DatarepoException.class, () -> datarepoService.getPreviewTables(user, id.toString()));
+
+    assertThat(t.getStatusCode(), is(HttpStatus.NOT_FOUND));
+    assertThat(t.getMessage(), is("bio.terra.datarepo.client.ApiException: " + errorMessage));
   }
 }
