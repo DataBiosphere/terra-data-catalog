@@ -19,7 +19,7 @@
 : "${ENV:?}"
 PORT=${PORT:-5431}
 
-VAULT_PATH=secret/dsde/terra/kernel/${ENV}/${ENV}/catalog/postgres
+VAULT_PATH="secret/dsde/terra/kernel/${ENV}/${ENV}/catalog/postgres"
 
 INSTANCE=$(vault read -field=data -format=json "${VAULT_PATH}/instance" |
            jq -r '"\(.project):\(.region):\(.name)"')
