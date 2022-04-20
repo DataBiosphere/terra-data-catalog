@@ -3,7 +3,7 @@
 # This script requires google's cloud_sql_proxy on your PATH. One way to set this up:
 # $ brew cask install google-cloud-sdk
 # $ gcloud components install cloud_sql_proxy
-# $ PATH=$PATH:/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/bin/
+# $ PATH="$PATH:/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/bin"
 # OR
 # $ ln -s /usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/bin/cloud_sql_proxy /usr/local/bin/cloud_sql_proxy
 #
