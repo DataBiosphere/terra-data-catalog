@@ -13,11 +13,17 @@ import bio.terra.catalog.config.BeanConfig;
 import bio.terra.catalog.datarepo.DatarepoService;
 import bio.terra.catalog.iam.SamAction;
 import bio.terra.catalog.iam.SamService;
+import bio.terra.catalog.model.DatasetPreviewTablesResponse;
+import bio.terra.catalog.model.TableMetadata;
 import bio.terra.catalog.service.dataset.Dataset;
 import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
+import bio.terra.datarepo.model.ColumnModel;
+import bio.terra.datarepo.model.SnapshotModel;
+import bio.terra.datarepo.model.TableDataType;
+import bio.terra.datarepo.model.TableModel;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.time.Instant;
@@ -164,5 +170,31 @@ class DatasetServiceTest {
         datasetService.createDataset(
             user, StorageSystem.TERRA_DATA_REPO, storageSourceId, metadata);
     assertThat(id, is(datasetId));
+  }
+
+  @Test
+  void getDatasetPreviewTables() {
+    var tdrDataset =
+        new Dataset(dataset.id(), sourceId, StorageSystem.TERRA_DATA_REPO, metadata, null);
+    when(datasetDao.retrieve(datasetId)).thenReturn(tdrDataset);
+    when(datarepoService.getPreviewTables(user, tdrDataset.storageSourceId()))
+        .thenReturn(
+            new SnapshotModel()
+                .tables(
+                    List.of(
+                        new TableModel()
+                            .rowCount(1)
+                            .columns(
+                                List.of(
+                                    new ColumnModel()
+                                        .datatype(TableDataType.INTEGER)
+                                        .name("column a"))))));
+    DatasetPreviewTablesResponse results =
+        datasetService.getDatasetPreviewTables(user, tdrDataset.id());
+    // Test that all the data conversion works as expected
+    assertThat(results, isA(DatasetPreviewTablesResponse.class));
+    assertThat(results.getTables().size(), is(1));
+    assertThat(results.getTables().get(0), isA(TableMetadata.class));
+    assertThat(results.getTables().get(0).isHasData(), is(true));
   }
 }

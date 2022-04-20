@@ -160,15 +160,15 @@
         ],
         "TerraDCAT_ap:hasDataCollection": [
             {
-                "dct:title": "Human Cell Atlas",
+                "dct:title": "Test Data Consortium",
                 "dct:issued": "2021-10-11T18:27:17.321563",
                 "dct:creator": {
-                    "foaf:name": "Human Cell Atlas"
+                    "foaf:name": "Test Data Consortium"
                 },
                 "dct:modified": "2021-10-11T18:27:17.321565",
-                "dct:publisher": "Human Cell Atlas",
-                "dct:identifier": "HCA",
-                "dct:description": "The Human Cell Atlas (HCA) data collection contains comprehensive reference maps of all human cells - the fundamental units of life - as a basis for understanding fundamental human biological processes and diagnosing, monitoring, and treating disease."
+                "dct:publisher": "Test Data Consortium",
+                "dct:identifier": "TDC",
+                "dct:description": "The Test Data Consortium (TDC) data collection contains comprehensive reference maps of all human cells - the fundamental units of life - as a basis for understanding fundamental human biological processes and diagnosing, monitoring, and treating disease."
             }
         ],
         "TerraDCAT_ap:hasDataUsePermission": "TerraCore:NoRestriction",
@@ -292,15 +292,15 @@
         ],
         "TerraDCAT_ap:hasDataCollection": [
             {
-                "dct:title": "Human Cell Atlas",
+                "dct:title": "Test Data Consortium",
                 "dct:issued": "2021-10-11T18:27:17.324669",
                 "dct:creator": {
-                    "foaf:name": "Human Cell Atlas"
+                    "foaf:name": "Test Data Consortium"
                 },
                 "dct:modified": "2021-10-11T18:27:17.324672",
-                "dct:publisher": "Human Cell Atlas",
-                "dct:identifier": "HCA",
-                "dct:description": "The Human Cell Atlas (HCA) data collection contains comprehensive reference maps of all human cells - the fundamental units of life - as a basis for understanding fundamental human biological processes and diagnosing, monitoring, and treating disease."
+                "dct:publisher": "Test Data Consortium",
+                "dct:identifier": "TDC",
+                "dct:description": "The Test Data Consortium (TDC) data collection contains comprehensive reference maps of all human cells - the fundamental units of life - as a basis for understanding fundamental human biological processes and diagnosing, monitoring, and treating disease."
             }
         ],
         "TerraDCAT_ap:hasDataUsePermission": "TerraCore:NoRestriction",
