@@ -65,7 +65,7 @@ class DatarepoServiceTest {
   @Test
   void getSnapshotsException() throws Exception {
     when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any()))
-        .thenThrow(new ApiException());
+        .thenThrow(new ApiException(HttpStatus.NOT_FOUND.value(), "error"));
     assertThrows(DatarepoException.class, () -> datarepoService.getSnapshotIdsAndRoles(user));
   }
 
@@ -88,7 +88,8 @@ class DatarepoServiceTest {
   @Test
   void userHasActionException() throws Exception {
     var id = UUID.randomUUID();
-    when(snapshotsApi.retrieveUserSnapshotRoles(id)).thenThrow(new ApiException());
+    when(snapshotsApi.retrieveUserSnapshotRoles(id))
+        .thenThrow(new ApiException(HttpStatus.NOT_FOUND.value(), "error"));
     var stringId = id.toString();
     assertThrows(
         DatarepoException.class,
