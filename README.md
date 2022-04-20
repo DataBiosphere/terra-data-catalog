@@ -36,9 +36,9 @@ psql -f common/postgres-init.sql
 After the database is initialized, then run integration tests:
 
 ```sh
+./render_configs.sh    # render service account credentials needed for tests
 ./gradlew bootRun &    # start up a local instance of the data catalog service
 sleep 5                # wait until service comes up
-render-configs.sh      # render service account credentials needed for tests
 ./gradlew :integration:runTest --args="suites/FullIntegration.json /tmp/test"
 ```
 
