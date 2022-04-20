@@ -10,6 +10,7 @@ import bio.terra.datarepo.client.ApiClient;
 import bio.terra.datarepo.client.ApiException;
 import bio.terra.datarepo.model.RepositoryStatusModel;
 import bio.terra.datarepo.model.SnapshotModel;
+import bio.terra.datarepo.model.SnapshotPreviewModel;
 import bio.terra.datarepo.model.SnapshotRetrieveIncludeModel;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.List;
@@ -60,6 +61,19 @@ public class DatarepoService {
     try {
       UUID id = UUID.fromString(snapshotId);
       return snapshotsApi(user).retrieveSnapshot(id, List.of(SnapshotRetrieveIncludeModel.TABLES));
+    } catch (ApiException e) {
+      throw new DatarepoException(e);
+    }
+  }
+
+  public SnapshotPreviewModel getPreviewTable(
+      AuthenticatedUserRequest user, String snapshotId, String tableName) {
+    try {
+      UUID id = UUID.fromString(snapshotId);
+      Integer defaultOffset = 0;
+      Integer defaultLimit = 30;
+      return snapshotsApi(user)
+          .lookupSnapshotPreviewById(id, tableName, defaultOffset, defaultLimit);
     } catch (ApiException e) {
       throw new DatarepoException(e);
     }

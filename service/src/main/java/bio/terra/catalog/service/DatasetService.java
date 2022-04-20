@@ -4,12 +4,16 @@ import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.datarepo.DatarepoService;
 import bio.terra.catalog.iam.SamAction;
 import bio.terra.catalog.iam.SamService;
+import bio.terra.catalog.model.ColumnModel;
+import bio.terra.catalog.model.DatasetPreviewTable;
 import bio.terra.catalog.model.DatasetPreviewTablesResponse;
 import bio.terra.catalog.model.DatasetsListResponse;
+import bio.terra.catalog.model.TableDataType;
 import bio.terra.catalog.model.TableMetadata;
 import bio.terra.catalog.service.dataset.Dataset;
 import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
+import bio.terra.common.exception.NotFoundException;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.model.TableModel;
@@ -94,13 +98,43 @@ public class DatasetService {
     };
   }
 
-  private List<TableMetadata> generateTableInformation(
+  private List<TableMetadata> generateDatasetTables(
       AuthenticatedUserRequest user, Dataset dataset) {
     return switch (dataset.storageSystem()) {
       case TERRA_DATA_REPO -> convertDatarepoTablesToCatalogTables(
           datarepoService.getPreviewTables(user, dataset.storageSourceId()).getTables());
       case TERRA_WORKSPACE, EXTERNAL -> List.of();
     };
+  }
+
+  private DatasetPreviewTable generateDatasetTablePreview(
+      AuthenticatedUserRequest user, Dataset dataset, String tableName) {
+    return switch (dataset.storageSystem()) {
+      case TERRA_DATA_REPO -> generateDatarepoTable(user, dataset, tableName);
+      case TERRA_WORKSPACE, EXTERNAL -> new DatasetPreviewTable();
+    };
+  }
+
+  private DatasetPreviewTable generateDatarepoTable(
+      AuthenticatedUserRequest user, Dataset dataset, String tableName) {
+    return new DatasetPreviewTable()
+        .columns(
+            datarepoService.getPreviewTables(user, dataset.storageSourceId()).getTables().stream()
+                .filter(tableModel -> tableModel.getName().equals(tableName))
+                .findFirst()
+                .orElseThrow(
+                    () ->
+                        new NotFoundException(
+                            String.format(
+                                "Table %s is not found for dataset %s", tableName, dataset.id())))
+                .getColumns()
+                .stream()
+                .map(this::convertDatarepoColumnModelToCatalogColumnModel)
+                .toList())
+        .rows(
+            datarepoService
+                .getPreviewTable(user, dataset.storageSourceId(), tableName)
+                .getResult());
   }
 
   private void ensureActionPermission(
@@ -144,10 +178,10 @@ public class DatasetService {
     return datasetDao.create(dataset).id();
   }
 
-  public DatasetPreviewTablesResponse getDatasetPreviewTables(
+  public DatasetPreviewTablesResponse listDatasetPreviewTables(
       AuthenticatedUserRequest user, DatasetId datasetId) {
     var dataset = datasetDao.retrieve(datasetId);
-    var tableMetadataList = generateTableInformation(user, dataset);
+    var tableMetadataList = generateDatasetTables(user, dataset);
     return new DatasetPreviewTablesResponse().tables(tableMetadataList);
   }
 
@@ -160,5 +194,19 @@ public class DatasetService {
                     .name(tableModel.getName())
                     .hasData(tableModel.getRowCount() > 0))
         .toList();
+  }
+
+  private ColumnModel convertDatarepoColumnModelToCatalogColumnModel(
+      bio.terra.datarepo.model.ColumnModel datarepoColumnModel) {
+    return new ColumnModel()
+        .datatype(TableDataType.fromValue(datarepoColumnModel.getDatatype().getValue()))
+        .name(datarepoColumnModel.getName())
+        .arrayOf(datarepoColumnModel.isArrayOf());
+  }
+
+  public DatasetPreviewTable getDatasetPreview(
+      AuthenticatedUserRequest user, DatasetId datasetId, String tableName) {
+    var dataset = datasetDao.retrieve(datasetId);
+    return generateDatasetTablePreview(user, dataset, tableName);
   }
 }

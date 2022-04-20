@@ -17,6 +17,7 @@ import bio.terra.datarepo.client.ApiException;
 import bio.terra.datarepo.model.EnumerateSnapshotModel;
 import bio.terra.datarepo.model.RepositoryStatusModel;
 import bio.terra.datarepo.model.SnapshotModel;
+import bio.terra.datarepo.model.SnapshotPreviewModel;
 import bio.terra.datarepo.model.SnapshotRetrieveIncludeModel;
 import java.util.List;
 import java.util.Map;
@@ -135,5 +136,16 @@ class DatarepoServiceTest {
 
     assertThat(t.getStatusCode(), is(HttpStatus.NOT_FOUND));
     assertThat(t.getMessage(), is("bio.terra.datarepo.client.ApiException: " + errorMessage));
+  }
+
+  @Test
+  void getPreviewTable() throws Exception {
+    var id = UUID.randomUUID();
+    var tableName = "table";
+    when(snapshotsApi.lookupSnapshotPreviewById(id, tableName, 0, 30))
+        .thenReturn(new SnapshotPreviewModel());
+    assertThat(
+        datarepoService.getPreviewTable(user, id.toString(), tableName),
+        is(new SnapshotPreviewModel()));
   }
 }

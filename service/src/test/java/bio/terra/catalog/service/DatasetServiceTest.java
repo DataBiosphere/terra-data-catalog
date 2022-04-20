@@ -13,6 +13,7 @@ import bio.terra.catalog.config.BeanConfig;
 import bio.terra.catalog.datarepo.DatarepoService;
 import bio.terra.catalog.iam.SamAction;
 import bio.terra.catalog.iam.SamService;
+import bio.terra.catalog.model.DatasetPreviewTable;
 import bio.terra.catalog.model.DatasetPreviewTablesResponse;
 import bio.terra.catalog.model.TableMetadata;
 import bio.terra.catalog.service.dataset.Dataset;
@@ -22,6 +23,7 @@ import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.model.ColumnModel;
 import bio.terra.datarepo.model.SnapshotModel;
+import bio.terra.datarepo.model.SnapshotPreviewModel;
 import bio.terra.datarepo.model.TableDataType;
 import bio.terra.datarepo.model.TableModel;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -190,11 +192,44 @@ class DatasetServiceTest {
                                         .datatype(TableDataType.INTEGER)
                                         .name("column a"))))));
     DatasetPreviewTablesResponse results =
-        datasetService.getDatasetPreviewTables(user, tdrDataset.id());
-    // Test that all the data conversion works as expected
+        datasetService.listDatasetPreviewTables(user, tdrDataset.id());
     assertThat(results, isA(DatasetPreviewTablesResponse.class));
     assertThat(results.getTables().size(), is(1));
     assertThat(results.getTables().get(0), isA(TableMetadata.class));
     assertThat(results.getTables().get(0).isHasData(), is(true));
+  }
+
+  @Test
+  void getDatasetPreviewTable() {
+    var tdrDataset =
+        new Dataset(dataset.id(), sourceId, StorageSystem.TERRA_DATA_REPO, metadata, null);
+    var tableName = "tableName";
+    when(datasetDao.retrieve(datasetId)).thenReturn(tdrDataset);
+    when(datarepoService.getPreviewTables(user, tdrDataset.storageSourceId()))
+        .thenReturn(
+            new SnapshotModel()
+                .tables(
+                    List.of(
+                        new TableModel()
+                            .name(tableName)
+                            .rowCount(1)
+                            .columns(
+                                List.of(
+                                    new ColumnModel()
+                                        .datatype(TableDataType.INTEGER)
+                                        .name("column a"))))));
+    when(datarepoService.getPreviewTable(user, tdrDataset.storageSourceId(), tableName))
+        .thenReturn(new SnapshotPreviewModel().result(List.of()));
+    DatasetPreviewTable datasetPreviewTable =
+        datasetService.getDatasetPreview(user, tdrDataset.id(), tableName);
+    assertThat(datasetPreviewTable.getRows().size(), is(0));
+    assertThat(datasetPreviewTable.getColumns().size(), is(1));
+    assertThat(
+        datasetPreviewTable.getColumns().get(0),
+        is(
+            new bio.terra.catalog.model.ColumnModel()
+                .datatype(bio.terra.catalog.model.TableDataType.INTEGER)
+                .name("column a")
+                .arrayOf(false)));
   }
 }

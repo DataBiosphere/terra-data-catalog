@@ -14,9 +14,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import bio.terra.catalog.common.StorageSystem;
+import bio.terra.catalog.model.ColumnModel;
 import bio.terra.catalog.model.CreateDatasetRequest;
+import bio.terra.catalog.model.DatasetPreviewTable;
 import bio.terra.catalog.model.DatasetPreviewTablesResponse;
 import bio.terra.catalog.model.DatasetsListResponse;
+import bio.terra.catalog.model.TableDataType;
 import bio.terra.catalog.model.TableMetadata;
 import bio.terra.catalog.service.DatasetService;
 import bio.terra.catalog.service.dataset.DatasetId;
@@ -25,6 +28,7 @@ import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.common.iam.AuthenticatedUserRequestFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,6 +52,7 @@ class DatasetApiControllerTest {
   private static final String METADATA = """
       {"some": "metadata"}""";
   private static final String PREVIEW_TABLES_API = API_ID + "/tables";
+  private static final String PREVIEW_TABLES_API_TABLE_NAME = PREVIEW_TABLES_API + "/{tableName}";
 
   @Autowired private MockMvc mockMvc;
 
@@ -133,17 +138,43 @@ class DatasetApiControllerTest {
   }
 
   @Test
-  void getDatasetPreviewTables() throws Exception {
+  void listDatasetPreviewTables() throws Exception {
     var datasetId = new DatasetId(UUID.randomUUID());
+    var tableName = "a";
     DatasetPreviewTablesResponse response = new DatasetPreviewTablesResponse();
-    TableMetadata node = new TableMetadata().name("a").hasData(true);
+    TableMetadata node = new TableMetadata().name(tableName).hasData(true);
     response.addTablesItem(node);
-    when(datasetService.getDatasetPreviewTables(user, datasetId)).thenReturn(response);
+    when(datasetService.listDatasetPreviewTables(user, datasetId)).thenReturn(response);
     mockMvc
         .perform(get(PREVIEW_TABLES_API, datasetId.uuid()))
         .andExpect(status().isOk())
         .andExpect(header().string("Cache-Control", "no-store"))
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.tables[0].name").value("a"));
+        .andExpect(jsonPath("$.tables[0].name").value(tableName));
+  }
+
+  @Test
+  void getDatasetPreviewTable() throws Exception {
+    var datasetId = new DatasetId(UUID.randomUUID());
+    var tableName = "table";
+    var columnName = "column a";
+    DatasetPreviewTablesResponse listDatasetPreviewTablesResponse =
+        new DatasetPreviewTablesResponse();
+    TableMetadata node = new TableMetadata().name(tableName).hasData(true);
+    listDatasetPreviewTablesResponse.addTablesItem(node);
+    when(datasetService.listDatasetPreviewTables(user, datasetId))
+        .thenReturn(listDatasetPreviewTablesResponse);
+
+    DatasetPreviewTable response =
+        new DatasetPreviewTable()
+            .columns(List.of(new ColumnModel().datatype(TableDataType.INTEGER).name(columnName)))
+            .rows(List.of());
+    when(datasetService.getDatasetPreview(user, datasetId, tableName)).thenReturn(response);
+    mockMvc
+        .perform(get(PREVIEW_TABLES_API_TABLE_NAME, datasetId.uuid(), tableName))
+        .andExpect(status().isOk())
+        .andExpect(header().string("Cache-Control", "no-store"))
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.columns[0].name").value(columnName));
   }
 }
