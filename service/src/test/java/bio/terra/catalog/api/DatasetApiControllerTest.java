@@ -75,7 +75,7 @@ class DatasetApiControllerTest {
   }
 
   @Test
-  void EmptyListDatasets() throws Exception {
+  void emptyListDatasets() throws Exception {
     DatasetsListResponse response = new DatasetsListResponse();
     when(datasetService.listDatasets(user)).thenReturn(response);
     mockMvc
