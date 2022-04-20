@@ -28,8 +28,7 @@ python3 create-hca-collection.py
 ```sh
 source .env/bin/activate
 export USER_EMAIL=datacatalogadmin@test.firecloud.org
-# OR
-export USER_EMAIL=monster.pshapiro.dev@gmail.com
+# OR export your personal dev admin email address
 python3 ingest-hca-collection.py
 ```
 
