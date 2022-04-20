@@ -61,7 +61,7 @@ public class DatarepoService {
       UUID id = UUID.fromString(snapshotId);
       return snapshotsApi(user).retrieveSnapshot(id, List.of(SnapshotRetrieveIncludeModel.TABLES));
     } catch (ApiException e) {
-      throw new DatarepoException(e.getMessage(), e.getCause());
+      throw new DatarepoException(e);
     }
   }
 
