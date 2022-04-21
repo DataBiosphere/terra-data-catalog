@@ -5,7 +5,7 @@
   "catalogUri": "http://localhost:8080",
   "datarepoUri": "https://jade.datarepo-dev.broadinstitute.org/",
 
-  "testRunnerServiceAccountFile": "delegate-user-sa.json",
+  "testRunnerServiceAccountFile": "testrunner-perf.json",
 
   "skipDeployment": true,
   "skipKubernetes": true
