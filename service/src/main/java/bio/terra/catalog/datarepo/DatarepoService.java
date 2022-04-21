@@ -70,10 +70,8 @@ public class DatarepoService {
       AuthenticatedUserRequest user, String snapshotId, String tableName) {
     try {
       UUID id = UUID.fromString(snapshotId);
-      Integer defaultOffset = 0;
-      Integer defaultLimit = 30;
       return snapshotsApi(user)
-          .lookupSnapshotPreviewById(id, tableName, defaultOffset, defaultLimit);
+          .lookupSnapshotPreviewById(id, tableName, null, null);
     } catch (ApiException e) {
       throw new DatarepoException(e);
     }
