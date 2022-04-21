@@ -148,4 +148,22 @@ class DatarepoServiceTest {
         datarepoService.getPreviewTable(user, id.toString(), tableName),
         is(new SnapshotPreviewModel()));
   }
+
+  @Test
+  void getPreviewTableDatarepoException() throws Exception {
+    var id = UUID.randomUUID();
+    var tableName = "table";
+    var errorMessage = "Oops, I have errored";
+
+    when(snapshotsApi.lookupSnapshotPreviewById(id, tableName, null, null))
+        .thenThrow(new ApiException(HttpStatus.NOT_FOUND.value(), errorMessage));
+
+    DatarepoException t =
+        assertThrows(
+            DatarepoException.class,
+            () -> datarepoService.getPreviewTable(user, id.toString(), tableName));
+
+    assertThat(t.getStatusCode(), is(HttpStatus.NOT_FOUND));
+    assertThat(t.getMessage(), is("bio.terra.datarepo.client.ApiException: " + errorMessage));
+  }
 }
