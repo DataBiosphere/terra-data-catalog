@@ -222,8 +222,8 @@ class DatasetServiceTest {
         .thenReturn(new SnapshotPreviewModel().result(List.of()));
     DatasetPreviewTable datasetPreviewTable =
         datasetService.getDatasetPreview(user, tdrDataset.id(), tableName);
-    assertThat(datasetPreviewTable.getRows().size(), is(0));
-    assertThat(datasetPreviewTable.getColumns().size(), is(1));
+    assertThat(datasetPreviewTable.getRows(), empty());
+    assertThat(datasetPreviewTable.getColumns(), hasSize(1));
     assertThat(
         datasetPreviewTable.getColumns().get(0),
         is(
