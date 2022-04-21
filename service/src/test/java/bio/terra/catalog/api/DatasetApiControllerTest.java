@@ -83,6 +83,18 @@ class DatasetApiControllerTest {
   }
 
   @Test
+  void emptyListDatasets() throws Exception {
+    DatasetsListResponse response = new DatasetsListResponse();
+    when(datasetService.listDatasets(user)).thenReturn(response);
+    mockMvc
+        .perform(get(API))
+        .andExpect(status().isOk())
+        .andExpect(header().string("Cache-Control", "no-store"))
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.result").isArray());
+  }
+
+  @Test
   void deleteDataset() throws Exception {
     var datasetId = new DatasetId(UUID.randomUUID());
     mockMvc.perform(delete(API_ID, datasetId.uuid())).andExpect(status().is2xxSuccessful());
