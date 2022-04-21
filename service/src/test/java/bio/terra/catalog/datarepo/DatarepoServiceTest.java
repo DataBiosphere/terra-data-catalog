@@ -142,7 +142,7 @@ class DatarepoServiceTest {
   void getPreviewTable() throws Exception {
     var id = UUID.randomUUID();
     var tableName = "table";
-    when(snapshotsApi.lookupSnapshotPreviewById(id, tableName, 0, 30))
+    when(snapshotsApi.lookupSnapshotPreviewById(id, tableName, null, null))
         .thenReturn(new SnapshotPreviewModel());
     assertThat(
         datarepoService.getPreviewTable(user, id.toString(), tableName),
