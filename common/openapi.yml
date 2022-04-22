@@ -149,7 +149,7 @@ paths:
     get:
       summary: Given a dataset ID, return its preview metadata
       tags: [ datasets ]
-      operationId: getDatasetPreviewTables
+      operationId: listDatasetPreviewTables
       parameters:
         - $ref: '#/components/parameters/Id'
       responses:
@@ -159,6 +159,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DatasetPreviewTablesResponse'
+        '404':
+          description: "Dataset not found"
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /api/v1/datasets/{id}/tables/{tableName}:
+    get:
+      summary: Given a dataset ID and a table name, return a table preview
+      tags: [ datasets ]
+      operationId: getDatasetPreviewTable
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - in: path
+          name: tableName
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: A JSON object of the table preview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatasetPreviewTable'
         '404':
           description: "Dataset not found"
         '500':
@@ -296,6 +320,27 @@ components:
             $ref: '#/components/schemas/TableMetadata'
       description: >
         DatasetPreviewTablesResponse returns information about the table structure of a dataset.
+
+    DatasetPreviewTable:
+      type: object
+      properties:
+        columns:
+          type: array
+          items:
+            $ref: '#/components/schemas/ColumnModel'
+        rows:
+          type: array
+          items:
+            type: object
+
+    ColumnModel:
+      type: object
+      properties:
+        name:
+          type: string
+        array_of:
+          type: boolean
+          description: if true, this column is an array of data.
 
     TableMetadata:
       required:

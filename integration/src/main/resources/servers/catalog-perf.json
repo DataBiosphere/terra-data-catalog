@@ -3,7 +3,7 @@
   "description": "Catalog Performance Testing Environment",
 
   "catalogUri": "https://catalog.dsde-perf.broadinstitute.org/",
-  "datarepoUri": "https://jade-perf.datarepo-perf.broadinstitute.org/",
+  "datarepoUri": "https://jade.datarepo-dev.broadinstitute.org/",
 
   "cluster": {
     "clusterName": "terra-perf",
