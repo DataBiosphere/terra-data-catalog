@@ -19,7 +19,6 @@ import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.DatasetPreviewTable;
 import bio.terra.catalog.model.DatasetPreviewTablesResponse;
 import bio.terra.catalog.model.DatasetsListResponse;
-import bio.terra.catalog.model.TableDataType;
 import bio.terra.catalog.model.TableMetadata;
 import bio.terra.catalog.service.DatasetService;
 import bio.terra.catalog.service.dataset.DatasetId;
@@ -179,7 +178,7 @@ class DatasetApiControllerTest {
 
     DatasetPreviewTable response =
         new DatasetPreviewTable()
-            .columns(List.of(new ColumnModel().datatype(TableDataType.INTEGER).name(columnName)))
+            .columns(List.of(new ColumnModel().name(columnName)))
             .rows(List.of());
     when(datasetService.getDatasetPreview(user, datasetId, tableName)).thenReturn(response);
     mockMvc
