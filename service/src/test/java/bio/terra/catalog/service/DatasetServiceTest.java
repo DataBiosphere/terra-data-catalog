@@ -226,10 +226,6 @@ class DatasetServiceTest {
     assertThat(datasetPreviewTable.getColumns(), hasSize(1));
     assertThat(
         datasetPreviewTable.getColumns().get(0),
-        is(
-            new bio.terra.catalog.model.ColumnModel()
-                .datatype(bio.terra.catalog.model.TableDataType.INTEGER)
-                .name("column a")
-                .arrayOf(false)));
+        is(new bio.terra.catalog.model.ColumnModel().name("column a").arrayOf(false)));
   }
 }

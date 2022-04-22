@@ -338,18 +338,9 @@ components:
       properties:
         name:
           type: string
-        datatype:
-          $ref: '#/components/schemas/TableDataType'
         array_of:
           type: boolean
-          description: if true, make this column an array of type datatype.
-          default: false
-
-    TableDataType:
-      type: string
-      enum: [ string, boolean, bytes, date, datetime, dirref, fileref, float, float64, integer, int64, numeric, record, text, time, timestamp ]
-      description: >
-        The type of a column in a table.
+          description: if true, this column is an array of data.
 
     TableMetadata:
       required:

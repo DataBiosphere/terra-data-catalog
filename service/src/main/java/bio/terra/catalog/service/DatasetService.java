@@ -8,7 +8,6 @@ import bio.terra.catalog.model.ColumnModel;
 import bio.terra.catalog.model.DatasetPreviewTable;
 import bio.terra.catalog.model.DatasetPreviewTablesResponse;
 import bio.terra.catalog.model.DatasetsListResponse;
-import bio.terra.catalog.model.TableDataType;
 import bio.terra.catalog.model.TableMetadata;
 import bio.terra.catalog.service.dataset.Dataset;
 import bio.terra.catalog.service.dataset.DatasetDao;
@@ -129,7 +128,7 @@ public class DatasetService {
                                 "Table %s is not found for dataset %s", tableName, dataset.id())))
                 .getColumns()
                 .stream()
-                .map(this::convertDatarepoColumnModelToCatalogColumnModel)
+                .map(DatasetService::convertDatarepoColumnModelToCatalogColumnModel)
                 .toList())
         .rows(
             datarepoService
@@ -185,7 +184,7 @@ public class DatasetService {
     return new DatasetPreviewTablesResponse().tables(tableMetadataList);
   }
 
-  private List<TableMetadata> convertDatarepoTablesToCatalogTables(
+  private static List<TableMetadata> convertDatarepoTablesToCatalogTables(
       List<TableModel> datarepoTables) {
     return datarepoTables.stream()
         .map(
@@ -196,10 +195,9 @@ public class DatasetService {
         .toList();
   }
 
-  private ColumnModel convertDatarepoColumnModelToCatalogColumnModel(
+  private static ColumnModel convertDatarepoColumnModelToCatalogColumnModel(
       bio.terra.datarepo.model.ColumnModel datarepoColumnModel) {
     return new ColumnModel()
-        .datatype(TableDataType.fromValue(datarepoColumnModel.getDatatype().getValue()))
         .name(datarepoColumnModel.getName())
         .arrayOf(datarepoColumnModel.isArrayOf());
   }
