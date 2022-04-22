@@ -159,9 +159,6 @@ jobs:
       - name: Launch the background process for integration tests
         run: ./gradlew --build-cache bootRun | tee bootrun.log &
 
-      - name: Prep the integration project
-        run: ./gradlew --build-cache :integration:classes
-
       - name: Wait for boot run to be ready
         run: |
           timeout 60 bash -c 'until echo > /dev/tcp/localhost/8080; do sleep 1; done'
@@ -175,7 +172,7 @@ jobs:
           fi
 
       - name: Run the integration test suite
-        run: ./gradlew --build-cache runTest --args="suites/FullIntegration.json /tmp/foo"
+        run: ./gradlew --build-cache runTest --args="suites/FullIntegration.json build/reports"
 
   notify-slack:
     needs: [ build, black, jib, unit-tests-and-sonarqube, source-clear, integration-tests ]
