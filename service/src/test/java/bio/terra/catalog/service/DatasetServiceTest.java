@@ -203,7 +203,7 @@ class DatasetServiceTest {
   void getDatasetPreviewTable() {
     var tdrDataset =
         new Dataset(dataset.id(), sourceId, StorageSystem.TERRA_DATA_REPO, metadata, null);
-    var tableName = "tableName";
+    var tableName = "table";
     when(datasetDao.retrieve(datasetId)).thenReturn(tdrDataset);
     when(datarepoService.getPreviewTables(user, tdrDataset.storageSourceId()))
         .thenReturn(

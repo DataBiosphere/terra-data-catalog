@@ -151,7 +151,7 @@ class DatasetApiControllerTest {
   @Test
   void listDatasetPreviewTables() throws Exception {
     var datasetId = new DatasetId(UUID.randomUUID());
-    var tableName = "a";
+    var tableName = "table";
     DatasetPreviewTablesResponse response = new DatasetPreviewTablesResponse();
     TableMetadata node = new TableMetadata().name(tableName).hasData(true);
     response.addTablesItem(node);
