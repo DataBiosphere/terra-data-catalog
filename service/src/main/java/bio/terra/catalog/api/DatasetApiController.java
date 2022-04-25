@@ -3,6 +3,7 @@ package bio.terra.catalog.api;
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.CreatedDatasetId;
+import bio.terra.catalog.model.DatasetPreviewTable;
 import bio.terra.catalog.model.DatasetPreviewTablesResponse;
 import bio.terra.catalog.model.DatasetsListResponse;
 import bio.terra.catalog.service.DatasetService;
@@ -75,9 +76,16 @@ public class DatasetApiController implements DatasetsApi {
   }
 
   @Override
-  public ResponseEntity<DatasetPreviewTablesResponse> getDatasetPreviewTables(UUID id) {
+  public ResponseEntity<DatasetPreviewTablesResponse> listDatasetPreviewTables(UUID id) {
     return ResponseEntity.ok()
         .cacheControl(CacheControl.noStore())
-        .body(datasetService.getDatasetPreviewTables(getUser(), new DatasetId(id)));
+        .body(datasetService.listDatasetPreviewTables(getUser(), new DatasetId(id)));
+  }
+
+  @Override
+  public ResponseEntity<DatasetPreviewTable> getDatasetPreviewTable(UUID id, String tableName) {
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.noStore())
+        .body(datasetService.getDatasetPreview(getUser(), new DatasetId(id), tableName));
   }
 }
