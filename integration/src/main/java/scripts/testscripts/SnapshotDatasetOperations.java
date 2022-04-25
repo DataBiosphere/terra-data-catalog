@@ -96,6 +96,15 @@ public class SnapshotDatasetOperations extends TestScript {
     var client = new CatalogClient(server, testUser);
     datasetsApi = new DatasetsApi(client);
 
+    crudUserJourney(client);
+    previewUserJourney(client);
+  }
+
+  private void previewUserJourney(CatalogClient client) throws ApiException {
+
+  }
+
+  private void crudUserJourney(CatalogClient client) throws ApiException {
     // Given a snapshot, create a catalog entry.
     var request =
         new CreateDatasetRequest()
@@ -153,13 +162,13 @@ public class SnapshotDatasetOperations extends TestScript {
 
   @Override
   public void cleanup(List<TestUserSpecification> testUsers) throws Exception {
-    if (snapshotId != null) {
-      snapshotsApi.deleteSnapshot(snapshotId);
-      log.info("deleted snapshot " + snapshotId);
-    }
     if (datasetId != null) {
       datasetsApi.deleteDataset(datasetId);
       log.info("deleted dataset " + datasetId);
+    }
+    if (snapshotId != null) {
+      snapshotsApi.deleteSnapshot(snapshotId);
+      log.info("deleted snapshot " + snapshotId);
     }
   }
 }
