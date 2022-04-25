@@ -13,8 +13,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: install shellcheck
-        run: sudo apt-get install shellcheck
+      - name: Link shellcheck into expected location
+        run: sudo ln -s $(which shellcheck) /usr/local/bin/shellcheck
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
