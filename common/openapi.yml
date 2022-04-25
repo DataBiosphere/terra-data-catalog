@@ -145,6 +145,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorReport'
+  /api/v1/datasets/{id}/tables:
+    get:
+      summary: Given a dataset ID, return its preview metadata
+      tags: [ datasets ]
+      operationId: getDatasetPreviewTables
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: A JSON object of the preview metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatasetPreviewTablesResponse'
+        '404':
+          description: "Dataset not found"
+        '500':
+          $ref: '#/components/responses/ServerError'
 
 components:
   parameters:
@@ -170,6 +188,7 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/CreatedDatasetId'
+
 
     # Error Responses
     BadRequest:
@@ -266,6 +285,26 @@ components:
           type: string
         catalogEntry:
           type: string
+
+    DatasetPreviewTablesResponse:
+      type: object
+      properties:
+        tables:
+          type: array
+          items:
+            $ref: '#/components/schemas/TableMetadata'
+      description: >
+        DatasetPreviewTablesResponse returns information about the table structure of a dataset.
+
+    TableMetadata:
+      required:
+        - name
+      type: object
+      properties:
+        name:
+          type: string
+        hasData:
+          type: boolean
 
     StorageSystem:
       type: string

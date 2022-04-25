@@ -84,6 +84,8 @@ jobs:
   notify-slack:
     needs: [ build, jib, test-runner ]
     runs-on: ubuntu-latest
+    if: always()
+    
     steps:
       - name: "Notify #jade-data-explorer Slack on failure"
         uses: broadinstitute/action-slack@v3.8.0
