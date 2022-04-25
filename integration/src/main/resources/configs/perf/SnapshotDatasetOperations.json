@@ -7,7 +7,7 @@
   "testScripts": [
     {
       "name": "SnapshotDatasetOperations",
-      "numberOfUserJourneyThreadsToRun": 10,
+      "numberOfUserJourneyThreadsToRun": 1,
       "userJourneyThreadPoolSize": 2,
       "expectedTimeForEach": 5,
       "expectedTimeForEachUnit": "SECONDS"
