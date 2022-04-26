@@ -111,7 +111,7 @@ public class SnapshotDatasetOperations extends TestScript {
     datasetId = datasetsApi.createDataset(request).getId();
     log.info("created dataset " + datasetId);
 
-    var previewTables = datasetsApi.getDatasetPreviewTables(datasetId);
+    var previewTables = datasetsApi.listDatasetPreviewTables(datasetId);
     assertThat(previewTables.getTables(), hasSize(1));
 
     // Delete the entry
