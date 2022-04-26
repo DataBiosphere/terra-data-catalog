@@ -130,9 +130,10 @@ class DatarepoServiceTest {
     var errorMessage = "Oops, I have errored";
     when(snapshotsApi.retrieveSnapshot(id, List.of(SnapshotRetrieveIncludeModel.TABLES)))
         .thenThrow(new ApiException(HttpStatus.NOT_FOUND.value(), errorMessage));
+    String snapshotId = id.toString();
     DatarepoException t =
         assertThrows(
-            DatarepoException.class, () -> datarepoService.getPreviewTables(user, id.toString()));
+            DatarepoException.class, () -> datarepoService.getPreviewTables(user, snapshotId));
 
     assertThat(t.getStatusCode(), is(HttpStatus.NOT_FOUND));
     assertThat(t.getMessage(), is("bio.terra.datarepo.client.ApiException: " + errorMessage));
@@ -158,10 +159,11 @@ class DatarepoServiceTest {
     when(snapshotsApi.lookupSnapshotPreviewById(id, tableName, null, null))
         .thenThrow(new ApiException(HttpStatus.NOT_FOUND.value(), errorMessage));
 
+    String snapshotId = id.toString();
     DatarepoException t =
         assertThrows(
             DatarepoException.class,
-            () -> datarepoService.getPreviewTable(user, id.toString(), tableName));
+            () -> datarepoService.getPreviewTable(user, snapshotId, tableName));
 
     assertThat(t.getStatusCode(), is(HttpStatus.NOT_FOUND));
     assertThat(t.getMessage(), is("bio.terra.datarepo.client.ApiException: " + errorMessage));

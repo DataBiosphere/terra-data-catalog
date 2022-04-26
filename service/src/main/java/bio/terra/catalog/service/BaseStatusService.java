@@ -49,7 +49,6 @@ public class BaseStatusService {
     }
   }
 
-  @VisibleForTesting
   void registerStatusCheck(String name, Supplier<SystemStatusSystems> checkFn) {
     statusCheckMap.put(name, checkFn);
   }

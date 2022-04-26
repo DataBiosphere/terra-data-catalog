@@ -87,7 +87,7 @@ public class SamService {
       var result = new SystemStatusSystems().ok(samStatus.getOk());
       var samSystems = samStatus.getSystems();
       // Populate error message if Sam status is non-ok
-      if (!samStatus.getOk()) {
+      if (!Boolean.TRUE.equals(result.isOk())) {
         String errorMsg = "Sam status check failed. Messages = " + samSystems;
         logger.error(errorMsg);
         result.addMessagesItem(errorMsg);
