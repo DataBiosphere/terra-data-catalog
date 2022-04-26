@@ -4,6 +4,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -13,7 +14,9 @@ import static org.junit.jupiter.api.Assertions.fail;
 import bio.terra.catalog.api.DatasetsApi;
 import bio.terra.catalog.client.ApiException;
 import bio.terra.catalog.model.CreateDatasetRequest;
+import bio.terra.catalog.model.DatasetPreviewTablesResponse;
 import bio.terra.catalog.model.StorageSystem;
+import bio.terra.catalog.model.TableMetadata;
 import bio.terra.datarepo.api.JobsApi;
 import bio.terra.datarepo.api.SnapshotsApi;
 import bio.terra.datarepo.model.JobModel;
@@ -111,9 +114,10 @@ public class SnapshotDatasetOperations extends TestScript {
     datasetId = datasetsApi.createDataset(request).getId();
     log.info("created dataset " + datasetId);
 
-    var previewTables = datasetsApi.listDatasetPreviewTables(datasetId);
-    assertThat(previewTables.getTables(), hasSize(1));
 
+    var previewTables = datasetsApi.listDatasetPreviewTables(datasetId);
+    assertThat(previewTables.getTables(), hasSize(2));
+    assertThat(previewTables.getTables(), hasItems(new TableMetadata().name("sample").hasData(true), new TableMetadata().name("participant").hasData(true)));
     // Delete the entry
     datasetsApi.deleteDataset(datasetId);
     datasetId = null;
