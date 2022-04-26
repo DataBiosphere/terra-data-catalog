@@ -12,7 +12,7 @@ env:
     exportEnabled: ${CLOUD_TRACE_ENABLED:false}
     samplingRate: ${SAMPLING_PROBABILITY:0}
   sam:
-    basePath: ${SAM_ADDRESS:https://sam.dsde-dev.broadinstitute.org/}
+    basePath: ${SAM_ADDRESS:https://sam.dsde-dev.broadinstitute.org}
     resourceId: ${SAM_RESOURCE_ID:catalog-dev}
   datarepo:
     basePath: ${DATAREPO_ADDRESS:https://jade.datarepo-dev.broadinstitute.org}
