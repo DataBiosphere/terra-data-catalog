@@ -13,6 +13,7 @@ env:
     samplingRate: ${SAMPLING_PROBABILITY:0}
   sam:
     basePath: ${SAM_ADDRESS:https://sam.dsde-dev.broadinstitute.org/}
+    resourceId: ${SAM_RESOURCE_ID:catalog-dev}
   datarepo:
     basePath: ${DATAREPO_ADDRESS:https://jade.datarepo-dev.broadinstitute.org}
 
@@ -29,7 +30,7 @@ logging.pattern.level: '%X{requestId} %5p'
 server:
   compression:
     enabled: true
-    mime-types: text/css,application/javascript
+    mimeTypes: text/css,application/javascript
   port: 8080
 
 spring:
@@ -38,38 +39,40 @@ spring:
     resources:
       cache:
         cachecontrol:
-          max-age: 0
-          must-revalidate: true
-        use-last-modified: false
-      static-locations: classpath:/api/
+          maxAge: 0
+          mustRevalidate: true
+        useLastModified: false
+      staticLocations: classpath:/api/
 
 catalog:
   ingress:
     # Default value that's overridden by Helm.
-    domain-name: localhost:8080
+    domainName: localhost:8080
 
   status-check:
     enabled: true
-    polling-interval-seconds: 60
-    startup-wait-seconds: 5
-    staleness-threshold-seconds: 125
+    pollingIntervalSeconds: 60
+    startupWaitSeconds: 5
+    stalenessThresholdSeconds: 125
 
   catalog-database:
-    initialize-on-start: ${env.db.init}
+    initializeOnStart: ${env.db.init}
     password: ${env.db.catalog.pass}
-    upgrade-on-start: true
+    upgradeOnStart: true
     uri: ${env.db.host}/${env.db.catalog.name}
     username: ${env.db.catalog.user}
 
   sam:
-    base-path: ${env.sam.basePath}
+    basePath: ${env.sam.basePath}
+    resourceId: ${env.sam.resourceId}
+
 
   datarepo:
-    base-path: ${env.datarepo.basePath}
+    basePath: ${env.datarepo.basePath}
 
 terra.common:
   kubernetes:
-    in-kubernetes: false
+    inKubernetes: false
 
   tracing:
     stackdriverExportEnabled: ${env.tracing.exportEnabled}
