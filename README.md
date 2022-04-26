@@ -39,14 +39,14 @@ After the database is initialized, then run integration tests:
 ./render_configs.sh    # render service account credentials needed for tests
 ./gradlew bootRun &    # start up a local instance of the data catalog service
 sleep 5                # wait until service comes up
-./gradlew :integration:runTest --args="suites/FullIntegration.json /tmp/test"
+./gradlew runTest --args="suites/FullIntegration.json build/reports"
 ```
 
 To run performance tests, execute:
 
 ```sh
 render-configs.sh perf
-./gradlew :integration:runTest --args="suites/FullPerf.json /tmp/test"
+./gradlew runTest --args="suites/FullPerf.json build/reports"
 ```
 
 ## Handling database migrations
