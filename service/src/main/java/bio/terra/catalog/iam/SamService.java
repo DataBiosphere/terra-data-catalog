@@ -27,7 +27,6 @@ public class SamService {
   private final OkHttpClient commonHttpClient;
 
   private static final String CATALOG_RESOURCE_TYPE = "catalog";
-  private static final String CATALOG_RESOURCE_ID = "catalog";
 
   @Autowired
   public SamService(SamConfiguration samConfig) {
@@ -50,7 +49,7 @@ public class SamService {
     ResourcesApi resourceApi = resourcesApi(accessToken);
     try {
       return SamRetry.retry(
-              () -> resourceApi.resourceActions(CATALOG_RESOURCE_TYPE, CATALOG_RESOURCE_ID))
+              () -> resourceApi.resourceActions(CATALOG_RESOURCE_TYPE, samConfig.resourceId()))
           .stream()
           .map(SamAction::fromValue)
           .anyMatch(action::equals);

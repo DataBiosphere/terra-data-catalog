@@ -4,6 +4,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -101,7 +102,21 @@ public class SnapshotDatasetOperations extends TestScript {
   }
 
   private void previewUserJourney(CatalogClient client) throws ApiException {
+    // Given a snapshot, create a catalog entry.
+    var request =
+        new CreateDatasetRequest()
+            .catalogEntry(METADATA_1)
+            .storageSourceId(snapshotId.toString())
+            .storageSystem(StorageSystem.TDR);
+    datasetId = datasetsApi.createDataset(request).getId();
+    log.info("created dataset " + datasetId);
 
+    var previewTables = datasetsApi.getDatasetPreviewTables(datasetId);
+    assertThat(previewTables.getTables(), hasSize(1));
+
+    // Delete the entry
+    datasetsApi.deleteDataset(datasetId);
+    datasetId = null;
   }
 
   private void crudUserJourney(CatalogClient client) throws ApiException {

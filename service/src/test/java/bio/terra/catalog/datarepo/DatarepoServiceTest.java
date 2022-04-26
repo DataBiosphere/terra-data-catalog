@@ -17,6 +17,7 @@ import bio.terra.datarepo.client.ApiException;
 import bio.terra.datarepo.model.EnumerateSnapshotModel;
 import bio.terra.datarepo.model.RepositoryStatusModel;
 import bio.terra.datarepo.model.SnapshotModel;
+import bio.terra.datarepo.model.SnapshotPreviewModel;
 import bio.terra.datarepo.model.SnapshotRetrieveIncludeModel;
 import java.util.List;
 import java.util.Map;
@@ -132,6 +133,35 @@ class DatarepoServiceTest {
     DatarepoException t =
         assertThrows(
             DatarepoException.class, () -> datarepoService.getPreviewTables(user, id.toString()));
+
+    assertThat(t.getStatusCode(), is(HttpStatus.NOT_FOUND));
+    assertThat(t.getMessage(), is("bio.terra.datarepo.client.ApiException: " + errorMessage));
+  }
+
+  @Test
+  void getPreviewTable() throws Exception {
+    var id = UUID.randomUUID();
+    var tableName = "table";
+    when(snapshotsApi.lookupSnapshotPreviewById(id, tableName, null, null))
+        .thenReturn(new SnapshotPreviewModel());
+    assertThat(
+        datarepoService.getPreviewTable(user, id.toString(), tableName),
+        is(new SnapshotPreviewModel()));
+  }
+
+  @Test
+  void getPreviewTableDatarepoException() throws Exception {
+    var id = UUID.randomUUID();
+    var tableName = "table";
+    var errorMessage = "Oops, I have errored";
+
+    when(snapshotsApi.lookupSnapshotPreviewById(id, tableName, null, null))
+        .thenThrow(new ApiException(HttpStatus.NOT_FOUND.value(), errorMessage));
+
+    DatarepoException t =
+        assertThrows(
+            DatarepoException.class,
+            () -> datarepoService.getPreviewTable(user, id.toString(), tableName));
 
     assertThat(t.getStatusCode(), is(HttpStatus.NOT_FOUND));
     assertThat(t.getMessage(), is("bio.terra.datarepo.client.ApiException: " + errorMessage));
