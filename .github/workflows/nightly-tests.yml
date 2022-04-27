@@ -86,7 +86,6 @@ jobs:
         run: |
           ./gradlew --build-cache runTest --args="suites/FullPerf.json build/reports"
           ./gradlew --build-cache uploadResults --args="CompressDirectoryToTerraKernelK8S.json build/reports"
-          exit 1
 
       - name: Upload Test Reports
         if: always()
