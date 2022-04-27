@@ -107,7 +107,7 @@ jobs:
     steps:
       - name: "Notify #jade-data-explorer Slack on failure"
         uses: broadinstitute/action-slack@v3.8.0
-        if: ${{ needs.test-runner.outputs.status }} == 'failure'
+        if: ${{ needs.test-runner.outputs.status }} != 'success'
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
