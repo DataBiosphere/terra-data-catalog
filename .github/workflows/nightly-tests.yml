@@ -107,12 +107,12 @@ jobs:
     steps:
       - name: "Notify #jade-data-explorer Slack on failure"
         uses: broadinstitute/action-slack@v3.8.0
-        if: ${{ needs.test-runner.outputs.status }} != 'success'
+        if: ${{ needs.test-runner.result }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           channel: '#jade-data-explorer'
-          status: ${{ needs.test-runner.outputs.status }}
+          status: ${{ needs.test-runner.result }}
           author_name: Nightly test
           fields: workflow,message
           text: 'Nightly test failed :sadpanda:'
@@ -125,7 +125,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           channel: '#dsde-qa'
-          status: ${{ needs.test-runner.outputs.status }}
+          status: ${{ needs.test-runner.result }}
           author_name: Nightly test
           fields: workflow,message
           text: 'Nightly performance test results'
