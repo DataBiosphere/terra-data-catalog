@@ -98,7 +98,7 @@ jobs:
   notify-de-slack:
     needs: [ build, jib, test-runner ]
     runs-on: ubuntu-latest
-    if: ${{ needs.test-runner.result == 'failure' }}
+    if: failure()
 
     steps:
       - name: "Notify #jade-data-explorer Slack on failure"
@@ -113,21 +113,20 @@ jobs:
           text: 'Nightly test failed :sadpanda:'
           username: 'Data Explorer GitHub Action'
 
-  notify-qa-slack:
-    needs: [ build, jib, test-runner ]
-    runs-on: ubuntu-latest
-    if: always()
-
-    steps:
-      - name: "Always notify #dsde-qa Slack"
-        uses: broadinstitute/action-slack@v3.8.0
-        if: always()
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        with:
-          channel: '#dsde-qa'
-          status: ${{ needs.test-runner.result }}
-          author_name: Nightly test
-          fields: workflow,message
-          text: 'Nightly performance test results'
-          username: 'Data Explorer GitHub Action'
+#  notify-qa-slack:
+#    needs: [ build, jib, test-runner ]
+#    runs-on: ubuntu-latest
+#    if: always()
+#
+#    steps:
+#      - name: "Always notify #dsde-qa Slack"
+#        uses: broadinstitute/action-slack@v3.8.0
+#        env:
+#          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+#        with:
+#          channel: '#dsde-qa'
+#          status: ${{ needs.test-runner.result }}
+#          author_name: Nightly test
+#          fields: workflow,message
+#          text: 'Nightly performance test results'
+#          username: 'Data Explorer GitHub Action'
