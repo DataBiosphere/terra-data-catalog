@@ -97,7 +97,7 @@ jobs:
   notify-de-slack:
     needs: [ build, jib, test-runner ]
     runs-on: ubuntu-latest
-    if: ${{ needs.test-runner.result }} == 'failure'
+    if: ${{ needs.test-runner.result == 'failure' }}
 
     steps:
       - name: "Notify #jade-data-explorer Slack on failure"
