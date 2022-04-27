@@ -55,8 +55,6 @@ jobs:
   test-runner:
     needs: [ build ]
     runs-on: ubuntu-latest
-    outputs:
-      status: ${{ steps.tests.outputs.status }}
 
     steps:
       - uses: actions/checkout@v2
@@ -85,13 +83,9 @@ jobs:
           echo "${{ secrets.PERF_TESTRUNNER_ACCOUNT_B64 }}" | base64 -d > "integration/src/main/resources/rendered/testrunner-perf.json"
 
       - name: Run perf test suite
-        id: tests
         run: |
-          echo "::set-output name=status::failure"
           ./gradlew --build-cache runTest --args="suites/FullPerf.json build/reports"
           ./gradlew --build-cache uploadResults --args="CompressDirectoryToTerraKernelK8S.json build/reports"
-          exit 1
-          echo "::set-output name=status::success"
 
       - name: Upload Test Reports
         if: always()
