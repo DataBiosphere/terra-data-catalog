@@ -124,9 +124,6 @@ gcloud auth configure-docker
 # ensure that git-secrets patterns are installed
 git clone https://github.com/broadinstitute/dsp-appsec-gitsecrets-client.git
 ./dsp-appsec-gitsecrets-client/gitsecrets.sh
-
-# Install black, the Python code formatter
-pip install black
 ```
 
 ## 6. Install Java 17
