@@ -90,16 +90,14 @@ jobs:
           echo "::set-output name=status::failure"
           ./gradlew --build-cache runTest --args="suites/FullPerf.json build/reports"
           ./gradlew --build-cache uploadResults --args="CompressDirectoryToTerraKernelK8S.json build/reports"
-          exit 1
           echo "::set-output name=status::success"
 
-# I think this is causing the issue
-#      - name: Upload Test Reports
-#        if: always()
-#        uses: actions/upload-artifact@v1
-#        with:
-#          name: Test Reports
-#          path: integration/build/reports
+      - name: Upload Test Reports
+        if: always()
+        uses: actions/upload-artifact@v1
+        with:
+          name: Test Reports
+          path: integration/build/reports
 
   notify-slack:
     needs: [ build, jib, test-runner ]
