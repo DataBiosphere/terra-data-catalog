@@ -1,5 +1,6 @@
-package bio.terra.catalog.api;
+package bio.terra.catalog.controller;
 
+import bio.terra.catalog.api.PublicApi;
 import bio.terra.catalog.config.VersionConfiguration;
 import bio.terra.catalog.model.SystemStatus;
 import bio.terra.catalog.model.VersionProperties;

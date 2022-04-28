@@ -4,8 +4,6 @@ import bio.terra.catalog.config.StatusCheckConfiguration;
 import bio.terra.catalog.model.SystemStatusSystems;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class BaseStatusServiceTest {
 
   @Test
