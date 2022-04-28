@@ -29,7 +29,7 @@ DB_CREDS_DATA=$(vault read -field=data -format=json "${VAULT_PATH}/db-creds")
 JDBC_URL=jdbc:postgresql://localhost:$PORT/$(echo "${DB_CREDS_DATA}" |
           jq -r '"\(.db)?user=\(.username)&password=\(.password)"')
 
-PSQL_COMMAND=$(echo ${DB_CREDS_DATA} |
+PSQL_COMMAND=$(echo "${DB_CREDS_DATA}" |
           jq -r '"psql postgresql://\(.username):\(.password)@localhost/\(.db)\\?port="')$PORT
 
 echo "Starting a proxy for $ENV. Connect using: \"$JDBC_URL\" or run: \"$PSQL_COMMAND\""
