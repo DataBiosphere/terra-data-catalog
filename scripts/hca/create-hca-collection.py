@@ -6,6 +6,8 @@ from datetime import datetime
 
 def now():
     return datetime.now().isoformat()
+
+
 def hca_creator():
     return {"foaf:name": "Human Cell Atlas"}
 
