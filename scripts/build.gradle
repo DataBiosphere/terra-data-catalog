@@ -6,7 +6,9 @@ plugins {
 
 shellcheck {
     useDocker = false
-    sources = files("$projectDir")
+    // Without this, `sources` includes the `build` output directory, which causes this task
+    // to never be UP-TO-DATE.
+    sources = files("$projectDir").filter { name.endsWith(".sh") }
 }
 
 spotless {
