@@ -123,7 +123,16 @@ public class SnapshotDatasetOperations extends TestScript {
     assertThat(
         sampleTable.getColumns(),
         containsInAnyOrder(new ColumnModel().name("sample_id").arrayOf(false)));
-    assertThat(sampleTable.getRows(), hasSize(0));
+    assertThat(sampleTable.getRows(), hasSize(15));
+    /*
+    0 = {ColumnModel@5033} "class ColumnModel {\n    name: sample_id\n    arrayOf: false\n}"
+1 = {ColumnModel@5034} "class ColumnModel {\n    name: participant_id\n    arrayOf: false\n}"
+2 = {ColumnModel@5035} "class ColumnModel {\n    name: files\n    arrayOf: true\n}"
+3 = {ColumnModel@5036} "class ColumnModel {\n    name: type\n    arrayOf: false\n}"
+
+0 = {LinkedHashMap@5042}  size = 5
+ "sample_id" -> "sample5"
+     */
 
     // Delete the entry
     datasetsApi.deleteDataset(datasetId);
