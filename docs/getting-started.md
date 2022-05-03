@@ -150,7 +150,7 @@ create a new version 12 database as follows:
 ## 8. Create GitHub token
 
 The GitHub token verifies team permissions. This token is necessary for the next
-step, [Login to Vault](#8-login-to-vault). To create a token:
+step, [Login to Vault](#9-login-to-vault). To create a token:
 
 1. Go to the [GitHub Personal Access Token](https://github.com/settings/tokens)
 page and click **Generate new token**.

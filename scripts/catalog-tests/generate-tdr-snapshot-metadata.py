@@ -25,7 +25,7 @@
 #   DATA_REPO_URL: url for the data repo to use to extract testing snapshot information
 # ------------------------------------------------------------------------------
 import json
-import os, subprocess, sys
+import os, subprocess
 import requests
 
 urlRoot = os.environ.get("CATALOG_SERVICE_URL") or "http://localhost:8080"
@@ -38,7 +38,7 @@ user = os.environ.get("GCLOUD_USER") or "datacatalogadmin@test.firecloud.org"
 
 
 def logResponse(response, message):
-    if 200 <= response.status_code and response.status_code < 300:
+    if response.ok:
         print("success!", response.text)
     else:
         print("---------------------------------------------------")
