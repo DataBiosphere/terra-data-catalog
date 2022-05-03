@@ -13,6 +13,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.10'
+      - name: Install black and link shellcheck into expected location
+        run: |
+          pip install black
+          sudo ln -s $(which shellcheck) /usr/local/bin/shellcheck
       - name: Set up JDK
         uses: actions/setup-java@v2
         with:
@@ -20,23 +28,13 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Gradle build
+      - name: Build all projects without running tests
         run: ./gradlew --build-cache build -x test
 
       - name: Upload spotbugs results
         uses: github/codeql-action/upload-sarif@main
         with:
           sarif_file: service/build/reports/spotbugs/main.sarif
-
-  linters:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: psf/black@stable
-      - uses: ludeeus/action-shellcheck@1.1.0
-        with:
-          scandir: 'scripts'
 
   jib:
     needs: [ build ]
@@ -178,7 +176,7 @@ jobs:
         run: ./gradlew --build-cache runTest --args="suites/FullIntegration.json build/reports"
 
   notify-slack:
-    needs: [ build, linters, jib, unit-tests-and-sonarqube, source-clear, integration-tests ]
+    needs: [ build, jib, unit-tests-and-sonarqube, source-clear, integration-tests ]
     runs-on: ubuntu-latest
 
     if: failure() && github.ref == 'refs/heads/main'
@@ -197,7 +195,7 @@ jobs:
           username: 'Data Explorer GitHub Action'
 
   dispatch-tag:
-    needs: [ build, linters, jib, unit-tests-and-sonarqube, source-clear, integration-tests ]
+    needs: [ build, jib, unit-tests-and-sonarqube, source-clear, integration-tests ]
     runs-on: ubuntu-latest
 
     if: success() && github.ref == 'refs/heads/main'

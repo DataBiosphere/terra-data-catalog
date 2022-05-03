@@ -1,0 +1,23 @@
+plugins {
+    id 'base'
+    id 'com.diffplug.spotless'
+    id 'com.felipefzdz.gradle.shellcheck'
+}
+
+shellcheck {
+    useDocker = false
+    // Without this, `sources` includes the `build` output directory, which causes this task
+    // to never be UP-TO-DATE.
+    sources = files("$projectDir").filter { name.endsWith(".sh") }
+}
+
+spotless {
+    python {
+        target '**/*.py'
+        black()
+    }
+}
+
+check {
+    dependsOn(tasks.shellcheck)
+}
