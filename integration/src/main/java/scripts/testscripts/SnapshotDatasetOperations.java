@@ -27,6 +27,7 @@ import com.google.api.client.http.HttpStatusCodes;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.hamcrest.Matchers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scripts.client.CatalogClient;
@@ -122,17 +123,17 @@ public class SnapshotDatasetOperations extends TestScript {
     var sampleTable = datasetsApi.getDatasetPreviewTable(datasetId, "sample");
     assertThat(
         sampleTable.getColumns(),
-        containsInAnyOrder(new ColumnModel().name("sample_id").arrayOf(false)));
-    assertThat(sampleTable.getRows(), hasSize(15));
-    /*
-    0 = {ColumnModel@5033} "class ColumnModel {\n    name: sample_id\n    arrayOf: false\n}"
-1 = {ColumnModel@5034} "class ColumnModel {\n    name: participant_id\n    arrayOf: false\n}"
-2 = {ColumnModel@5035} "class ColumnModel {\n    name: files\n    arrayOf: true\n}"
-3 = {ColumnModel@5036} "class ColumnModel {\n    name: type\n    arrayOf: false\n}"
+        containsInAnyOrder(
+            new ColumnModel().name("sample_id").arrayOf(false),
+            new ColumnModel().name("participant_id").arrayOf(false),
+            new ColumnModel().name("files").arrayOf(true),
+            new ColumnModel().name("type").arrayOf(false)));
 
-0 = {LinkedHashMap@5042}  size = 5
- "sample_id" -> "sample5"
-     */
+    assertThat(sampleTable.getRows(), hasSize(15));
+    @SuppressWarnings("unchecked")
+    Map<String, String> row = (Map<String, String>) sampleTable.getRows().get(0);
+
+    assertThat(row, Matchers.hasEntry(is("sample_id"), is("sample5")));
 
     // Delete the entry
     datasetsApi.deleteDataset(datasetId);
