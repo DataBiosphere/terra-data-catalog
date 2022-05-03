@@ -1,7 +1,9 @@
+brew "black"
 brew "git"
 brew "git-secrets"
 brew "jq"
 brew "vault"
+brew "shellcheck"
 cask "docker"
 cask "google-cloud-sdk"
 cask "intellij-idea"        # comment this line and uncomment the next line
