@@ -4,74 +4,7 @@ These instructions assume you use MacOS, and that you are on the internal Broad
 network or the VPN. If the VPN is not installed, follow the instructions
 [at this link](https://broad.io/vpn).
 
-> During this process, you will need your GitHub username, password, and
-personal access token for multiple steps, so make sure to have those handy. If
-you don't have those yet, see the section below, otherwise you can skip to
-[Request Required Access](#2-request-required-access).
-
-## 1. Create a GitHub account
-
-GitHub is where the Broad stores our code and projects. Sign up to this service
-with your personal or Broad email: https://github.com/join
-
-Create a [personal access token](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line)
-so you can interact with GitHub on the command line.
-
-## 2. Request Required Access
-
-Ensure that you have access to the required team resources. If you encounter a
-permission error, it is likely because you are missing appropriate access.
-
-- DataBiosphere: Join the `#github` Slack channel, click the lightning bolt in
-the channel header, and select `Join DataBiosphere`.  Once you've been granted
-access to DataBiosphere, ask a team member to add your GitHub user to the
-[jadeteam](https://github.com/orgs/DataBiosphere/teams/jadeteam) group. This
-will give you access to our repositories.
-- Google Groups: Ask a team member for access to Google Groups including
-`jade-internal` and `dsde-engineering`.
-
-## 3. Connect accounts
-
-> Make sure 2-factor authentication (2FA) is activated on your [Broad](https://broad.io/2fa)
-and [GitHub](https://github.com/settings/security) account before starting this
-process!
-
-Connect your GitHub account to your Broad profile:
-
-1. Go to [Broad people](https://people.broadinstitute.org/me) and select the
-**My Profile** tab.
-2. Link your profile to GitHub by clicking under **Other Profiles**.
-3. [Check if the account is successfully linked](https://github.broadinstitute.org/).
-4. Open each of the following GitHub groups and **Request to join** by going to
-the Members tab: [Broad Institute Read](https://github.com/orgs/broadinstitute/teams/broad-institute-read),
-[Prometheus](https://github.com/orgs/broadinstitute/teams/prometheus),
-[DSDE Engineering](https://github.com/orgs/broadinstitute/teams/dsde-engineering)
-5. To avoid being overwhelmed with notifications, [add your Broad email address](https://github.com/settings/emails),
-[route the notifications](https://github.com/settings/notifications) to that
-email, and [unfollow projects](https://github.com/watching) that are not
-relevant to your team.
-
-## 4. Create Terra Accounts
-
-The Data Catalog and [Terra](https://terra.bio/) use [Sam](https://github.com/broadinstitute/sam)
-to abtract identity and access management. To gain access to these services,
-first create a non-Broad email address through Gmail. This email address will
-specifically be used for development purposes in our non-prod environments.
-Next, to register as a new user, click the `Sign in with Google` button in each
-of the environments with the newly created email address and follow the prompts:
-
-- [Dev](https://bvdp-saturn-dev.appspot.com/)
-- [Alpha](https://bvdp-saturn-alpha.appspot.com/)
-- [Staging](https://bvdp-saturn-staging.appspot.com/)
-
-For [production](https://app.terra.bio/), you will need to register using a
-`firecloud.org` email. In order to get an account, you must become suitable,
-which requires following [these steps](https://docs.google.com/document/d/1DRftlTe-9Q4H-R0jxanVojvyNn1IzbdIOhNKiIj9IpI/edit?usp=sharing).
-
-Ask a member of the team to add you to the admins group for each of these
-environments.
-
-## 5. Install Homebrew
+## 1. Install Homebrew
 
 [Homebrew](https://brew.sh/) is a [package manager](https://en.wikipedia.org/wiki/Package_manager)
 which enables the installation of software using a single, convenient command
@@ -110,9 +43,6 @@ installed by switching `intellij-idea` with `intellij-idea-ce` in the Brewfile.
 Unfortunately, some manual configuration is also necessary:
 
 ```
-# configure vault
-export VAULT_ADDR=https://clotho.broadinstitute.org:8200
-
 # launch docker desktop - this installs docker in /usr/local/bin
 open -a docker
 
@@ -125,6 +55,52 @@ gcloud auth configure-docker
 git clone https://github.com/broadinstitute/dsp-appsec-gitsecrets-client.git
 ./dsp-appsec-gitsecrets-client/gitsecrets.sh
 ```
+
+## 2. Get Set Up with GitHub and Vault
+
+DevOps has [a document that'll get you connected to our GitHub organization and Vault server](https://docs.google.com/document/d/11pZE-GqeZFeSOG0UpGg_xyTDQpgBRfr0MLxpxvvQgEw/edit#).
+
+Note that you just installed the `vault` CLI above, so you won't need to download it like those docs tell you to.
+
+## 3. Request Required Access
+
+Ensure that you have access to the required team resources. If you encounter a
+permission error, it is likely because you are missing appropriate access.
+
+- DataBiosphere: Join the `#github` Slack channel, click the lightning bolt in
+the channel header, and select `Join DataBiosphere`.  Once you've been granted
+access to DataBiosphere, ask a team member to add your GitHub user to the
+[jadeteam](https://github.com/orgs/DataBiosphere/teams/jadeteam) group. This
+will give you access to our repositories.
+- Google Groups: Ask a team member for access to Google Groups including
+`jade-internal` and `dsde-engineering`.
+
+## 4. Handle GitHub notifications
+
+To avoid being overwhelmed with notifications, [add your Broad email address](https://github.com/settings/emails),
+[route the notifications](https://github.com/settings/notifications) to that
+email, and [unfollow projects](https://github.com/watching) that are not
+relevant to your team.
+
+## 5. Create Terra Accounts
+
+The Data Catalog and [Terra](https://terra.bio/) use [Sam](https://github.com/broadinstitute/sam)
+to abtract identity and access management. To gain access to these services,
+first create a non-Broad email address through Gmail. This email address will
+specifically be used for development purposes in our non-prod environments.
+Next, to register as a new user, click the `Sign in with Google` button in each
+of the environments with the newly created email address and follow the prompts:
+
+- [Dev](https://bvdp-saturn-dev.appspot.com/)
+- [Alpha](https://bvdp-saturn-alpha.appspot.com/)
+- [Staging](https://bvdp-saturn-staging.appspot.com/)
+
+For [production](https://app.terra.bio/), you will need to register using a
+`firecloud.org` email. In order to get an account, you must become suitable,
+which requires following [these steps](https://docs.google.com/document/d/1DRftlTe-9Q4H-R0jxanVojvyNn1IzbdIOhNKiIj9IpI/edit?usp=sharing).
+
+Ask a member of the team to add you to the admins group for each of these
+environments.
 
 ## 6. Install Java 17
 
@@ -147,37 +123,7 @@ create a new version 12 database as follows:
 3. Add `/Applications/Postgres.app/Contents/Versions/latest/bin` to your path
 (there are multiple ways to achieve this)
 
-## 8. Create GitHub token
-
-The GitHub token verifies team permissions. This token is necessary for the next
-step, [Login to Vault](#9-login-to-vault). To create a token:
-
-1. Go to the [GitHub Personal Access Token](https://github.com/settings/tokens)
-page and click **Generate new token**.
-2. Give the token a descriptive name, **only** give it the following two scopes
-and then click **Generate token**.
-  *  `read:org` scope under `admin:org`
-  *  `workflow` (this is used to kick off GitHub actions from the command line)
-3. Store this token in a file:
-
-```
-GITHUB_TOKEN=<<GITHUB TOKEN VALUE>>
-echo $GITHUB_TOKEN > ~/.github-token
-```
-
-## 9. Login to Vault
-
-Vault access tokens can be obtained using the GitHub token from earlier as
-follows:
-
-```
-vault login -method=github token=$(cat ~/.github-token)
-```
-
-> Vault access tokens expire after 30 days, so if you get a `403` error trying
-to use `vault`, re-run the `vault login` command to refresh your access token.
-
-## 10. Code Checkout
+## 8. Code Checkout
 
 > It may be useful to create a folder for Broad projects in your home directory.
 
