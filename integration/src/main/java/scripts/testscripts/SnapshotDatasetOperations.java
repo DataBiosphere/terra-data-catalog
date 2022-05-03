@@ -27,7 +27,6 @@ import com.google.api.client.http.HttpStatusCodes;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import org.hamcrest.Matchers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scripts.client.CatalogClient;
@@ -133,7 +132,7 @@ public class SnapshotDatasetOperations extends TestScript {
     @SuppressWarnings("unchecked")
     Map<String, String> row = (Map<String, String>) sampleTable.getRows().get(0);
 
-    assertThat(row, Matchers.hasEntry(is("sample_id"), is("sample5")));
+    assertThat(row, hasEntry(is("sample_id"), is("sample5")));
 
     // Delete the entry
     datasetsApi.deleteDataset(datasetId);
