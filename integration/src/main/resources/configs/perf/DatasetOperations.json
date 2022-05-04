@@ -10,7 +10,7 @@
       "numberOfUserJourneyThreadsToRun": 1,
       "userJourneyThreadPoolSize": 2,
       "expectedTimeForEach": 5,
-      "expectedTimeForEachUnit": "MINUTES"
+      "expectedTimeForEachUnit": "SECONDS"
     },
     {
       "name": "SnapshotDatasetOperations",
