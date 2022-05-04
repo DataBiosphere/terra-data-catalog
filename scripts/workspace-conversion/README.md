@@ -1,7 +1,7 @@
 ## Converting Workspace Dataset Attributes to Catalog Entry Data
 
 # Description
-This script takes the workspace dataset attributes and attempts to map them to similar fields in the data catalog service as snapshots.
+This script takes the workspace dataset attributes and attempts to map them to similar fields in the data catalog service as catalog entries.
 
 # Dataset Attributes
 An example workspace with attributes can be found [here](https://github.com/DataBiosphere/terra-ui/blob/dev/src/data/workspace-attributes.js#2), under the variable `displayLibraryAttributes`.
@@ -27,7 +27,7 @@ What is shown to the user in that table is the contents in the attributes that t
 # Value mappings
 To run the conversion from workspace to dataset, here is a current mapping scheme:
 
-| Attribute | Rawls Workspace Path | Data Catalog Snapshot Path |
+| Attribute | Rawls Workspace Path | Data Catalog Entry Path |
 | --------- | -------------------- | -------------------------- |
 | Cohort Phenotype/Indication (Disease Ontology)  | `library:diseaseOntologyLabel` |  |
 | No. of Subjects | `library:numSubjects` | `counts.donors` |
