@@ -1,7 +1,7 @@
 ## Converting Workspace Dataset Attributes to Snapshot Data
 
 # Description
-This script takes the workspace dataset attributes and attempts to map them to similar fields in the data catalog service as snapshots.
+This script takes the workspace dataset attributes and attempts to map them to similar fields in the data catalog service as catalog entries.
 
 # Dataset Attributes
 An example workspace with attributes can be found [here](src/data/workspace-cleanAttributes.js.displayLibraryAttributes).
