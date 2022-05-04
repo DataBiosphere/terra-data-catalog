@@ -36,7 +36,7 @@ To run the conversion from workspace to dataset, here is a current mapping schem
 | Data Use Limitation | `library:dataUseRestriction` | `TerraDCAT_ap:hasDataUsePermission.0`<br>Not a perfect mapping, we will need to normalize "General Research Use" to "TerraCore:NoRestriction" |
 | Cohort Phenotype/Indication | `library:indication`<br>ex: "Mesothelioma" | `samples.disease.0` |
 | Cohort Name | `library:datasetName` | `dct:title` |
-| Dataset Version | `library:datasetVersion` |  |
+| Dataset Version | `library:datasetVersion` | `dct:version` |
 | Cohort Description | `library:datasetDescription` | `dct:description` |
 | Dataset Owner | `library:datasetOwner`<br>ex: "NCI" | `TerraDCAT_ap:hasDataCollection.0.dct:identifier`<br>If we have enough information, we can also build:<br> `TerraDCAT_AP:hasDataCollection.0.dct:publisher: National Cancer Institute`<br>`TerraDCAT_AP:hasDataCollection.0.dct:title: National Cancer Institute` |
 | Dataset Custodian | `library:datasetCustodian`<br>ex: "dbGAP" | `TerraDCAT_ap:hasDataCollection.0.dct:identifier`<br>Note: This conflicts with "Dataset Owner", but I dont think we have another option for where to put this. |
