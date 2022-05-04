@@ -4,6 +4,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -11,8 +12,10 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import bio.terra.catalog.api.DatasetsApi;
 import bio.terra.catalog.client.ApiException;
+import bio.terra.catalog.model.ColumnModel;
 import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.StorageSystem;
+import bio.terra.catalog.model.TableMetadata;
 import bio.terra.datarepo.api.JobsApi;
 import bio.terra.datarepo.api.SnapshotsApi;
 import bio.terra.datarepo.model.JobModel;
@@ -96,6 +99,47 @@ public class SnapshotDatasetOperations extends TestScript {
     var client = new CatalogClient(server, testUser);
     datasetsApi = new DatasetsApi(client);
 
+    crudUserJourney(client);
+    previewUserJourney(client);
+  }
+
+  private void previewUserJourney(CatalogClient client) throws ApiException {
+    // Given a snapshot, create a catalog entry.
+    var request =
+        new CreateDatasetRequest()
+            .catalogEntry(METADATA_1)
+            .storageSourceId(snapshotId.toString())
+            .storageSystem(StorageSystem.TDR);
+    datasetId = datasetsApi.createDataset(request).getId();
+    log.info("created dataset " + datasetId);
+
+    var previewTables = datasetsApi.listDatasetPreviewTables(datasetId);
+    assertThat(
+        previewTables.getTables(),
+        containsInAnyOrder(
+            new TableMetadata().name("sample").hasData(true),
+            new TableMetadata().name("participant").hasData(true)));
+    var sampleTable = datasetsApi.getDatasetPreviewTable(datasetId, "sample");
+    assertThat(
+        sampleTable.getColumns(),
+        containsInAnyOrder(
+            new ColumnModel().name("sample_id").arrayOf(false),
+            new ColumnModel().name("participant_id").arrayOf(false),
+            new ColumnModel().name("files").arrayOf(true),
+            new ColumnModel().name("type").arrayOf(false)));
+
+    assertThat(sampleTable.getRows(), hasSize(15));
+    @SuppressWarnings("unchecked")
+    Map<String, String> row = (Map<String, String>) sampleTable.getRows().get(0);
+
+    assertThat(row, hasEntry(is("sample_id"), is("sample5")));
+
+    // Delete the entry
+    datasetsApi.deleteDataset(datasetId);
+    datasetId = null;
+  }
+
+  private void crudUserJourney(CatalogClient client) throws ApiException {
     // Given a snapshot, create a catalog entry.
     var request =
         new CreateDatasetRequest()
@@ -153,13 +197,13 @@ public class SnapshotDatasetOperations extends TestScript {
 
   @Override
   public void cleanup(List<TestUserSpecification> testUsers) throws Exception {
-    if (snapshotId != null) {
-      snapshotsApi.deleteSnapshot(snapshotId);
-      log.info("deleted snapshot " + snapshotId);
-    }
     if (datasetId != null) {
       datasetsApi.deleteDataset(datasetId);
       log.info("deleted dataset " + datasetId);
+    }
+    if (snapshotId != null) {
+      snapshotsApi.deleteSnapshot(snapshotId);
+      log.info("deleted snapshot " + snapshotId);
     }
   }
 }
