@@ -33,7 +33,7 @@ To run the conversion from workspace to dataset, here is a current mapping schem
 | No. of Subjects | `library:numSubjects` | `counts.donors` |
 | Data Category | `library:dataCategory`<br>ex: "Simple Nucleotide Variation, Copy Number Variation, Expression Quantification, DNA-Methylation, Clinical phenotypes, Biosample metadata" |  |
 | Experimental Strategy | `library:datatype`<br>ex: "Whole Exome, Genotyping Array, RNA-Seq, miRNA-Seq, Methylation Array, Protein Expression Array" | `prov:wasGeneratedBy.3.TerraCore:hasAssayCategory`<br>Note: RNA-Seq would be found in this field in existing data catalog entries, but I don't know if all of these values would also fit in the same one. |
-| Data Use Limitation | `library:dataUseRestriction` | `TerraDCAT_ap:hasDataUsePermission.0`<br>Not a perfect mapping, we will need to normalize "General Research Use" to "TerraCore:NoRestriction" |
+| Data Use Limitation | `library:dataUseRestriction` | `TerraDCAT_ap:hasDataUsePermission.0`<br>Not a perfect mapping, we will need to normalize "General Research Use" to "TerraCore:NoRestriction", preferably using the mapping found [here](https://github.com/DataBiosphere/terra-ui/blob/dev/src/pages/library/dataBrowser-utils.js#23) under `datasetReleasePolicies` |
 | Cohort Phenotype/Indication | `library:indication`<br>ex: "Mesothelioma" | `samples.disease.0` |
 | Cohort Name | `library:datasetName` | `dct:title` |
 | Dataset Version | `library:datasetVersion` | `dct:version` |
