@@ -1,10 +1,10 @@
-## Converting Workspace Dataset Attributes to Snapshot Data
+## Converting Workspace Dataset Attributes to Catalog Entry Data
 
 # Description
 This script takes the workspace dataset attributes and attempts to map them to similar fields in the data catalog service as snapshots.
 
 # Dataset Attributes
-An example workspace with attributes can be found [here](src/data/workspace-cleanAttributes.js.displayLibraryAttributes).
+An example workspace with attributes can be found [here](https://github.com/DataBiosphere/terra-ui/blob/dev/src/data/workspace-attributes.js#2), under the variable `displayLibraryAttributes`.
 
 The request made to retrieve the workspace details is an XHR request to rawls to retrieve the workspace information. The basic structure of the return of the call looks like:
 
