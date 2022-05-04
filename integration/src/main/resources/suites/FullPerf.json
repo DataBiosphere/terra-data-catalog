@@ -5,7 +5,6 @@
   "testConfigurationFiles": [
     "perf/GetStatus.json",
     "perf/GetVersion.json",
-    "perf/SnapshotDatasetOperations.json",
-    "perf/DatasetPermissionOperations.json"
+    "perf/DatasetOperations.json"
   ]
 }

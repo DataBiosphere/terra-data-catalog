@@ -1,5 +1,5 @@
 {
-  "name": "Regular User",
+  "name": "user",
   "userEmail": "datacataloguser@test.firecloud.org",
   "delegatorServiceAccountFile": "delegate-user-sa.json"
 }

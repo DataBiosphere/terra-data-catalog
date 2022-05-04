@@ -8,6 +8,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -28,6 +29,7 @@ import com.google.api.client.http.HttpStatusCodes;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scripts.client.CatalogClient;
@@ -43,6 +45,7 @@ public class SnapshotDatasetOperations extends TestScript {
 
   private static final Logger log = LoggerFactory.getLogger(SnapshotDatasetOperations.class);
   private static final String TEST_DATASET_NAME = "CatalogTestDataset";
+  private static final String ADMIN_EMAIL = "datacatalogadmin@test.firecloud.org";
 
   // TDR APIs
   private SnapshotsApi snapshotsApi;
@@ -54,7 +57,13 @@ public class SnapshotDatasetOperations extends TestScript {
 
   @Override
   public void setup(List<TestUserSpecification> testUsers) throws Exception {
-    DatarepoClient datarepoClient = new DatarepoClient(server, testUsers.get(0));
+    DatarepoClient datarepoClient = null;
+    for (TestUserSpecification testUser : testUsers) {
+      if (testUser.userEmail.equals(ADMIN_EMAIL)) {
+        datarepoClient = new DatarepoClient(server, testUser);
+      }
+    }
+    assertNotNull(datarepoClient);
     var datasetsApi = new bio.terra.datarepo.api.DatasetsApi(datarepoClient);
     var dataset =
         datasetsApi
@@ -78,6 +87,7 @@ public class SnapshotDatasetOperations extends TestScript {
     JobModel job;
     do {
       job = jobApi.retrieveJob(createJobId);
+      TimeUnit.SECONDS.sleep(5);
     } while (job.getJobStatus() == JobModel.JobStatusEnum.RUNNING);
 
     if (job.getJobStatus() != JobModel.JobStatusEnum.SUCCEEDED) {
