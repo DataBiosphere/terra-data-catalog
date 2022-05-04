@@ -27,7 +27,7 @@ What is shown to the user in that table is the contents in the attributes that t
 # Value mappings
 To run the conversion from workspace to dataset, here is a current mapping scheme:
 
-| Attribute | Rawls Workspace Path | Data Catalog Snapshot Path |
+| Attribute | Rawls Workspace Path | Data Catalog Entry Path |
 | --------- | -------------------- | -------------------------- |
 | Cohort Phenotype/Indication (Disease Ontology)  | `library:diseaseOntologyLabel` |  |
 | No. of Subjects | `library:numSubjects` | `counts.donors` |
