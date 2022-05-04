@@ -122,6 +122,9 @@ public class DatasetPermissionOperations extends TestScript {
     assertThat(
         userDatasetsApi.getApiClient().getStatusCode(),
         is(HttpStatusCodes.STATUS_CODE_UNAUTHORIZED));
+    // but the user can get datasets
+    userDatasetsApi.getDataset(adminTestDatasetId);
+    assertThat(userDatasetsApi.getApiClient().getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
   }
 
   private void testNoPermissions() throws Exception {
