@@ -79,7 +79,7 @@ public class SnapshotDatasetOperations extends TestScript {
                 new SnapshotRequestContentsModel()
                     .datasetName(TEST_DATASET_NAME)
                     .mode(SnapshotRequestContentsModel.ModeEnum.BYFULLVIEW));
-    UUID snapshotId = ApiHelpers.synchronousCreateSnapshot(snapshotsApi, request);
+    snapshotId = ApiHelpers.synchronousCreateSnapshot(snapshotsApi, request);
     log.info("created snapshot " + snapshotId);
   }
 
