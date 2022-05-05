@@ -9,10 +9,7 @@ import bio.terra.catalog.api.DatasetsApi;
 import bio.terra.catalog.client.ApiException;
 import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.StorageSystem;
-import bio.terra.datarepo.api.JobsApi;
 import bio.terra.datarepo.api.SnapshotsApi;
-import bio.terra.datarepo.client.ApiClient;
-import bio.terra.datarepo.model.JobModel;
 import bio.terra.datarepo.model.PolicyMemberRequest;
 import bio.terra.datarepo.model.SnapshotRequestContentsModel;
 import bio.terra.datarepo.model.SnapshotRequestModel;
@@ -21,13 +18,12 @@ import bio.terra.testrunner.runner.config.TestUserSpecification;
 import com.google.api.client.http.HttpStatusCodes;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scripts.client.CatalogClient;
 import scripts.client.DatarepoClient;
+import scripts.common.ApiHelpers;
 
 public class DatasetPermissionOperations extends TestScript {
 
@@ -189,22 +185,7 @@ public class DatasetPermissionOperations extends TestScript {
                 new SnapshotRequestContentsModel()
                     .datasetName(TEST_DATASET_NAME)
                     .mode(SnapshotRequestContentsModel.ModeEnum.BYFULLVIEW));
-    String createJobId = snapshotsApi.createSnapshot(request).getId();
-
-    ApiClient datarepoClient = snapshotsApi.getApiClient();
-    var jobApi = new JobsApi(datarepoClient);
-    JobModel job;
-    do {
-      job = jobApi.retrieveJob(createJobId);
-      TimeUnit.SECONDS.sleep(5);
-    } while (job.getJobStatus() == JobModel.JobStatusEnum.RUNNING);
-
-    if (job.getJobStatus() != JobModel.JobStatusEnum.SUCCEEDED) {
-      throw new RuntimeException("Create snapshot failed: " + job);
-    }
-    @SuppressWarnings("unchecked")
-    Map<Object, Object> result = (Map<Object, Object>) jobApi.retrieveJobResult(createJobId);
-    UUID snapshotId = UUID.fromString((String) result.get("id"));
+    UUID snapshotId = ApiHelpers.synchronousCreateSnapshot(snapshotsApi, request);
     log.info("created snapshot " + snapshotId);
     snapshotIds.add(snapshotId);
     return snapshotId;
@@ -218,9 +199,9 @@ public class DatasetPermissionOperations extends TestScript {
     }
     for (var snapshotId : snapshotIds) {
       try {
-        adminSnapshotsApi.deleteSnapshot(snapshotId);
+        ApiHelpers.synchronousDeleteSnapshot(adminSnapshotsApi, snapshotId);
       } catch (Exception e) {
-        userSnapshotsApi.deleteSnapshot(snapshotId);
+        ApiHelpers.synchronousDeleteSnapshot(userSnapshotsApi, snapshotId);
       } finally {
         log.info("deleted snapshot " + snapshotId);
       }
