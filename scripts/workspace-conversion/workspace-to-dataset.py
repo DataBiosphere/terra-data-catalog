@@ -69,10 +69,13 @@ def getWorkspace(accessToken):
     }
 
     # Get dataset list once in case of collision later
-    response = requests.get(f"{urlWorkspace}/{workspaceNamespace}/{workspaceName}", headers=headers)
+    response = requests.get(
+        f"{urlWorkspace}/{workspaceNamespace}/{workspaceName}", headers=headers
+    )
     responseData = json.loads(response.text)
     print("loaded workspace information from rawls")
     print(responseData)
+
 
 def main():
     print("Adding TDR Snapshot Metadata")
@@ -82,5 +85,6 @@ def main():
 
     # Get workspace information
     getWorkspace(accessToken)
+
 
 main()
