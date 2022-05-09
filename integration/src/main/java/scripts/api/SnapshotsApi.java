@@ -1,9 +1,9 @@
 package scripts.api;
 
 import bio.terra.datarepo.model.SnapshotRequestModel;
-import scripts.client.DatarepoClient;
 import java.util.Map;
 import java.util.UUID;
+import scripts.client.DatarepoClient;
 
 public class SnapshotsApi extends bio.terra.datarepo.api.SnapshotsApi {
 
