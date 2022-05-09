@@ -17,7 +17,6 @@ import bio.terra.catalog.model.ColumnModel;
 import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.StorageSystem;
 import bio.terra.catalog.model.TableMetadata;
-import bio.terra.datarepo.api.SnapshotsApi;
 import bio.terra.datarepo.model.SnapshotRequestContentsModel;
 import bio.terra.datarepo.model.SnapshotRequestModel;
 import bio.terra.testrunner.runner.TestScript;
@@ -28,9 +27,9 @@ import java.util.Map;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scripts.api.SnapshotsApi;
 import scripts.client.CatalogClient;
 import scripts.client.DatarepoClient;
-import scripts.common.ApiHelpers;
 
 /**
  * A test for dataset operations using the catalog service endpoints, with TDR snapshots as the
@@ -72,7 +71,7 @@ public class SnapshotDatasetOperations extends TestScript {
                 new SnapshotRequestContentsModel()
                     .datasetName(TEST_DATASET_NAME)
                     .mode(SnapshotRequestContentsModel.ModeEnum.BYFULLVIEW));
-    snapshotId = ApiHelpers.synchronousCreateSnapshot(snapshotsApi, request);
+    snapshotId = snapshotsApi.synchronousCreateSnapshot(request);
     log.info("created snapshot " + snapshotId);
   }
 
@@ -190,7 +189,7 @@ public class SnapshotDatasetOperations extends TestScript {
       log.info("deleted dataset " + datasetId);
     }
     if (snapshotId != null) {
-      ApiHelpers.synchronousDeleteSnapshot(snapshotsApi, snapshotId);
+      snapshotsApi.synchronousDeleteSnapshot(snapshotId);
       log.info("deleted snapshot " + snapshotId);
     }
   }
