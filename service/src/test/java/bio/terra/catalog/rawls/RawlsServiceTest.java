@@ -47,14 +47,14 @@ class RawlsServiceTest {
 
   @Test
   void statusDown2() throws Exception {
-    when(rawlsService.testRawlsStatus()).thenReturn(false);
+    when(rawlsService.statusIsOk()).thenReturn(false);
     var rawlsStatus = rawlsService.status();
     assertFalse(rawlsStatus.isOk());
   }
 
   @Test
   void statusException() throws Exception {
-    when(rawlsService.testRawlsStatus()).thenThrow(new Exception());
+    when(rawlsService.statusIsOk()).thenThrow(new Exception());
     var rawlsStatus = rawlsService.status();
     assertFalse(rawlsStatus.isOk());
   }
