@@ -6,6 +6,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import bio.terra.catalog.model.SystemStatusSystems;
+import bio.terra.rawls.client.ApiException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,7 +55,7 @@ class RawlsServiceTest {
 
   @Test
   void statusException() throws Exception {
-    when(rawlsService.statusIsOk()).thenThrow(new Exception());
+    when(rawlsService.statusIsOk()).thenThrow(new ApiException());
     var rawlsStatus = rawlsService.status();
     assertFalse(rawlsStatus.isOk());
   }

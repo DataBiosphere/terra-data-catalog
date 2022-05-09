@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class RawlsService {
   private static final Logger logger = LoggerFactory.getLogger(RawlsService.class);
+
   private final RawlsConfiguration rawlsConfig;
   private final Client commonHttpClient;
 
@@ -23,8 +24,13 @@ public class RawlsService {
     this.commonHttpClient = new ApiClient().getHttpClient();
   }
 
+  private ApiClient getApiClient() {
+    // Share one api client across requests.
+    return new ApiClient().setHttpClient(commonHttpClient).setBasePath(rawlsConfig.basePath());
+  }
+
   public boolean statusIsOk() throws ApiException {
-    new StatusApi().systemStatus();
+    new StatusApi(getApiClient()).systemStatus();
     return true;
   }
 
