@@ -6,7 +6,6 @@ import bio.terra.testrunner.runner.config.ServerSpecification;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
 import com.google.auth.oauth2.GoogleCredentials;
 import java.io.IOException;
-import java.util.Objects;
 
 public class RawlsClient extends ApiClient {
   /**
@@ -20,7 +19,7 @@ public class RawlsClient extends ApiClient {
   public RawlsClient(ServerSpecification server, TestUserSpecification testUser)
       throws IOException {
     // FIXME
-//    setBasePath(Objects.requireNonNull(server.rawlsUri, "Rawls URI required"));
+    //    setBasePath(Objects.requireNonNull(server.rawlsUri, "Rawls URI required"));
 
     if (testUser != null) {
       GoogleCredentials userCredential =
@@ -32,5 +31,4 @@ public class RawlsClient extends ApiClient {
       }
     }
   }
-
 }
