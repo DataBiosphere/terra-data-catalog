@@ -13,7 +13,8 @@ def artifactGroup = "${group}.rawls"
 
 task downloadRawlsYaml(type: Download) {
     // where to download the Cloud Profiler agent https://cloud.google.com/profiler/docs/profiling-java
-    src "https://raw.githubusercontent.com/broadinstitute/rawls/develop/core/src/main/resources/swagger/api-docs.yaml"
+    // this was the latest git commit hash at development time
+    src "https://raw.githubusercontent.com/broadinstitute/rawls/c0e6dfbfc29310903137f05737e27a947522bc37/core/src/main/resources/swagger/api-docs.yaml"
     dest "${buildDir}/rawls-api-docs.yaml"
 }
 
