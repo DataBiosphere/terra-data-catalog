@@ -1,0 +1,17 @@
+{
+  "name": "DatasetPermissionOperations",
+  "description": "Dataset Permission Operations",
+  "serverSpecificationFile": "catalog-perf.json",
+  "kubernetes": {},
+  "application": {},
+  "testScripts": [
+    {
+      "name": "DatasetPermissionOperations",
+      "numberOfUserJourneyThreadsToRun": 1,
+      "userJourneyThreadPoolSize": 2,
+      "expectedTimeForEach": 5,
+      "expectedTimeForEachUnit": "SECONDS"
+    }
+  ],
+  "testUserFiles": [ "admin.json", "user.json" ]
+}

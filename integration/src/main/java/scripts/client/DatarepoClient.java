@@ -1,12 +1,17 @@
 package scripts.client;
 
+import bio.terra.datarepo.api.JobsApi;
 import bio.terra.datarepo.client.ApiClient;
+import bio.terra.datarepo.client.ApiException;
+import bio.terra.datarepo.model.JobModel;
 import bio.terra.testrunner.common.utils.AuthenticationUtils;
 import bio.terra.testrunner.runner.config.ServerSpecification;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
 import com.google.auth.oauth2.GoogleCredentials;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 public class DatarepoClient extends ApiClient {
   /**
@@ -30,5 +35,20 @@ public class DatarepoClient extends ApiClient {
         setAccessToken(accessToken.getTokenValue());
       }
     }
+  }
+
+  public Map<Object, Object> waitForJobSuccess(String jobId)
+      throws ApiException, InterruptedException {
+    var jobApi = new JobsApi(this);
+    JobModel job;
+    do {
+      job = jobApi.retrieveJob(jobId);
+      TimeUnit.SECONDS.sleep(5);
+    } while (job.getJobStatus() == JobModel.JobStatusEnum.RUNNING);
+
+    if (job.getJobStatus() != JobModel.JobStatusEnum.SUCCEEDED) {
+      throw new RuntimeException("Job failed: " + job);
+    }
+    return (Map<Object, Object>) jobApi.retrieveJobResult(jobId);
   }
 }

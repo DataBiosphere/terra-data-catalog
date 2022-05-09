@@ -17,9 +17,6 @@ import bio.terra.catalog.model.ColumnModel;
 import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.StorageSystem;
 import bio.terra.catalog.model.TableMetadata;
-import bio.terra.datarepo.api.JobsApi;
-import bio.terra.datarepo.api.SnapshotsApi;
-import bio.terra.datarepo.model.JobModel;
 import bio.terra.datarepo.model.SnapshotRequestContentsModel;
 import bio.terra.datarepo.model.SnapshotRequestModel;
 import bio.terra.testrunner.runner.TestScript;
@@ -30,6 +27,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scripts.api.SnapshotsSyncApi;
 import scripts.client.CatalogClient;
 import scripts.client.DatarepoClient;
 
@@ -43,9 +41,10 @@ public class SnapshotDatasetOperations extends TestScript {
 
   private static final Logger log = LoggerFactory.getLogger(SnapshotDatasetOperations.class);
   private static final String TEST_DATASET_NAME = "CatalogTestDataset";
+  private static final String ADMIN_EMAIL = "datacatalogadmin@test.firecloud.org";
 
   // TDR APIs
-  private SnapshotsApi snapshotsApi;
+  private SnapshotsSyncApi snapshotsApi;
   private UUID snapshotId;
 
   // Catalog APis
@@ -62,7 +61,7 @@ public class SnapshotDatasetOperations extends TestScript {
             .getItems()
             .get(0);
 
-    snapshotsApi = new SnapshotsApi(datarepoClient);
+    snapshotsApi = new SnapshotsSyncApi(datarepoClient);
     var request =
         new SnapshotRequestModel()
             .name("catalog_integration_test_" + System.currentTimeMillis())
@@ -72,20 +71,7 @@ public class SnapshotDatasetOperations extends TestScript {
                 new SnapshotRequestContentsModel()
                     .datasetName(TEST_DATASET_NAME)
                     .mode(SnapshotRequestContentsModel.ModeEnum.BYFULLVIEW));
-    var createJobId = snapshotsApi.createSnapshot(request).getId();
-
-    var jobApi = new JobsApi(datarepoClient);
-    JobModel job;
-    do {
-      job = jobApi.retrieveJob(createJobId);
-    } while (job.getJobStatus() == JobModel.JobStatusEnum.RUNNING);
-
-    if (job.getJobStatus() != JobModel.JobStatusEnum.SUCCEEDED) {
-      throw new RuntimeException("Create snapshot failed: " + job);
-    }
-    @SuppressWarnings("unchecked")
-    Map<Object, Object> result = (Map<Object, Object>) jobApi.retrieveJobResult(createJobId);
-    snapshotId = UUID.fromString((String) result.get("id"));
+    snapshotId = snapshotsApi.synchronousCreateSnapshot(request);
     log.info("created snapshot " + snapshotId);
   }
 
@@ -203,7 +189,7 @@ public class SnapshotDatasetOperations extends TestScript {
       log.info("deleted dataset " + datasetId);
     }
     if (snapshotId != null) {
-      snapshotsApi.deleteSnapshot(snapshotId);
+      snapshotsApi.synchronousDeleteSnapshot(snapshotId);
       log.info("deleted snapshot " + snapshotId);
     }
   }
