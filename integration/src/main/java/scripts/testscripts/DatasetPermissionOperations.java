@@ -9,7 +9,6 @@ import bio.terra.catalog.api.DatasetsApi;
 import bio.terra.catalog.client.ApiException;
 import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.StorageSystem;
-import bio.terra.datarepo.api.SnapshotsApi;
 import bio.terra.datarepo.model.PolicyMemberRequest;
 import bio.terra.datarepo.model.SnapshotRequestContentsModel;
 import bio.terra.datarepo.model.SnapshotRequestModel;
@@ -21,9 +20,9 @@ import java.util.List;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scripts.api.SnapshotsApi;
 import scripts.client.CatalogClient;
 import scripts.client.DatarepoClient;
-import scripts.common.ApiHelpers;
 
 public class DatasetPermissionOperations extends TestScript {
 
@@ -38,7 +37,6 @@ public class DatasetPermissionOperations extends TestScript {
   // TDR APIs
   private SnapshotsApi adminSnapshotsApi;
   private SnapshotsApi userSnapshotsApi;
-  private final List<UUID> snapshotIds = new ArrayList<>();
   private UUID defaultProfileId;
   private UUID adminTestSnapshotId;
 
@@ -185,9 +183,8 @@ public class DatasetPermissionOperations extends TestScript {
                 new SnapshotRequestContentsModel()
                     .datasetName(TEST_DATASET_NAME)
                     .mode(SnapshotRequestContentsModel.ModeEnum.BYFULLVIEW));
-    UUID snapshotId = ApiHelpers.synchronousCreateSnapshot(snapshotsApi, request);
+    UUID snapshotId = snapshotsApi.synchronousCreateSnapshot(request);
     log.info("created snapshot " + snapshotId);
-    snapshotIds.add(snapshotId);
     return snapshotId;
   }
 
@@ -197,14 +194,7 @@ public class DatasetPermissionOperations extends TestScript {
       adminDatasetsApi.deleteDataset(datasetId);
       log.info("deleted dataset " + datasetId);
     }
-    for (var snapshotId : snapshotIds) {
-      try {
-        ApiHelpers.synchronousDeleteSnapshot(adminSnapshotsApi, snapshotId);
-      } catch (Exception e) {
-        ApiHelpers.synchronousDeleteSnapshot(userSnapshotsApi, snapshotId);
-      } finally {
-        log.info("deleted snapshot " + snapshotId);
-      }
-    }
+    adminSnapshotsApi.synchronousDeleteSnapshot(adminTestSnapshotId);
+    userSnapshotsApi.synchronousDeleteSnapshot(userTestSnapshotId);
   }
 }

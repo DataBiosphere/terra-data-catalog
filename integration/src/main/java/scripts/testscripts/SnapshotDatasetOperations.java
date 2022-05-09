@@ -55,13 +55,7 @@ public class SnapshotDatasetOperations extends TestScript {
 
   @Override
   public void setup(List<TestUserSpecification> testUsers) throws Exception {
-    DatarepoClient datarepoClient = null;
-    for (TestUserSpecification testUser : testUsers) {
-      if (testUser.userEmail.equals(ADMIN_EMAIL)) {
-        datarepoClient = new DatarepoClient(server, testUser);
-      }
-    }
-    assertNotNull(datarepoClient);
+    DatarepoClient datarepoClient = new DatarepoClient(server, testUsers.get(0));
     var datasetsApi = new bio.terra.datarepo.api.DatasetsApi(datarepoClient);
     var dataset =
         datasetsApi
