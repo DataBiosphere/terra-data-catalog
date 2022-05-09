@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scripts.api.SnapshotsApi;
+import scripts.api.SnapshotsSyncApi;
 import scripts.client.CatalogClient;
 import scripts.client.DatarepoClient;
 
@@ -44,7 +44,7 @@ public class SnapshotDatasetOperations extends TestScript {
   private static final String ADMIN_EMAIL = "datacatalogadmin@test.firecloud.org";
 
   // TDR APIs
-  private SnapshotsApi snapshotsApi;
+  private SnapshotsSyncApi snapshotsApi;
   private UUID snapshotId;
 
   // Catalog APis
@@ -61,7 +61,7 @@ public class SnapshotDatasetOperations extends TestScript {
             .getItems()
             .get(0);
 
-    snapshotsApi = new SnapshotsApi(datarepoClient);
+    snapshotsApi = new SnapshotsSyncApi(datarepoClient);
     var request =
         new SnapshotRequestModel()
             .name("catalog_integration_test_" + System.currentTimeMillis())

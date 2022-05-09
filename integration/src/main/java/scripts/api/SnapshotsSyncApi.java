@@ -5,9 +5,9 @@ import java.util.Map;
 import java.util.UUID;
 import scripts.client.DatarepoClient;
 
-public class SnapshotsApi extends bio.terra.datarepo.api.SnapshotsApi {
+public class SnapshotsSyncApi extends bio.terra.datarepo.api.SnapshotsApi {
 
-  public SnapshotsApi(DatarepoClient apiClient) {
+  public SnapshotsSyncApi(DatarepoClient apiClient) {
     super(apiClient);
   }
 

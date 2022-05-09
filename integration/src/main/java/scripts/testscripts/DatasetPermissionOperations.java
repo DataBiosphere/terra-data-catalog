@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scripts.api.SnapshotsApi;
+import scripts.api.SnapshotsSyncApi;
 import scripts.client.CatalogClient;
 import scripts.client.DatarepoClient;
 
@@ -35,8 +35,8 @@ public class DatasetPermissionOperations extends TestScript {
   private TestUserSpecification regularUser;
 
   // TDR APIs
-  private SnapshotsApi adminSnapshotsApi;
-  private SnapshotsApi userSnapshotsApi;
+  private SnapshotsSyncApi adminSnapshotsApi;
+  private SnapshotsSyncApi userSnapshotsApi;
   private UUID defaultProfileId;
   private UUID adminTestSnapshotId;
 
@@ -61,8 +61,8 @@ public class DatasetPermissionOperations extends TestScript {
     assertNotNull(regularUser);
 
     DatarepoClient adminDatarepoClient = new DatarepoClient(server, adminUser);
-    adminSnapshotsApi = new SnapshotsApi(adminDatarepoClient);
-    userSnapshotsApi = new SnapshotsApi(new DatarepoClient(server, regularUser));
+    adminSnapshotsApi = new SnapshotsSyncApi(adminDatarepoClient);
+    userSnapshotsApi = new SnapshotsSyncApi(new DatarepoClient(server, regularUser));
     defaultProfileId =
         new bio.terra.datarepo.api.DatasetsApi(adminDatarepoClient)
             .enumerateDatasets(null, null, null, null, TEST_DATASET_NAME, null)
@@ -172,7 +172,7 @@ public class DatasetPermissionOperations extends TestScript {
     return datasetId;
   }
 
-  private UUID createSnapshot(SnapshotsApi snapshotsApi) throws Exception {
+  private UUID createSnapshot(SnapshotsSyncApi snapshotsApi) throws Exception {
     assertNotNull(defaultProfileId);
     var request =
         new SnapshotRequestModel()
