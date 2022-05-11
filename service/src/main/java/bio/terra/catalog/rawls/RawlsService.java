@@ -4,7 +4,7 @@ import bio.terra.catalog.config.RawlsConfiguration;
 import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.rawls.api.StatusApi;
 import bio.terra.rawls.client.ApiClient;
-import bio.terra.rawls.client.ApiException;
+import com.google.common.annotations.VisibleForTesting;
 import javax.ws.rs.client.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,22 +29,17 @@ public class RawlsService {
     return new ApiClient().setHttpClient(commonHttpClient).setBasePath(rawlsConfig.basePath());
   }
 
-  public boolean statusIsOk() throws ApiException {
-    new StatusApi(getApiClient()).systemStatus();
-    return true;
+  @VisibleForTesting
+  StatusApi statusApi() {
+    return new StatusApi(getApiClient());
   }
 
   public SystemStatusSystems status() {
     var result = new SystemStatusSystems();
     try {
       // If the status is down then this method will throw
-      var status = statusIsOk();
-      result.ok(status);
-      if (!result.isOk()) {
-        String errorMsg = "Rawls status check failed.";
-        logger.error(errorMsg);
-        result.addMessagesItem(errorMsg);
-      }
+      statusApi().systemStatus();
+      result.ok(true);
     } catch (Exception e) {
       String errorMsg = "Rawls status check failed";
       logger.error(errorMsg, e);
