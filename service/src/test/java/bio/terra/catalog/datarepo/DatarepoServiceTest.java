@@ -4,8 +4,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import bio.terra.catalog.iam.SamAction;
@@ -29,6 +27,7 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -39,19 +38,17 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ContextConfiguration(classes = {DatarepoService.class})
 class DatarepoServiceTest {
 
-  @Autowired private DatarepoService datarepoServiceReal;
+  @MockBean private DatarepoClient datarepoClient;
+  @Autowired private DatarepoService datarepoService;
 
   @Mock private AuthenticatedUserRequest user;
   @Mock private SnapshotsApi snapshotsApi;
   @Mock private UnauthenticatedApi unauthenticatedApi;
 
-  private DatarepoService datarepoService;
-
   @BeforeEach
   void beforeEach() {
-    datarepoService = spy(datarepoServiceReal);
-    doReturn(snapshotsApi).when(datarepoService).snapshotsApi(user);
-    doReturn(unauthenticatedApi).when(datarepoService).unauthenticatedApi();
+    when(datarepoClient.snapshotsApi(user)).thenReturn(snapshotsApi);
+    when(datarepoClient.unauthenticatedApi()).thenReturn(unauthenticatedApi);
   }
 
   @Test

@@ -1,22 +1,18 @@
 package bio.terra.catalog.datarepo;
 
-import bio.terra.catalog.config.DatarepoConfiguration;
 import bio.terra.catalog.iam.SamAction;
 import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.api.SnapshotsApi;
 import bio.terra.datarepo.api.UnauthenticatedApi;
-import bio.terra.datarepo.client.ApiClient;
 import bio.terra.datarepo.client.ApiException;
 import bio.terra.datarepo.model.RepositoryStatusModel;
 import bio.terra.datarepo.model.SnapshotModel;
 import bio.terra.datarepo.model.SnapshotPreviewModel;
 import bio.terra.datarepo.model.SnapshotRetrieveIncludeModel;
-import com.google.common.annotations.VisibleForTesting;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import javax.ws.rs.client.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,13 +34,11 @@ public class DatarepoService {
   // in TDR that are in the catalog, this number will need to be increased.
   private static final int MAX_DATASETS = 1000;
 
-  private final DatarepoConfiguration datarepoConfig;
-  private final Client commonHttpClient;
+  private final DatarepoClient datarepoClient;
 
   @Autowired
-  public DatarepoService(DatarepoConfiguration datarepoConfig) {
-    this.datarepoConfig = datarepoConfig;
-    this.commonHttpClient = new ApiClient().getHttpClient();
+  public DatarepoService(DatarepoClient datarepoClient) {
+    this.datarepoClient = datarepoClient;
   }
 
   public Map<String, List<String>> getSnapshotIdsAndRoles(AuthenticatedUserRequest user) {
@@ -93,25 +87,12 @@ public class DatarepoService {
     }
   }
 
-  @VisibleForTesting
-  SnapshotsApi snapshotsApi(AuthenticatedUserRequest user) {
-    return new SnapshotsApi(getApiClient(user));
+  private SnapshotsApi snapshotsApi(AuthenticatedUserRequest user) {
+    return datarepoClient.snapshotsApi(user);
   }
 
-  private ApiClient getApiClient(AuthenticatedUserRequest user) {
-    ApiClient apiClient = getApiClient();
-    apiClient.setAccessToken(user.getToken());
-    return apiClient;
-  }
-
-  private ApiClient getApiClient() {
-    // Share one api client across requests.
-    return new ApiClient().setHttpClient(commonHttpClient).setBasePath(datarepoConfig.basePath());
-  }
-
-  @VisibleForTesting
-  UnauthenticatedApi unauthenticatedApi() {
-    return new UnauthenticatedApi(getApiClient());
+  private UnauthenticatedApi unauthenticatedApi() {
+    return datarepoClient.unauthenticatedApi();
   }
 
   public SystemStatusSystems status() {
