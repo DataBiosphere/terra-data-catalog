@@ -105,7 +105,7 @@ jobs:
   notify-de-slack:
     needs: [ build, jib, test-runner ]
     runs-on: ubuntu-latest
-    if: failure()
+    if: ${{ github.event_name != 'workflow_dispatch' && failure() }}
 
     steps:
       - name: "Notify #jade-data-explorer Slack on failure"
@@ -123,7 +123,7 @@ jobs:
   notify-qa-slack:
     needs: [ build, jib, test-runner ]
     runs-on: ubuntu-latest
-    if: always()
+    if: ${{ github.event_name != 'workflow_dispatch' && always() }}
 
     steps:
       - name: "Always notify #dsde-qa Slack"
