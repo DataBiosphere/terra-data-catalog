@@ -43,9 +43,9 @@ To run the conversion from workspace to dataset, here is a current mapping schem
 | 11 | Dataset Custodian | `library:datasetCustodian`<br>ex: "dbGAP" | `TerraDCAT_ap:hasDataCollection.0.dct:identifier`<br>Note: This conflicts with "Dataset Owner", but I dont think we have another option for where to put this. |
 | 12 | Dataset Depositor | `library:datasetDepositor` | `contributors.0.contactName`<br>`contributors.0.correspondingContributor = true` |
 | 13 | Contact Email | `library:contactEmail` | `contributors.0.email` |
-| 14 | Research Institute | `library:institute` | `contributors.0.institution` |
+| 14 | Research Institute | `library:institute` | `contributors.0.institution`<br>`prov:wasAssociatedWith` |
 | 15 | Primary Disease Site | `library:primaryDiseaseSite`<br>ex: "Pleura" | `samples.disease.0`?<br>ex: "Brain Cancer" |
-| 16 | Project Name | `library:projectName`<br>ex: "TCGA" |  |
+| 16 | Project Name | `library:projectName`<br>ex: "TCGA" | `prov:wasGeneratedBy` |
 | 17 | Genome Reference Version | `library:reference`<br>ex: "GRCh37/hg19" |  |
 | 18 | Data File Formats | `library:dataFileFormats`<br>ex: "TXT, MAF" | `files.0.dcat:mediaType`<br>`files.0.count = 0`<br>`files.0.byteSize = 0`<br>Note: No way of knowing how many files match each file format |
 | 19 | Profiling Instrument Type | `library:technology` |  |
@@ -58,4 +58,4 @@ To run the conversion from workspace to dataset, here is a current mapping schem
 | 26 | Requires External Approval | `library:requiresExternalApproval` |  |
 | 27 | library Metadata Schema Version Number | `library:lmsvn` |  |
 | 28 | Structured Data Use Limitations Version Number | `library:dulvn` |  |
-| 29 | ORSP Conset Code | `library:orsp` |  |
+| 29 | ORSP Conset Code | `library:orsp` | `TerraDCAT_ap:hasConsentGroup` |
