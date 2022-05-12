@@ -1,5 +1,5 @@
 {
-  "name": "FullStaging",
+  "name": "staging",
   "description": "All staging tests",
   "serverSpecificationFile": "catalog-staging.json",
   "testConfigurationFiles": [

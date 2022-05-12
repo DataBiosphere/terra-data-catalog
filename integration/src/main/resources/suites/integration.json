@@ -1,5 +1,5 @@
 {
-  "name": "FullIntegration",
+  "name": "integration",
   "description": "All integration tests",
   "serverSpecificationFile": "catalog-local.json",
   "testConfigurationFiles": [

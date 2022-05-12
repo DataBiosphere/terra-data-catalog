@@ -1,5 +1,5 @@
 {
-  "name": "FullPerf",
+  "name": "perf",
   "description": "All perf tests",
   "serverSpecificationFile": "catalog-perf.json",
   "testConfigurationFiles": [

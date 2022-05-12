@@ -1,9 +1,17 @@
 name: Nightly Tests
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: 'stage to run test'
+        required: true
+        default: 'perf'
   schedule:
     - cron: "0 6 * * *" # runs at 6 AM UTC, 1 AM EST.
+
+env:
+  STAGE: ${{ github.event.inputs.stage }}
 
 jobs:
   build:
@@ -67,8 +75,8 @@ jobs:
             --create-dirs -o "integration/src/main/resources/rendered/dev.yaml"
           curl -H 'Authorization: token ${{ secrets.BROADBOT_TOKEN }}' \
             -H 'Accept: application/vnd.github.v3.raw' \
-            -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/environments/live/perf.yaml \
-            --create-dirs -o "integration/src/main/resources/rendered/perf.yaml"
+            -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/environments/live/$STAGE.yaml \
+            --create-dirs -o "integration/src/main/resources/rendered/$STAGE.yaml"
 
       - name: Set up JDK
         uses: actions/setup-java@v2
@@ -84,7 +92,7 @@ jobs:
 
       - name: Run perf test suite
         run: |
-          ./gradlew --build-cache runTest --args="suites/FullPerf.json build/reports"
+          ./gradlew --build-cache runTest --args="suites/$STAGE.json build/reports"
           ./gradlew --build-cache uploadResults --args="CompressDirectoryToTerraKernelK8S.json build/reports"
 
       - name: Upload Test Reports
