@@ -4,8 +4,14 @@ on:
   workflow_dispatch:
     inputs:
       stage:
+        type: choice
         description: 'stage to run test'
         required: true
+        options:
+          - perf
+          - staging
+          - alpha
+          - integration
         default: 'perf'
   schedule:
     - cron: "0 6 * * *" # runs at 6 AM UTC, 1 AM EST.
