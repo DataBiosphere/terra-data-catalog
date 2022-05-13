@@ -284,19 +284,8 @@ components:
         result:
           type: array
           items:
-            $ref: '#/components/schemas/DatasetListResponse'
+            type: object
       description: List of catalog datasets
-
-    DatasetListResponse:
-      type: object
-      required: [ roles, id ]
-      properties:
-        roles:
-          type: array
-          items:
-            type: string
-        id:
-          type: string
 
     VersionProperties:
       type: object

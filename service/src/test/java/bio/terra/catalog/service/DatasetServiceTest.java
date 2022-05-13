@@ -16,6 +16,7 @@ import bio.terra.catalog.iam.SamService;
 import bio.terra.catalog.model.DatasetPreviewTable;
 import bio.terra.catalog.model.DatasetPreviewTablesResponse;
 import bio.terra.catalog.model.TableMetadata;
+import bio.terra.catalog.rawls.RawlsService;
 import bio.terra.catalog.service.dataset.Dataset;
 import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
@@ -26,6 +27,9 @@ import bio.terra.datarepo.model.SnapshotModel;
 import bio.terra.datarepo.model.SnapshotPreviewModel;
 import bio.terra.datarepo.model.TableDataType;
 import bio.terra.datarepo.model.TableModel;
+import bio.terra.rawls.model.WorkspaceAccessLevel;
+import bio.terra.rawls.model.WorkspaceDetails;
+import bio.terra.rawls.model.WorkspaceListResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.time.Instant;
@@ -45,6 +49,8 @@ class DatasetServiceTest {
 
   @Mock private DatarepoService datarepoService;
 
+  @Mock private RawlsService rawlsService;
+
   @Mock private DatasetDao datasetDao;
 
   @Mock private SamService samService;
@@ -54,14 +60,30 @@ class DatasetServiceTest {
   private final AuthenticatedUserRequest user = mock(AuthenticatedUserRequest.class);
   private final DatasetId datasetId = new DatasetId(UUID.randomUUID());
   private final String sourceId = "sourceId";
+  private final String workspaceSourceId = "abc-def-workspace-id";
   private final String metadata = """
         {"name":"name"}""";
   private final Dataset dataset =
       new Dataset(datasetId, sourceId, StorageSystem.EXTERNAL, metadata, null);
+  private final Dataset tdrDataset =
+      new Dataset(
+          new DatasetId(UUID.randomUUID()),
+          sourceId,
+          StorageSystem.TERRA_DATA_REPO,
+          metadata,
+          null);
+  private final Dataset workspaceDataset =
+      new Dataset(
+          new DatasetId(UUID.randomUUID()),
+          workspaceSourceId,
+          StorageSystem.TERRA_WORKSPACE,
+          metadata,
+          null);
 
   @BeforeEach
   public void beforeEach() {
-    datasetService = new DatasetService(datarepoService, samService, datasetDao, objectMapper);
+    datasetService =
+        new DatasetService(datarepoService, rawlsService, samService, datasetDao, objectMapper);
   }
 
   private void mockDataset() {
@@ -70,17 +92,28 @@ class DatasetServiceTest {
 
   @Test
   void listDatasets() {
+    var workspaceRole = WorkspaceAccessLevel.OWNER;
+    var workspaces =
+        List.of(
+            new WorkspaceListResponse()
+                .accessLevel(workspaceRole)
+                .workspace(new WorkspaceDetails().workspaceId(workspaceSourceId)));
     var role = "role";
     var idToRole = Map.of(sourceId, List.of(role));
     when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(idToRole);
-    var tdrDataset =
-        new Dataset(dataset.id(), sourceId, StorageSystem.TERRA_DATA_REPO, metadata, null);
+    when(rawlsService.getWorkspaceIdsAndRoles(user)).thenReturn(workspaces);
+    when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, List.of(workspaceSourceId)))
+        .thenReturn(List.of(workspaceDataset));
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
         .thenReturn(List.of(tdrDataset));
-    ObjectNode json = (ObjectNode) datasetService.listDatasets(user).getResult().get(0);
-    assertThat(json.get("name").asText(), is("name"));
-    assertThat(json.get("id").asText(), is(tdrDataset.id().toValue()));
-    assertThat(json.get("roles").get(0).asText(), is(role));
+    ObjectNode workspaceJson = (ObjectNode) datasetService.listDatasets(user).getResult().get(0);
+    ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets(user).getResult().get(1);
+    assertThat(workspaceJson.get("name").asText(), is("name"));
+    assertThat(workspaceJson.get("id").asText(), is(workspaceDataset.id().toValue()));
+    assertThat(workspaceJson.get("roles").get(0).asText(), is(workspaceRole.getValue()));
+    assertThat(tdrJson.get("name").asText(), is("name"));
+    assertThat(tdrJson.get("id").asText(), is(tdrDataset.id().toValue()));
+    assertThat(tdrJson.get("roles").get(0).asText(), is(role));
   }
 
   @Test
@@ -89,6 +122,8 @@ class DatasetServiceTest {
         new Dataset(dataset.id(), sourceId, StorageSystem.TERRA_DATA_REPO, "invalid", null);
     var idToRole = Map.of(sourceId, List.<String>of());
     when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(idToRole);
+    when(rawlsService.getWorkspaceIdsAndRoles(user)).thenReturn(List.of());
+    when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, List.of())).thenReturn(List.of());
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
         .thenReturn(List.of(badDataset));
     assertThrows(

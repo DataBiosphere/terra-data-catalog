@@ -4,18 +4,18 @@ import bio.terra.catalog.config.RawlsConfiguration;
 import bio.terra.catalog.iam.SamAction;
 import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.common.iam.AuthenticatedUserRequest;
-import bio.terra.rawls.client.ApiException;
 import bio.terra.rawls.api.StatusApi;
 import bio.terra.rawls.api.WorkspacesApi;
 import bio.terra.rawls.client.ApiClient;
+import bio.terra.rawls.client.ApiException;
 import bio.terra.rawls.model.WorkspaceListResponse;
 import com.google.common.annotations.VisibleForTesting;
+import java.util.List;
 import javax.ws.rs.client.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import java.util.List;
 
 @Component
 public class RawlsService {
@@ -28,7 +28,8 @@ public class RawlsService {
   private final RawlsConfiguration rawlsConfig;
   private final Client commonHttpClient;
   private static final List<String> OWNER_ROLES = List.of(PROJECT_OWNER_ROLE_NAME, OWNER_ROLE_NAME);
-  private static final List<String> WRITER_ROLES = List.of(PROJECT_OWNER_ROLE_NAME, OWNER_ROLE_NAME, WRITER_ROLE_NAME);
+  private static final List<String> WRITER_ROLES =
+      List.of(PROJECT_OWNER_ROLE_NAME, OWNER_ROLE_NAME, WRITER_ROLE_NAME);
   private static final List<String> READER_ROLES =
       List.of(PROJECT_OWNER_ROLE_NAME, OWNER_ROLE_NAME, WRITER_ROLE_NAME, READER_ROLE_NAME);
 
@@ -51,8 +52,7 @@ public class RawlsService {
 
   public List<WorkspaceListResponse> getWorkspaceIdsAndRoles(AuthenticatedUserRequest user) {
     try {
-      return workspacesApi(user)
-          .listWorkspaces(List.of("accessLevel", "workspace.workspaceId"));
+      return workspacesApi(user).listWorkspaces(List.of("accessLevel", "workspace.workspaceId"));
     } catch (ApiException e) {
       throw new RawlsException("Enumerate snapshots failed", e);
     }
@@ -66,10 +66,15 @@ public class RawlsService {
     };
   }
 
-  public boolean userHasAction(AuthenticatedUserRequest user, String workspaceId, SamAction action) {
+  public boolean userHasAction(
+      AuthenticatedUserRequest user, String workspaceId, SamAction action) {
     try {
       var roles = rolesForAction(action);
-      return roles.contains(workspacesApi(user).getWorkspaceById(workspaceId, List.of("accessLevel")).getAccessLevel().getValue());
+      return roles.contains(
+          workspacesApi(user)
+              .getWorkspaceById(workspaceId, List.of("accessLevel"))
+              .getAccessLevel()
+              .getValue());
     } catch (ApiException e) {
       throw new RawlsException("Get workspace roles failed", e);
     }
