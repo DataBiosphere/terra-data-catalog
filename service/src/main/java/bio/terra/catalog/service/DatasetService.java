@@ -5,10 +5,12 @@ import bio.terra.catalog.datarepo.DatarepoService;
 import bio.terra.catalog.iam.SamAction;
 import bio.terra.catalog.iam.SamService;
 import bio.terra.catalog.model.ColumnModel;
+import bio.terra.catalog.model.DatasetListResponse;
 import bio.terra.catalog.model.DatasetPreviewTable;
 import bio.terra.catalog.model.DatasetPreviewTablesResponse;
 import bio.terra.catalog.model.DatasetsListResponse;
 import bio.terra.catalog.model.TableMetadata;
+import bio.terra.catalog.rawls.RawlsService;
 import bio.terra.catalog.service.dataset.Dataset;
 import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
@@ -22,12 +24,14 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import java.util.List;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class DatasetService {
   private final DatarepoService datarepoService;
+  private final RawlsService rawlsService;
   private final SamService samService;
   private final DatasetDao datasetDao;
   private final ObjectMapper objectMapper;
@@ -35,10 +39,12 @@ public class DatasetService {
   @Autowired
   public DatasetService(
       DatarepoService datarepoService,
+      RawlsService rawlsService,
       SamService samService,
       DatasetDao datasetDao,
       ObjectMapper objectMapper) {
     this.datarepoService = datarepoService;
+    this.rawlsService = rawlsService;
     this.samService = samService;
     this.datasetDao = datasetDao;
     this.objectMapper = objectMapper;
@@ -60,31 +66,38 @@ public class DatasetService {
     }
   }
 
-  private void collectDatarepoDatasets(
-      AuthenticatedUserRequest user, DatasetsListResponse response) {
+  private List<DatasetListResponse> collectWorkspaceDatasets(
+      AuthenticatedUserRequest user) {
+    var workspaces = rawlsService.getWorkspaceIdsAndRoles(user);
+    List<Dataset> datasets = datasetDao.find(StorageSystem.TERRA_WORKSPACE,
+        workspaces.stream().map(workspaceListResponse -> workspaceListResponse.getWorkspace().getWorkspaceId()).toList());
+    return datasets.stream().map(dataset -> new DatasetListResponse()
+        .roles(workspaces.stream()
+            .filter(workspaceListResponse -> workspaceListResponse
+                .getWorkspace().getWorkspaceId().equals(dataset.storageSourceId()))
+            .map(workspaceListResponse -> workspaceListResponse.getAccessLevel().toString())
+            .toList())
+        .id(dataset.id().toValue())).toList();
+  }
+
+  private List<DatasetListResponse> collectDatarepoDatasets(AuthenticatedUserRequest user) {
     // For this storage system, get the collection of visible datasets and the user's roles for
     // each dataset.
     var roleMap = datarepoService.getSnapshotIdsAndRoles(user);
 
     // Using the storage system's source IDs, look up the metadata for each of these datasets.
     List<Dataset> datasets = datasetDao.find(StorageSystem.TERRA_DATA_REPO, roleMap.keySet());
-
-    // Merge the permission (role) data into the metadata results.
-    for (Dataset dataset : datasets) {
-      ArrayNode roles = objectMapper.createArrayNode();
-      for (String role : roleMap.get(dataset.storageSourceId())) {
-        roles.add(TextNode.valueOf(role));
-      }
-      ObjectNode node = toJsonNode(dataset.metadata());
-      node.set("roles", roles);
-      node.set("id", TextNode.valueOf(dataset.id().toValue()));
-      response.addResultItem(node);
-    }
+    return datasets.stream().map(dataset -> new DatasetListResponse()
+        .roles(roleMap.get(dataset.storageSourceId()).stream().toList())
+        .id(dataset.id().toValue())).toList();
   }
 
   public DatasetsListResponse listDatasets(AuthenticatedUserRequest user) {
-    var response = new DatasetsListResponse();
-    collectDatarepoDatasets(user, response);
+    var response = new DatasetsListResponse().result(
+        Stream.concat(
+            collectWorkspaceDatasets(user).stream(),
+            collectDatarepoDatasets(user).stream()
+        ).toList());
     return response;
   }
 
@@ -93,7 +106,9 @@ public class DatasetService {
     return switch (dataset.storageSystem()) {
       case TERRA_DATA_REPO -> datarepoService.userHasAction(
           user, dataset.storageSourceId(), action);
-      case TERRA_WORKSPACE, EXTERNAL -> false;
+      case TERRA_WORKSPACE -> rawlsService.userHasAction(
+          user, dataset.storageSourceId(), action);
+      case EXTERNAL -> false;
     };
   }
 
