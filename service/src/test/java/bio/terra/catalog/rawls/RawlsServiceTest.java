@@ -11,6 +11,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import bio.terra.catalog.iam.SamAction;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.rawls.api.StatusApi;
 import bio.terra.rawls.api.WorkspacesApi;
@@ -18,8 +19,10 @@ import bio.terra.rawls.client.ApiException;
 import bio.terra.rawls.model.WorkspaceAccessLevel;
 import bio.terra.rawls.model.WorkspaceDetails;
 import bio.terra.rawls.model.WorkspaceListResponse;
+import bio.terra.rawls.model.WorkspaceResponse;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -48,7 +51,7 @@ class RawlsServiceTest {
   @BeforeEach
   void beforeEach() {
     rawlsService = spy(rawlsServiceReal);
-    doReturn(workspacesApi).when(rawlsService).workspacesApi(any());
+    doReturn(workspacesApi).when(rawlsService).workspacesApi(user);
     doReturn(statusApi).when(rawlsService).statusApi();
   }
 
@@ -83,5 +86,39 @@ class RawlsServiceTest {
     when(workspacesApi.listWorkspaces(List.of("accessLevel", "workspace.workspaceId")))
         .thenThrow(new ApiException());
     assertThrows(RawlsException.class, () -> rawlsService.getWorkspaceIdsAndRoles(user));
+  }
+
+  @Test
+  void userHasActionReader() throws Exception {
+    var id = UUID.randomUUID();
+    when(workspacesApi.getWorkspaceById(id.toString(), List.of("accessLevel")))
+        .thenReturn(new WorkspaceResponse().accessLevel(WorkspaceAccessLevel.READER));
+    assertTrue(rawlsService.userHasAction(user, id.toString(), SamAction.READ_ANY_METADATA));
+  }
+
+  @Test
+  void userHasActionWriter() throws Exception {
+    var id = UUID.randomUUID();
+    when(workspacesApi.getWorkspaceById(id.toString(), List.of("accessLevel")))
+        .thenReturn(new WorkspaceResponse().accessLevel(WorkspaceAccessLevel.WRITER));
+    assertTrue(rawlsService.userHasAction(user, id.toString(), SamAction.UPDATE_ANY_METADATA));
+  }
+
+  @Test
+  void userHasActionOwner() throws Exception {
+    var id = UUID.randomUUID();
+    when(workspacesApi.getWorkspaceById(id.toString(), List.of("accessLevel")))
+        .thenReturn(new WorkspaceResponse().accessLevel(WorkspaceAccessLevel.OWNER));
+    assertTrue(rawlsService.userHasAction(user, id.toString(), SamAction.CREATE_METADATA));
+  }
+
+  @Test
+  void userHasActionException() throws Exception {
+    var id = UUID.randomUUID();
+    when(workspacesApi.getWorkspaceById(id.toString(), List.of("accessLevel"))).thenThrow(new ApiException());
+    var stringId = id.toString();
+    assertThrows(
+        RawlsException.class,
+        () -> rawlsService.userHasAction(user, stringId, SamAction.CREATE_METADATA));
   }
 }

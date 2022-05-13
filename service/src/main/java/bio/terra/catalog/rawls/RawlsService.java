@@ -8,6 +8,7 @@ import bio.terra.rawls.api.StatusApi;
 import bio.terra.rawls.api.WorkspacesApi;
 import bio.terra.rawls.client.ApiClient;
 import bio.terra.rawls.client.ApiException;
+import bio.terra.rawls.model.WorkspaceAccessLevel;
 import bio.terra.rawls.model.WorkspaceListResponse;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.List;
@@ -22,16 +23,24 @@ public class RawlsService {
   private static final Logger logger = LoggerFactory.getLogger(RawlsService.class);
   public static final String PROJECT_OWNER_ROLE_NAME = "project-owner";
   public static final String OWNER_ROLE_NAME = "owner";
-  public static final String WRITER_ROLE_NAME = "writer";
-  public static final String READER_ROLE_NAME = "reader";
+  public static final String WRITER_ROLE_NAME = "WRITER";
+  public static final String READER_ROLE_NAME = "READER";
 
   private final RawlsConfiguration rawlsConfig;
   private final Client commonHttpClient;
-  private static final List<String> OWNER_ROLES = List.of(PROJECT_OWNER_ROLE_NAME, OWNER_ROLE_NAME);
-  private static final List<String> WRITER_ROLES =
-      List.of(PROJECT_OWNER_ROLE_NAME, OWNER_ROLE_NAME, WRITER_ROLE_NAME);
-  private static final List<String> READER_ROLES =
-      List.of(PROJECT_OWNER_ROLE_NAME, OWNER_ROLE_NAME, WRITER_ROLE_NAME, READER_ROLE_NAME);
+  private static final List<WorkspaceAccessLevel> OWNER_ROLES =
+      List.of(WorkspaceAccessLevel.PROJECT_OWNER, WorkspaceAccessLevel.OWNER);
+  private static final List<WorkspaceAccessLevel> WRITER_ROLES =
+      List.of(
+          WorkspaceAccessLevel.PROJECT_OWNER,
+          WorkspaceAccessLevel.OWNER,
+          WorkspaceAccessLevel.WRITER);
+  private static final List<WorkspaceAccessLevel> READER_ROLES =
+      List.of(
+          WorkspaceAccessLevel.PROJECT_OWNER,
+          WorkspaceAccessLevel.OWNER,
+          WorkspaceAccessLevel.WRITER,
+          WorkspaceAccessLevel.READER);
 
   @Autowired
   public RawlsService(RawlsConfiguration rawlsConfig) {
@@ -58,7 +67,7 @@ public class RawlsService {
     }
   }
 
-  private List<String> rolesForAction(SamAction action) {
+  private List<WorkspaceAccessLevel> rolesForAction(SamAction action) {
     return switch (action) {
       case READ_ANY_METADATA -> READER_ROLES;
       case UPDATE_ANY_METADATA -> WRITER_ROLES;
@@ -73,8 +82,7 @@ public class RawlsService {
       return roles.contains(
           workspacesApi(user)
               .getWorkspaceById(workspaceId, List.of("accessLevel"))
-              .getAccessLevel()
-              .getValue());
+              .getAccessLevel());
     } catch (ApiException e) {
       throw new RawlsException("Get workspace roles failed", e);
     }
