@@ -160,7 +160,6 @@ class DatasetServiceTest {
 
   @Test
   void testGetMetadataUsingTdrPermission() {
-    var tdrDataset = new Dataset(datasetId, sourceId, StorageSystem.TERRA_DATA_REPO, null, null);
     reset(datasetDao);
     when(datasetDao.retrieve(datasetId)).thenReturn(tdrDataset);
     when(datarepoService.userHasAction(user, sourceId, SamAction.READ_ANY_METADATA))
