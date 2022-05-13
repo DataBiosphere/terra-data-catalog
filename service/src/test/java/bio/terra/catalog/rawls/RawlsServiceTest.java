@@ -5,7 +5,6 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
@@ -115,7 +114,8 @@ class RawlsServiceTest {
   @Test
   void userHasActionException() throws Exception {
     var id = UUID.randomUUID();
-    when(workspacesApi.getWorkspaceById(id.toString(), List.of("accessLevel"))).thenThrow(new ApiException());
+    when(workspacesApi.getWorkspaceById(id.toString(), List.of("accessLevel")))
+        .thenThrow(new ApiException());
     var stringId = id.toString();
     assertThrows(
         RawlsException.class,
