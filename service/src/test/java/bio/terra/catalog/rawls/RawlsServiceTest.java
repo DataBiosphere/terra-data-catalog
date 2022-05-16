@@ -21,7 +21,6 @@ import bio.terra.rawls.model.WorkspaceListResponse;
 import bio.terra.rawls.model.WorkspaceResponse;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -69,56 +68,55 @@ class RawlsServiceTest {
 
   @Test
   void getWorkspaces() throws Exception {
-    var items = Map.of("id", List.of("role"));
+    var items = Map.of("id", List.of("OWNER"));
     var workspaceResponses =
         List.of(
             new WorkspaceListResponse()
                 .workspace(new WorkspaceDetails().workspaceId("id"))
                 .accessLevel(WorkspaceAccessLevel.OWNER));
-    when(workspacesApi.listWorkspaces(List.of("accessLevel", "workspace.workspaceId")))
+    when(workspacesApi.listWorkspaces(RawlsService.ACCESS_LEVEL_AND_ID_LIST))
         .thenReturn(workspaceResponses);
-    assertThat(rawlsService.getWorkspaceIdsAndRoles(user), is(workspaceResponses));
+    assertThat(rawlsService.getWorkspaceIdsAndRoles(user), is(items));
   }
 
   @Test
   void getSnapshotsException() throws Exception {
-    when(workspacesApi.listWorkspaces(List.of("accessLevel", "workspace.workspaceId")))
+    when(workspacesApi.listWorkspaces(RawlsService.ACCESS_LEVEL_AND_ID_LIST))
         .thenThrow(new ApiException());
     assertThrows(RawlsException.class, () -> rawlsService.getWorkspaceIdsAndRoles(user));
   }
 
   @Test
   void userHasActionReader() throws Exception {
-    var id = UUID.randomUUID();
-    when(workspacesApi.getWorkspaceById(id.toString(), List.of("accessLevel")))
+    String id = "abc";
+    when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL_LIST))
         .thenReturn(new WorkspaceResponse().accessLevel(WorkspaceAccessLevel.READER));
-    assertTrue(rawlsService.userHasAction(user, id.toString(), SamAction.READ_ANY_METADATA));
+    assertTrue(rawlsService.userHasAction(user, id, SamAction.READ_ANY_METADATA));
   }
 
   @Test
   void userHasActionWriter() throws Exception {
-    var id = UUID.randomUUID();
-    when(workspacesApi.getWorkspaceById(id.toString(), List.of("accessLevel")))
+    String id = "abc";
+    when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL_LIST))
         .thenReturn(new WorkspaceResponse().accessLevel(WorkspaceAccessLevel.WRITER));
-    assertTrue(rawlsService.userHasAction(user, id.toString(), SamAction.UPDATE_ANY_METADATA));
+    assertTrue(rawlsService.userHasAction(user, id, SamAction.UPDATE_ANY_METADATA));
   }
 
   @Test
   void userHasActionOwner() throws Exception {
-    var id = UUID.randomUUID();
-    when(workspacesApi.getWorkspaceById(id.toString(), List.of("accessLevel")))
+    String id = "abc";
+    when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL_LIST))
         .thenReturn(new WorkspaceResponse().accessLevel(WorkspaceAccessLevel.OWNER));
-    assertTrue(rawlsService.userHasAction(user, id.toString(), SamAction.CREATE_METADATA));
+    assertTrue(rawlsService.userHasAction(user, id, SamAction.CREATE_METADATA));
   }
 
   @Test
   void userHasActionException() throws Exception {
-    var id = UUID.randomUUID();
-    when(workspacesApi.getWorkspaceById(id.toString(), List.of("accessLevel")))
+    String id = "abc";
+    when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL_LIST))
         .thenThrow(new ApiException());
-    var stringId = id.toString();
     assertThrows(
         RawlsException.class,
-        () -> rawlsService.userHasAction(user, stringId, SamAction.CREATE_METADATA));
+        () -> rawlsService.userHasAction(user, id, SamAction.CREATE_METADATA));
   }
 }

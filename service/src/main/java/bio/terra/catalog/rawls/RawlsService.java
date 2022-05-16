@@ -9,9 +9,10 @@ import bio.terra.rawls.api.WorkspacesApi;
 import bio.terra.rawls.client.ApiClient;
 import bio.terra.rawls.client.ApiException;
 import bio.terra.rawls.model.WorkspaceAccessLevel;
-import bio.terra.rawls.model.WorkspaceListResponse;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import javax.ws.rs.client.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,10 +22,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class RawlsService {
   private static final Logger logger = LoggerFactory.getLogger(RawlsService.class);
-  public static final String PROJECT_OWNER_ROLE_NAME = "project-owner";
-  public static final String OWNER_ROLE_NAME = "owner";
-  public static final String WRITER_ROLE_NAME = "WRITER";
-  public static final String READER_ROLE_NAME = "READER";
+  public static final List<String> ACCESS_LEVEL_LIST = List.of("accessLevel");
+  public static final List<String> ACCESS_LEVEL_AND_ID_LIST =
+      List.of("accessLevel", "workspace.workspaceId");
 
   private final RawlsConfiguration rawlsConfig;
   private final Client commonHttpClient;
@@ -59,9 +59,14 @@ public class RawlsService {
     return new ApiClient().setHttpClient(commonHttpClient).setBasePath(rawlsConfig.basePath());
   }
 
-  public List<WorkspaceListResponse> getWorkspaceIdsAndRoles(AuthenticatedUserRequest user) {
+  public Map<String, List<String>> getWorkspaceIdsAndRoles(AuthenticatedUserRequest user) {
     try {
-      return workspacesApi(user).listWorkspaces(List.of("accessLevel", "workspace.workspaceId"));
+      return workspacesApi(user).listWorkspaces(ACCESS_LEVEL_AND_ID_LIST).stream()
+          .collect(
+              Collectors.toMap(
+                  workspaceListResponse -> workspaceListResponse.getWorkspace().getWorkspaceId(),
+                  workspaceListResponse ->
+                      List.of(workspaceListResponse.getAccessLevel().toString())));
     } catch (ApiException e) {
       throw new RawlsException("List workspaces failed", e);
     }
@@ -80,9 +85,7 @@ public class RawlsService {
     try {
       var roles = rolesForAction(action);
       return roles.contains(
-          workspacesApi(user)
-              .getWorkspaceById(workspaceId, List.of("accessLevel"))
-              .getAccessLevel());
+          workspacesApi(user).getWorkspaceById(workspaceId, ACCESS_LEVEL_LIST).getAccessLevel());
     } catch (ApiException e) {
       throw new RawlsException("Get workspace roles failed", e);
     }

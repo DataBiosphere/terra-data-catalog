@@ -28,13 +28,12 @@ import bio.terra.datarepo.model.SnapshotPreviewModel;
 import bio.terra.datarepo.model.TableDataType;
 import bio.terra.datarepo.model.TableModel;
 import bio.terra.rawls.model.WorkspaceAccessLevel;
-import bio.terra.rawls.model.WorkspaceDetails;
-import bio.terra.rawls.model.WorkspaceListResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -93,16 +92,12 @@ class DatasetServiceTest {
   @Test
   void listDatasets() {
     var workspaceRole = WorkspaceAccessLevel.OWNER;
-    var workspaces =
-        List.of(
-            new WorkspaceListResponse()
-                .accessLevel(workspaceRole)
-                .workspace(new WorkspaceDetails().workspaceId(workspaceSourceId)));
+    var workspaces = Map.of(workspaceSourceId, List.of(workspaceRole.getValue()));
     var role = "role";
     var idToRole = Map.of(sourceId, List.of(role));
     when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(idToRole);
     when(rawlsService.getWorkspaceIdsAndRoles(user)).thenReturn(workspaces);
-    when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, List.of(workspaceSourceId)))
+    when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, workspaces.keySet()))
         .thenReturn(List.of(workspaceDataset));
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
         .thenReturn(List.of(tdrDataset));
@@ -122,8 +117,8 @@ class DatasetServiceTest {
         new Dataset(dataset.id(), sourceId, StorageSystem.TERRA_DATA_REPO, "invalid", null);
     var idToRole = Map.of(sourceId, List.<String>of());
     when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(idToRole);
-    when(rawlsService.getWorkspaceIdsAndRoles(user)).thenReturn(List.of());
-    when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, List.of())).thenReturn(List.of());
+    when(rawlsService.getWorkspaceIdsAndRoles(user)).thenReturn(Map.of());
+    when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, Set.of())).thenReturn(List.of());
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
         .thenReturn(List.of(badDataset));
     assertThrows(

@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -65,56 +66,36 @@ public class DatasetService {
     }
   }
 
-  private List<ObjectNode> collectWorkspaceDatasets(AuthenticatedUserRequest user) {
-    var workspaces = rawlsService.getWorkspaceIdsAndRoles(user);
-    List<Dataset> datasets =
-        datasetDao.find(
-            StorageSystem.TERRA_WORKSPACE,
-            workspaces.stream()
-                .map(workspaceListResponse -> workspaceListResponse.getWorkspace().getWorkspaceId())
-                .toList());
-    List<ObjectNode> workspaceDatasets = new ArrayList<>();
-
+  private List<ObjectNode> convertSourceObjectsToDatasetResponses(
+      Map<String, List<String>> roleMap, StorageSystem storageSystem) {
+    List<Dataset> datasets = datasetDao.find(storageSystem, roleMap.keySet());
+    List<ObjectNode> responseDatasets = new ArrayList<>(datasets.size());
     for (Dataset dataset : datasets) {
-      ObjectNode node = toJsonNode(dataset.metadata());
-      ArrayNode roles = objectMapper.createArrayNode();
-      workspaces.stream()
-          .filter(
-              workspaceListResponse ->
-                  workspaceListResponse
-                      .getWorkspace()
-                      .getWorkspaceId()
-                      .equals(dataset.storageSourceId()))
-          .forEach(
-              workspaceListResponse ->
-                  roles.add(TextNode.valueOf(workspaceListResponse.getAccessLevel().toString())));
-      node.set("roles", roles);
-      node.set("id", TextNode.valueOf(dataset.id().toValue()));
-      workspaceDatasets.add(node);
+      responseDatasets.add(sourceAndDatasetToObjectNode(roleMap, dataset));
     }
-    return workspaceDatasets;
+    return responseDatasets;
+  }
+
+  private ObjectNode sourceAndDatasetToObjectNode(
+      Map<String, List<String>> workspaces, Dataset dataset) {
+    ObjectNode node = toJsonNode(dataset.metadata());
+    ArrayNode roles = objectMapper.createArrayNode();
+    workspaces.get(dataset.storageSourceId()).forEach(role -> roles.add(TextNode.valueOf(role)));
+    node.set("roles", roles);
+    node.set("id", TextNode.valueOf(dataset.id().toValue()));
+    return node;
   }
 
   private List<ObjectNode> collectDatarepoDatasets(AuthenticatedUserRequest user) {
     // For this storage system, get the collection of visible datasets and the user's roles for
     // each dataset.
     var roleMap = datarepoService.getSnapshotIdsAndRoles(user);
+    return convertSourceObjectsToDatasetResponses(roleMap, StorageSystem.TERRA_DATA_REPO);
+  }
 
-    // Using the storage system's source IDs, look up the metadata for each of these datasets.
-    List<Dataset> datasets = datasetDao.find(StorageSystem.TERRA_DATA_REPO, roleMap.keySet());
-    List<ObjectNode> datarepoDatasets = new ArrayList<>();
-    // Merge the permission (role) data into the metadata results.
-    for (Dataset dataset : datasets) {
-      ArrayNode roles = objectMapper.createArrayNode();
-      for (String role : roleMap.get(dataset.storageSourceId())) {
-        roles.add(TextNode.valueOf(role));
-      }
-      ObjectNode node = toJsonNode(dataset.metadata());
-      node.set("roles", roles);
-      node.set("id", TextNode.valueOf(dataset.id().toValue()));
-      datarepoDatasets.add(node);
-    }
-    return datarepoDatasets;
+  private List<ObjectNode> collectWorkspaceDatasets(AuthenticatedUserRequest user) {
+    var workspaceRoleMap = rawlsService.getWorkspaceIdsAndRoles(user);
+    return convertSourceObjectsToDatasetResponses(workspaceRoleMap, StorageSystem.TERRA_WORKSPACE);
   }
 
   public DatasetsListResponse listDatasets(AuthenticatedUserRequest user) {
