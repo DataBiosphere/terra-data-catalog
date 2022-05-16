@@ -61,7 +61,7 @@ public class RawlsService {
 
   public Map<String, List<String>> getWorkspaceIdsAndRoles(AuthenticatedUserRequest user) {
     try {
-      return workspacesApi(user).listWorkspaces(ACCESS_LEVEL_AND_ID_LIST).stream()
+      return workspacesApi(user).listWorkspaces(ACCESS_LEVEL_AND_ID).stream()
           .collect(
               Collectors.toMap(
                   workspaceListResponse -> workspaceListResponse.getWorkspace().getWorkspaceId(),
@@ -85,7 +85,7 @@ public class RawlsService {
     try {
       var roles = rolesForAction(action);
       return roles.contains(
-          workspacesApi(user).getWorkspaceById(workspaceId, ACCESS_LEVEL_LIST).getAccessLevel());
+          workspacesApi(user).getWorkspaceById(workspaceId, ACCESS_LEVEL).getAccessLevel());
     } catch (ApiException e) {
       throw new RawlsException("Get workspace roles failed", e);
     }

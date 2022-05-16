@@ -74,14 +74,14 @@ class RawlsServiceTest {
             new WorkspaceListResponse()
                 .workspace(new WorkspaceDetails().workspaceId("id"))
                 .accessLevel(WorkspaceAccessLevel.OWNER));
-    when(workspacesApi.listWorkspaces(RawlsService.ACCESS_LEVEL_AND_ID_LIST))
+    when(workspacesApi.listWorkspaces(RawlsService.ACCESS_LEVEL_AND_ID))
         .thenReturn(workspaceResponses);
     assertThat(rawlsService.getWorkspaceIdsAndRoles(user), is(items));
   }
 
   @Test
   void getSnapshotsException() throws Exception {
-    when(workspacesApi.listWorkspaces(RawlsService.ACCESS_LEVEL_AND_ID_LIST))
+    when(workspacesApi.listWorkspaces(RawlsService.ACCESS_LEVEL_AND_ID))
         .thenThrow(new ApiException());
     assertThrows(RawlsException.class, () -> rawlsService.getWorkspaceIdsAndRoles(user));
   }
@@ -89,7 +89,7 @@ class RawlsServiceTest {
   @Test
   void userHasActionReader() throws Exception {
     String id = "abc";
-    when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL_LIST))
+    when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL))
         .thenReturn(new WorkspaceResponse().accessLevel(WorkspaceAccessLevel.READER));
     assertTrue(rawlsService.userHasAction(user, id, SamAction.READ_ANY_METADATA));
   }
@@ -97,7 +97,7 @@ class RawlsServiceTest {
   @Test
   void userHasActionWriter() throws Exception {
     String id = "abc";
-    when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL_LIST))
+    when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL))
         .thenReturn(new WorkspaceResponse().accessLevel(WorkspaceAccessLevel.WRITER));
     assertTrue(rawlsService.userHasAction(user, id, SamAction.UPDATE_ANY_METADATA));
   }
@@ -105,7 +105,7 @@ class RawlsServiceTest {
   @Test
   void userHasActionOwner() throws Exception {
     String id = "abc";
-    when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL_LIST))
+    when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL))
         .thenReturn(new WorkspaceResponse().accessLevel(WorkspaceAccessLevel.OWNER));
     assertTrue(rawlsService.userHasAction(user, id, SamAction.CREATE_METADATA));
   }
@@ -113,7 +113,7 @@ class RawlsServiceTest {
   @Test
   void userHasActionException() throws Exception {
     String id = "abc";
-    when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL_LIST))
+    when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL))
         .thenThrow(new ApiException());
     assertThrows(
         RawlsException.class,

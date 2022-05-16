@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,8 +69,8 @@ public class DatasetService {
       Map<String, List<String>> roleMap, StorageSystem storageSystem) {
     List<Dataset> datasets = datasetDao.find(storageSystem, roleMap.keySet());
     return datasets.stream()
-       .map(dataset -> sourceAndDatasetToObjectNode(roleMap, dataset))
-       .toList();
+        .map(dataset -> sourceAndDatasetToObjectNode(roleMap, dataset))
+        .toList();
   }
 
   private ObjectNode sourceAndDatasetToObjectNode(
