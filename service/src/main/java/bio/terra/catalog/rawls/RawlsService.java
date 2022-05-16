@@ -63,7 +63,7 @@ public class RawlsService {
     try {
       return workspacesApi(user).listWorkspaces(List.of("accessLevel", "workspace.workspaceId"));
     } catch (ApiException e) {
-      throw new RawlsException("Enumerate snapshots failed", e);
+      throw new RawlsException("List workspaces failed", e);
     }
   }
 
