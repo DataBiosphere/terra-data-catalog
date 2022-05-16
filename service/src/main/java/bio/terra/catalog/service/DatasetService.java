@@ -69,11 +69,9 @@ public class DatasetService {
   private List<ObjectNode> convertSourceObjectsToDatasetResponses(
       Map<String, List<String>> roleMap, StorageSystem storageSystem) {
     List<Dataset> datasets = datasetDao.find(storageSystem, roleMap.keySet());
-    List<ObjectNode> responseDatasets = new ArrayList<>(datasets.size());
-    for (Dataset dataset : datasets) {
-      responseDatasets.add(sourceAndDatasetToObjectNode(roleMap, dataset));
-    }
-    return responseDatasets;
+    return datasets.stream()
+       .map(dataset -> sourceAndDatasetToObjectNode(roleMap, dataset))
+       .toList();
   }
 
   private ObjectNode sourceAndDatasetToObjectNode(
