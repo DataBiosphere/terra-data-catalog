@@ -173,7 +173,7 @@ jobs:
           fi
 
       - name: Run the integration test suite
-        run: ./gradlew --build-cache runTest --args="suites/integration.json build/reports"
+        run: ./gradlew --build-cache runTest --args="suites/dev/FullIntegration.json build/reports"
 
   notify-slack:
     needs: [ build, jib, unit-tests-and-sonarqube, source-clear, integration-tests ]
