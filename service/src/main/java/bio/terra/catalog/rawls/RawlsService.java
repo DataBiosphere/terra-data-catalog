@@ -22,8 +22,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class RawlsService {
   private static final Logger logger = LoggerFactory.getLogger(RawlsService.class);
-  public static final List<String> ACCESS_LEVEL_LIST = List.of("accessLevel");
-  public static final List<String> ACCESS_LEVEL_AND_ID_LIST =
+  public static final List<String> ACCESS_LEVEL = List.of("accessLevel");
+  public static final List<String> ACCESS_LEVEL_AND_ID =
       List.of("accessLevel", "workspace.workspaceId");
 
   private final RawlsConfiguration rawlsConfig;
