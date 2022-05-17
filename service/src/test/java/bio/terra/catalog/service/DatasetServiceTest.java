@@ -13,6 +13,7 @@ import bio.terra.catalog.config.BeanConfig;
 import bio.terra.catalog.datarepo.DatarepoService;
 import bio.terra.catalog.iam.SamAction;
 import bio.terra.catalog.iam.SamService;
+import bio.terra.catalog.model.DatasetAccessLevel;
 import bio.terra.catalog.model.DatasetPreviewTable;
 import bio.terra.catalog.model.DatasetPreviewTablesResponse;
 import bio.terra.catalog.model.TableMetadata;
@@ -70,7 +71,7 @@ class DatasetServiceTest {
 
   @Test
   void listDatasets() {
-    var role = "role";
+    var role = DatasetAccessLevel.OWNER;
     var idToRole = Map.of(sourceId, List.of(role));
     when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(idToRole);
     var tdrDataset =
@@ -87,7 +88,7 @@ class DatasetServiceTest {
   void listDatasetsIllegalMetadata() {
     var badDataset =
         new Dataset(dataset.id(), sourceId, StorageSystem.TERRA_DATA_REPO, "invalid", null);
-    var idToRole = Map.of(sourceId, List.<String>of());
+    var idToRole = Map.of(sourceId, List.<DatasetAccessLevel>of());
     when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(idToRole);
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
         .thenReturn(List.of(badDataset));

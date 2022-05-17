@@ -287,6 +287,17 @@ components:
             type: object
       description: List of catalog datasets
 
+    DatasetAccessLevel:
+      type: string
+      description: The level of access a user or group has on a Dataset. Owners can create and delete
+        dataset entries, writers can modify only, readers can read the data, and discoverers can see
+        that the data exists but not read it.
+      enum:
+        - OWNER
+        - WRITER
+        - READER
+        - DISCOVERER
+
     VersionProperties:
       type: object
       properties:

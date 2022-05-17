@@ -9,6 +9,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import bio.terra.catalog.iam.SamAction;
+import bio.terra.catalog.model.DatasetAccessLevel;
 import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.api.SnapshotsApi;
@@ -55,12 +56,21 @@ class DatarepoServiceTest {
   }
 
   @Test
+  void accessMapping() throws Exception {
+    assertThat(DatarepoService.SNAPSHOT_ROLE_TO_DATASET_ACCESS_LEVEL.get(DatarepoService.STEWARD_ROLE_NAME), is(DatasetAccessLevel.OWNER));
+    assertThat(DatarepoService.SNAPSHOT_ROLE_TO_DATASET_ACCESS_LEVEL.get(DatarepoService.ADMIN_ROLE_NAME), is(DatasetAccessLevel.OWNER));
+    assertThat(DatarepoService.SNAPSHOT_ROLE_TO_DATASET_ACCESS_LEVEL.get(DatarepoService.READER_ROLE_NAME), is(DatasetAccessLevel.READER));
+    assertThat(DatarepoService.SNAPSHOT_ROLE_TO_DATASET_ACCESS_LEVEL.get(DatarepoService.DISCOVERER_ROLE_NAME), is(DatasetAccessLevel.DISCOVERER));
+  }
+
+  @Test
   void getSnapshots() throws Exception {
-    var items = Map.of("id", List.of("role"));
+    var items = Map.of("id", List.of("steward"));
+    var expectedItems = Map.of("id", List.of(DatasetAccessLevel.OWNER));
     var esm = new EnumerateSnapshotModel().roleMap(items);
     when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any()))
         .thenReturn(esm);
-    assertThat(datarepoService.getSnapshotIdsAndRoles(user), is(items));
+    assertThat(datarepoService.getSnapshotIdsAndRoles(user), is(expectedItems));
   }
 
   @Test

@@ -2,6 +2,7 @@ package bio.terra.catalog.datarepo;
 
 import bio.terra.catalog.config.DatarepoConfiguration;
 import bio.terra.catalog.iam.SamAction;
+import bio.terra.catalog.model.DatasetAccessLevel;
 import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.api.SnapshotsApi;
@@ -16,6 +17,7 @@ import com.google.common.annotations.VisibleForTesting;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.ws.rs.client.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +36,12 @@ public class DatarepoService {
   private static final List<String> READER_ROLES =
       List.of(ADMIN_ROLE_NAME, STEWARD_ROLE_NAME, READER_ROLE_NAME, DISCOVERER_ROLE_NAME);
 
+  public static final Map<String, DatasetAccessLevel> SNAPSHOT_ROLE_TO_DATASET_ACCESS_LEVEL = Map.of(
+      ADMIN_ROLE_NAME, DatasetAccessLevel.OWNER,
+      STEWARD_ROLE_NAME, DatasetAccessLevel.OWNER,
+      READER_ROLE_NAME, DatasetAccessLevel.READER,
+      DISCOVERER_ROLE_NAME, DatasetAccessLevel.DISCOVERER);
+
   // This is the maximum number of datasets returned. If we have more than this number of datasets
   // in TDR that are in the catalog, this number will need to be increased.
   private static final int MAX_DATASETS = 1000;
@@ -47,11 +55,18 @@ public class DatarepoService {
     this.commonHttpClient = new ApiClient().getHttpClient();
   }
 
-  public Map<String, List<String>> getSnapshotIdsAndRoles(AuthenticatedUserRequest user) {
+
+  public Map<String, List<DatasetAccessLevel>> getSnapshotIdsAndRoles(AuthenticatedUserRequest user) {
     try {
-      return snapshotsApi(user)
+      Map<String, List<String>> response = snapshotsApi(user)
           .enumerateSnapshots(null, MAX_DATASETS, null, null, null, null, null)
           .getRoleMap();
+      Map<String, List<DatasetAccessLevel>> idsToDatasetAccessLevelList = new java.util.HashMap<>(Map.of());
+      idsToDatasetAccessLevelList.putAll(
+          response.entrySet().stream().collect(Collectors.toMap(
+              Map.Entry::getKey,
+              entry -> entry.getValue().stream().map(SNAPSHOT_ROLE_TO_DATASET_ACCESS_LEVEL::get).toList())));
+      return idsToDatasetAccessLevelList;
     } catch (ApiException e) {
       throw new DatarepoException("Enumerate snapshots failed", e);
     }
