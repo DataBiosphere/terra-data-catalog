@@ -16,6 +16,8 @@ env:
     resourceId: ${SAM_RESOURCE_ID:catalog-dev}
   datarepo:
     basePath: ${DATAREPO_ADDRESS:https://jade.datarepo-dev.broadinstitute.org}
+  rawls:
+    basePath: ${RAWLS_ADDRESS:https://rawls.dsde-dev.broadinstitute.org}
 
 # Below here is non-deployment-specific
 
@@ -66,9 +68,11 @@ catalog:
     basePath: ${env.sam.basePath}
     resourceId: ${env.sam.resourceId}
 
-
   datarepo:
     basePath: ${env.datarepo.basePath}
+
+  rawls:
+    basePath: ${env.rawls.basePath}
 
 terra.common:
   kubernetes:

@@ -4,6 +4,7 @@ import bio.terra.catalog.config.StatusCheckConfiguration;
 import bio.terra.catalog.datarepo.DatarepoService;
 import bio.terra.catalog.iam.SamService;
 import bio.terra.catalog.model.SystemStatusSystems;
+import bio.terra.catalog.rawls.RawlsService;
 import java.sql.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,12 +23,14 @@ public class CatalogStatusService extends BaseStatusService {
       NamedParameterJdbcTemplate jdbcTemplate,
       StatusCheckConfiguration configuration,
       SamService samService,
-      DatarepoService datarepoService) {
+      DatarepoService datarepoService,
+      RawlsService rawlsService) {
     super(configuration);
     this.jdbcTemplate = jdbcTemplate;
     registerStatusCheck("CloudSQL", this::databaseStatus);
     registerStatusCheck("SAM", samService::status);
     registerStatusCheck("Data Repo", datarepoService::status);
+    registerStatusCheck("Rawls", rawlsService::status);
   }
 
   private SystemStatusSystems databaseStatus() {
