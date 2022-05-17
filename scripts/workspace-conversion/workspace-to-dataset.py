@@ -240,18 +240,19 @@ def generate_catalog_metadata(workspace):
         "library:datasetDepositor" in wsAttributes
         or "library:contactEmail" in wsAttributes
     ):
-        metadata["contributors"].append({})
+        contributor = {}
         if "library:datasetDepositor" in wsAttributes:
-            metadata["contributors"][0]["contactName"] = wsAttributes[
+            contributor["contactName"] = wsAttributes[
                 "library:datasetDepositor"
             ]
-            metadata["contributors"][0]["correspondingContributor"] = True
-        metadata["contributors"][0]["email"] = wsAttributes.get(
+            contributor["correspondingContributor"] = True
+        contributor["email"] = wsAttributes.get(
             "library:contactEmail", None
         )
-        metadata["contributors"][0]["intstitution"] = next(
+        contributor["intstitution"] = next(
             iter(wsAttributes.get("library:institute", {}).get("items", [])), None
         )
+        metadata["contributors"].append(contributor)
     metadata["prov:wasAssociatedWith"] = next(
         iter(wsAttributes.get("library:institute", {}).get("items", [])), None
     )
