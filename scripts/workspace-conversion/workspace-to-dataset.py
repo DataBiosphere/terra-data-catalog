@@ -16,12 +16,13 @@
 #
 # Run:
 #   `python3 workspace-to-dataset.py`
-#   `GCLOUD_USER={your-email} python3 generate-tdr-snapshot-metadata.py`
+#   `export GCLOUD_USER={your-email}; export WORKSPACE_NAMESPACE={workspace-namespace}; export WORKSPACE_NAME={workspace-name}; python3 workspace-to-dataset.py`
 #
 # Environment Variables:
 #   GCLOUD_USER: user account email
-#   CATALOG_SERVICE_URL: url for the catalog service to update the updata in
-#   DATA_REPO_URL: url for the data repo to use to extract testing snapshot information
+#   WORKSPACE_NAMESPACE: workspace namespace for the rawls query
+#   WORKSPACE_NAME: workspace name for the rawls query
+#   RAWLS_URL: url for rawls. Default set to rawls-prod
 # ------------------------------------------------------------------------------
 import json
 import os, subprocess, sys
