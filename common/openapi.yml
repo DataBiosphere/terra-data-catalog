@@ -294,7 +294,6 @@ components:
         that the data exists but not read it.
       enum:
         - OWNER
-        - WRITER
         - READER
         - DISCOVERER
 

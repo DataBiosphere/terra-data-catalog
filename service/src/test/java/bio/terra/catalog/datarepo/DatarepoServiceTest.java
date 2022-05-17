@@ -56,14 +56,6 @@ class DatarepoServiceTest {
   }
 
   @Test
-  void accessMapping() throws Exception {
-    assertThat(DatarepoService.SNAPSHOT_ROLE_TO_DATASET_ACCESS_LEVEL.get(DatarepoService.STEWARD_ROLE_NAME), is(DatasetAccessLevel.OWNER));
-    assertThat(DatarepoService.SNAPSHOT_ROLE_TO_DATASET_ACCESS_LEVEL.get(DatarepoService.ADMIN_ROLE_NAME), is(DatasetAccessLevel.OWNER));
-    assertThat(DatarepoService.SNAPSHOT_ROLE_TO_DATASET_ACCESS_LEVEL.get(DatarepoService.READER_ROLE_NAME), is(DatasetAccessLevel.READER));
-    assertThat(DatarepoService.SNAPSHOT_ROLE_TO_DATASET_ACCESS_LEVEL.get(DatarepoService.DISCOVERER_ROLE_NAME), is(DatasetAccessLevel.DISCOVERER));
-  }
-
-  @Test
   void getSnapshots() throws Exception {
     var items = Map.of("id", List.of("steward"));
     var expectedItems = Map.of("id", List.of(DatasetAccessLevel.OWNER));
