@@ -31,6 +31,7 @@ urlRoot = os.environ.get("RAWLS_URL") or "https://rawls.dsde-prod.broadinstitute
 urlWorkspace = f"{urlRoot}/api/workspaces"
 workspaceNamespace = os.environ.get("WORKSPACE_NAMESPACE")
 workspaceName = os.environ.get("WORKSPACE_NAME")
+user = os.environ.get("GCLOUD_USER") or "datacatalogadmin@test.firecloud.org"
 
 
 def logResponse(response, message):
@@ -49,7 +50,7 @@ def logResponse(response, message):
 
 def getAccessToken():
     proc = subprocess.Popen(
-        [f"gcloud auth login --brief"], stdout=subprocess.PIPE, shell=True
+        [f"gcloud auth login {user} --brief"], stdout=subprocess.PIPE, shell=True
     )
     proc.communicate()
 
@@ -74,7 +75,67 @@ def getWorkspace(accessToken):
     )
     responseData = json.loads(response.text)
     print("loaded workspace information from rawls")
-    print(responseData)
+    return responseData
+
+def mapDatasetReleasePolicy(policyString):
+    lowerPolicy = policyString.lower()
+    # Need to update python version to at least 3.10
+#     match lowerPolicy:
+#         case "no restrictions":
+#         case "no restriction":
+#             return "TerraCore:NoRestriction"
+#         case "general research use":
+#             return "TerraCore:GeneralResearchUse"
+#         case "no population origins or ancestry research":
+#             return 'TerraCore:NPOA'
+#         case "no general methods research":
+#             return 'TerraCore:NMDS'
+#         case 'genetic studies only':
+#             return 'TerraCore:GSO'
+#         case 'clinical care use':
+#             return 'TerraCore:CC'
+#         case 'publication required'
+#             return 'TerraCore:PUB'
+#         case 'collaboration required'
+#             return 'TerraCore:COL'
+#         case "ethics approval required":
+#             return "TerraCore:IRB"
+#         case 'geographical restriction':
+#             return "TerraCore:GS"
+#         case 'publication moratorium':
+#             return "TerraCore:MOR"
+#         case "return to database/resource":
+#             return "TerraCore:RT"
+#         case "non commercial use only":
+#             return "TerraCore:NCU"
+#         case "not-for-profit use only":
+#         case "not for profit use only":
+#         case "not for profit":
+#             return "TerraCore:NPC"
+#         case "not-for-profit, non-commercial use ony":
+#             return "TerraCore:NPC2"
+#         case _:
+#             return policyString
+
+def generateCatalogMetadata(workspace):
+    print("Generating workspace metadata", workspace)
+
+    wsAttributes = workspace["workspace"]["attributes"]
+
+    # Set empty up the major objects
+    metadata = {}
+    metadata["samples"] = {}
+    metadata["samples"]["disease"] = list(filter(None, [
+        wsAttributes.get("library:diseaseOntologyLabel", None)
+    ]))
+    metadata["counts"] = {}
+    metadata["counts"]["donors"] = wsAttributes.get("library:numSubjects", 0)
+    metadata["dct:dataCategory"] = wsAttributes.get("library:dataCategory", {}).get("items", None)
+    metadata["TerraDCAT_ap:hasDataUsePermission"] = list(filter(None, [
+        mapDatasetReleasePolicy(wsAttributes.get("library:dataUseRestriction", "No restrictions"))
+    ]))
+
+    return json.dumps(metadata)
 
 
 def main():
@@ -84,7 +145,9 @@ def main():
     accessToken = getAccessToken()
 
     # Get workspace information
-    getWorkspace(accessToken)
+    workspace = getWorkspace(accessToken)
+    metadata = generateCatalogMetadata(workspace)
+    print("metadata", metadata)
 
 
 main()
