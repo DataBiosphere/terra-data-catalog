@@ -61,12 +61,9 @@ public class DatarepoService {
       Map<String, List<String>> response = snapshotsApi(user)
           .enumerateSnapshots(null, MAX_DATASETS, null, null, null, null, null)
           .getRoleMap();
-      Map<String, List<DatasetAccessLevel>> idsToDatasetAccessLevelList = new java.util.HashMap<>(Map.of());
-      idsToDatasetAccessLevelList.putAll(
-          response.entrySet().stream().collect(Collectors.toMap(
+      return  response.entrySet().stream().collect(Collectors.toMap(
               Map.Entry::getKey,
-              entry -> entry.getValue().stream().map(SNAPSHOT_ROLE_TO_DATASET_ACCESS_LEVEL::get).toList())));
-      return idsToDatasetAccessLevelList;
+              entry -> entry.getValue().stream().map(SNAPSHOT_ROLE_TO_DATASET_ACCESS_LEVEL::get).toList());;
     } catch (ApiException e) {
       throw new DatarepoException("Enumerate snapshots failed", e);
     }
