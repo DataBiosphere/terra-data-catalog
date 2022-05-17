@@ -35,7 +35,7 @@ workspaceName = os.environ.get("WORKSPACE_NAME")
 user = os.environ.get("GCLOUD_USER") or "datacatalogadmin@test.firecloud.org"
 
 
-def logResponse(response, message):
+def log_response(response, message):
     if response.ok:
         print("success!", response.text)
     else:
@@ -49,7 +49,7 @@ def logResponse(response, message):
         print("---------------------------------------------------")
 
 
-def getAccessToken():
+def get_access_token():
     proc = subprocess.Popen(
         [f"gcloud auth login {user} --brief"], stdout=subprocess.PIPE, shell=True
     )
@@ -63,7 +63,7 @@ def getAccessToken():
     return out.decode("ASCII").strip()
 
 
-def getWorkspace(accessToken):
+def get_workspace(accessToken):
     print("Getting workspace information from rawls...")
     headers = {
         "Authorization": f"Bearer {accessToken}",
@@ -79,7 +79,7 @@ def getWorkspace(accessToken):
     return responseData
 
 
-def mapDatasetReleasePolicy(policyString):
+def map_dataset_release_policy(policyString):
     lowerPolicy = policyString.lower()
     if lowerPolicy == "no restrictions" or lowerPolicy == "no restriction":
         return "TerraCore:NoRestriction"
@@ -117,7 +117,7 @@ def mapDatasetReleasePolicy(policyString):
     return policyString
 
 
-def mapDataModality(modalityArray):
+def map_data_modality(modalityArray):
     ret = []
     for modality in modalityArray:
         if modality == "Epigenomic":
@@ -191,7 +191,7 @@ def mapDataModality(modalityArray):
     return ret
 
 
-def generateCatalogMetadata(workspace):
+def generate_catalog_metadata(workspace):
     print("Generating workspace metadata")
 
     wsAttributes = workspace["workspace"]["attributes"]
@@ -220,7 +220,7 @@ def generateCatalogMetadata(workspace):
         filter(
             None,
             [
-                mapDatasetReleasePolicy(
+                map_dataset_release_policy(
                     wsAttributes.get("library:dataUseRestriction", "No restrictions")
                 )
             ],
@@ -263,7 +263,7 @@ def generateCatalogMetadata(workspace):
     # Get the intersection of the datatype.items array and the data modality types
     metadata["prov:wasGeneratedBy"].append(
         {
-            "TerraCore:hasDataModality": mapDataModality(
+            "TerraCore:hasDataModality": map_data_modality(
                 wsAttributes.get("library:datatype", {}).get("items", [])
             )
         }
@@ -283,11 +283,11 @@ def main():
     print("Adding TDR Snapshot Metadata")
 
     # Obtain google user credentials
-    accessToken = getAccessToken()
+    accessToken = get_access_token()
 
     # Get workspace information
-    workspace = getWorkspace(accessToken)
-    metadata = generateCatalogMetadata(workspace)
+    workspace = get_workspace(accessToken)
+    metadata = generate_catalog_metadata(workspace)
     print(metadata)
 
 
