@@ -45,7 +45,7 @@ To run the conversion from workspace to dataset, here is a current mapping schem
 | 13 | Contact Email | `library:contactEmail` | `contributors.0.email` |
 | 14 | Research Institute | `library:institute` | `contributors.0.institution`<br>`prov:wasAssociatedWith` |
 | 15 | Primary Disease Site | `library:primaryDiseaseSite`<br>ex: "Pleura" | `samples.disease.0`?<br>ex: "Brain Cancer" |
-| 16 | Project Name | `library:projectName`<br>ex: "TCGA" | `prov:wasGeneratedBy` |
+| 16 | Project Name | `library:projectName`<br>ex: "TCGA" | `prov:wasGeneratedBy.0.TerraCore:hasAssayType.0` |
 | 17 | Genome Reference Version | `library:reference`<br>ex: "GRCh37/hg19" |  |
 | 18 | Data File Formats | `library:dataFileFormats`<br>ex: "TXT, MAF" | `files.0.dcat:mediaType`<br>`files.0.count = 0`<br>`files.0.byteSize = 0`<br>Note: No way of knowing how many files match each file format |
 | 19 | Profiling Instrument Type | `library:technology` |  |
