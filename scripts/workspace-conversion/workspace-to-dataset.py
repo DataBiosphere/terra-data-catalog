@@ -232,10 +232,7 @@ def generateCatalogMetadata(workspace):
     metadata["TerraDCAT_ap:hasOwner"] = wsAttributes.get("library:datasetOwner", None)
     metadata["TerraDCAT_ap:hasDataCollection"] = []
     if "library:datasetOwner" in wsAttributes:
-        metadata["TerraDCAT_ap:hasDataCollection"].append({})
-        metadata["TerraDCAT_ap:hasDataCollection"][0]["dct:identifier"] = wsAttributes[
-            "library:datasetOwner"
-        ]
+        metadata["TerraDCAT_ap:hasDataCollection"].append({"dct:identifier": wsAttributes["library:datasetOwner"]})
         metadata["TerraDCAT_ap:hasOwner"] = wsAttributes["library:datasetOwner"]
     metadata["TerraDCAT_ap:hasCustodian"] = wsAttributes["library:datasetCustodian"]
     metadata["contributors"] = []
