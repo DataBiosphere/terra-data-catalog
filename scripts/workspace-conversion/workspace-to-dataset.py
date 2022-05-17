@@ -36,7 +36,7 @@ user = os.environ.get("GCLOUD_USER") or "datacatalogadmin@test.firecloud.org"
 
 
 def logResponse(response, message):
-    if 200 <= response.status_code and response.status_code < 300:
+    if response.ok:
         print("success!", response.text)
     else:
         print("---------------------------------------------------")
