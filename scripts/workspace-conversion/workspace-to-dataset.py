@@ -34,6 +34,61 @@ workspaceNamespace = os.environ.get("WORKSPACE_NAMESPACE")
 workspaceName = os.environ.get("WORKSPACE_NAME")
 user = os.environ.get("GCLOUD_USER") or "datacatalogadmin@test.firecloud.org"
 
+policyMap = {
+    "no restrictions": "TerraCore:NoRestriction",
+    "no restriction": "TerraCore:NoRestriction",
+    "general research use": "TerraCore:GeneralResearchUse",
+    "no population origins or ancestry research": "TerraCore:NPOA",
+    "no general methods research": "TerraCore:NMDS",
+    "genetic studies only": "TerraCore:GSO",
+    "clinical care use": "TerraCore:CC",
+    "publication required": "TerraCore:PUB",
+    "collaboration required": "TerraCore:COL",
+    "ethics approval required": "TerraCore:IRB",
+    "geographical restriction": "TerraCore:GS",
+    "publication moratorium": "TerraCore:MOR",
+    "return to database/resource": "TerraCore:RT",
+    "non commercial use only": "TerraCore:NCU",
+    "not-for-profit use only": "TerraCore:NPC",
+    "not for profit use only": "TerraCore:NPC",
+    "not-for-profit, non-commercial use ony": "TerraCore:NPC2",
+}
+
+dataModalityMap = {
+    "Epigenomic": "TerraCoreValueSets:Epigenomic",
+    "Epigenomic_3D Contact Maps": "TerraCoreValueSets:Epigenomic_3dContactMaps",
+    "Epigenomic_DNABinding": "TerraCoreValueSets:Epigenomic_DnaBinding",
+    "Epigenomic_DNABinding_HistoneModificationLocation": "TerraCoreValueSets:Epigenomic_DnaBinding_HistoneModificationLocation",
+    "Epigenomic_DNABinding_TranscriptionFactorLocation": "TerraCoreValueSets:Epigenomic_DnaBinding_TranscriptionFactorLocation",
+    "Epigenomic_DNAChromatinAccessibility": "TerraCoreValueSets:Epigenomic_DnaChromatinAccessibility",
+    "Epigenomic_DNAMethylation": "TerraCoreValueSets:Epigenomic_DnaMethylation",
+    "Epigenomic_RNABinding": "TerraCoreValueSets:Epigenomic_RnaBinding",
+    "Genomic": "TerraCoreValueSets:Genomic",
+    "Genomic_Assembly": "TerraCoreValueSets:Genomic_Assembly",
+    "Genomic_Exome": "TerraCoreValueSets:Genomic_Exome",
+    "Genomic_Genotyping_Targeted": "TerraCoreValueSets:Genomic_Genotyping_Targeted",
+    "Genomic_WholeGenome": "TerraCoreValueSets:Genomic_WholeGenome",
+    "Imaging": "TerraCoreValueSets:Imaging",
+    "Imaging_Electrophysiology": "TerraCoreValueSets:Imaging_Electrophysiology",
+    "Imaging_Microscopy": "TerraCoreValueSets:Imaging_Microscopy",
+    "Medical imaging _CTScan": "TerraCoreValueSets:MedicalImaging_CTScan",
+    "Medical imaging _Echocardiogram": "TerraCoreValueSets:MedicalImaging_Echocardiogram",
+    "Medical imaging _MRI": "TerraCoreValueSets:MedicalImaging_MRI",
+    "Medical imaging_PET": "TerraCoreValueSets:MedicalImaging_PET",
+    "Medical imaging _Xray": "TerraCoreValueSets:MedicalImaging_Xray",
+    "Metabolomic": "TerraCoreValueSets:metabolomic",
+    "Microbiome": "TerraCoreValueSets:Microbiome",
+    "Metagenomic": "TerraCoreValueSets:Metagenomic",
+    "Proteomic": "TerraCoreValueSets:Proteomic",
+    "Transcriptomic": "TerraCoreValueSets:Transcriptomic",
+    "SpatialTranscriptomics": "TerraCoreValueSets:SpatialTranscriptomics",
+    "Trascriptomic_Targeted": "TerraCoreValueSets:Transcriptomic_Targeted",
+    "Trascriptomic_NonTargeted": "TerraCoreValueSets:Transcriptomic_NonTargeted",
+    "Trascriptomic_NonTargeted_RnaSeq": "TerraCoreValueSets:Transcriptomic_NoneTargeted_RnaSeq",
+    "Trascriptomic_NonTargeted_MicroRnaCounts": "TerraCoreValueSets:Transcriptomic_NonTargeted_MicroRnaCounts",
+    "Electrocardiogram": "TerraCoreValueSets:Electrocardiogram",
+}
+
 
 def log_response(response, message):
     if response.ok:
@@ -81,114 +136,14 @@ def get_workspace(accessToken):
 
 def map_dataset_release_policy(policyString):
     lowerPolicy = policyString.lower()
-    if lowerPolicy == "no restrictions" or lowerPolicy == "no restriction":
-        return "TerraCore:NoRestriction"
-    if lowerPolicy == "general research use":
-        return "TerraCore:GeneralResearchUse"
-    if lowerPolicy == "no population origins or ancestry research":
-        return "TerraCore:NPOA"
-    if lowerPolicy == "no general methods research":
-        return "TerraCore:NMDS"
-    if lowerPolicy == "genetic studies only":
-        return "TerraCore:GSO"
-    if lowerPolicy == "clinical care use":
-        return "TerraCore:CC"
-    if lowerPolicy == "publication required":
-        return "TerraCore:PUB"
-    if lowerPolicy == "collaboration required":
-        return "TerraCore:COL"
-    if lowerPolicy == "ethics approval required":
-        return "TerraCore:IRB"
-    if lowerPolicy == "geographical restriction":
-        return "TerraCore:GS"
-    if lowerPolicy == "publication moratorium":
-        return "TerraCore:MOR"
-    if lowerPolicy == "return to database/resource":
-        return "TerraCore:RT"
-    if lowerPolicy == "non commercial use only":
-        return "TerraCore:NCU"
-    if (
-        lowerPolicy == "not-for-profit use only"
-        or lowerPolicy == "not for profit use only"
-    ):
-        return "TerraCore:NPC"
-    if lowerPolicy == "not-for-profit, non-commercial use ony":
-        return "TerraCore:NPC2"
-    return policyString
+    return policyMap.get(lowerPolicy, policyString)
 
 
 def map_data_modality(modalityArray):
     ret = []
     for modality in modalityArray:
-        if modality == "Epigenomic":
-            ret.append("TerraCoreValueSets:Epigenomic")
-        if modality == "Epigenomic_3D Contact Maps":
-            ret.append("TerraCoreValueSets:Epigenomic_3dContactMaps")
-        if modality == "Epigenomic_DNABinding":
-            ret.append("TerraCoreValueSets:Epigenomic_DnaBinding")
-        if modality == "Epigenomic_DNABinding_HistoneModificationLocation":
-            ret.append(
-                "TerraCoreValueSets:Epigenomic_DnaBinding_HistoneModificationLocation"
-            )
-        if modality == "Epigenomic_DNABinding_TranscriptionFactorLocation":
-            ret.append(
-                "TerraCoreValueSets:Epigenomic_DnaBinding_TranscriptionFactorLocation"
-            )
-        if modality == "Epigenomic_DNAChromatinAccessibility":
-            ret.append("TerraCoreValueSets:Epigenomic_DnaChromatinAccessibility")
-        if modality == "Epigenomic_DNAMethylation":
-            ret.append("TerraCoreValueSets:Epigenomic_DnaMethylation")
-        if modality == "Epigenomic_RNABinding":
-            ret.append("TerraCoreValueSets:Epigenomic_RnaBinding")
-        if modality == "Genomic":
-            ret.append("TerraCoreValueSets:Genomic")
-        if modality == "Genomic_Assembly":
-            ret.append("TerraCoreValueSets:Genomic_Assembly")
-        if modality == "Genomic_Exome":
-            ret.append("TerraCoreValueSets:Genomic_Exome")
-        if modality == "Genomic_Genotyping_Targeted":
-            ret.append("TerraCoreValueSets:Genomic_Genotyping_Targeted")
-        if modality == "Genomic_WholeGenome":
-            ret.append("TerraCoreValueSets:Genomic_WholeGenome")
-        if modality == "Imaging":
-            ret.append("TerraCoreValueSets:Imaging")
-        if modality == "Imaging_Electrophysiology":
-            ret.append("TerraCoreValueSets:Imaging_Electrophysiology")
-        if modality == "Imaging_Microscopy":
-            ret.append("TerraCoreValueSets:Imaging_Microscopy")
-        if modality == "Medical imaging _CTScan":
-            ret.append("TerraCoreValueSets:MedicalImaging_CTScan")
-        if modality == "Medical imaging _Echocardiogram":
-            ret.append("TerraCoreValueSets:MedicalImaging_Echocardiogram")
-        if modality == "Medical imaging _MRI":
-            ret.append("TerraCoreValueSets:MedicalImaging_MRI")
-        if modality == "Medical imaging_PET":
-            ret.append("TerraCoreValueSets:MedicalImaging_PET")
-        if modality == "Medical imaging _Xray":
-            ret.append("TerraCoreValueSets:MedicalImaging_Xray")
-        if modality == "Metabolomic":
-            ret.append("TerraCoreValueSets:metabolomic")
-        if modality == "Microbiome":
-            ret.append("TerraCoreValueSets:Microbiome")
-        if modality == "Metagenomic":
-            ret.append("TerraCoreValueSets:Metagenomic")
-        if modality == "Proteomic":
-            ret.append("TerraCoreValueSets:Proteomic")
-        if modality == "Transcriptomic":
-            ret.append("TerraCoreValueSets:Transcriptomic")
-        if modality == "SpatialTranscriptomics":
-            ret.append("TerraCoreValueSets:SpatialTranscriptomics")
-        if modality == "Trascriptomic_Targeted":
-            ret.append("TerraCoreValueSets:Transcriptomic_Targeted")
-        if modality == "Trascriptomic_NonTargeted":
-            ret.append("TerraCoreValueSets:Transcriptomic_NonTargeted")
-        if modality == "Trascriptomic_NonTargeted_RnaSeq":
-            ret.append("TerraCoreValueSets:Transcriptomic_NoneTargeted_RnaSeq")
-        if modality == "Trascriptomic_NonTargeted_MicroRnaCounts":
-            ret.append("TerraCoreValueSets:Transcriptomic_NonTargeted_MicroRnaCounts")
-        if modality == "Electrocardiogram":
-            ret.append("TerraCoreValueSets:Electrocardiogram")
-    return ret
+        dataModalityMap.get(modality, None)
+    return list(filter(None, ret))
 
 
 def generate_catalog_metadata(workspace):
@@ -232,7 +187,9 @@ def generate_catalog_metadata(workspace):
     metadata["TerraDCAT_ap:hasOwner"] = wsAttributes.get("library:datasetOwner", None)
     metadata["TerraDCAT_ap:hasDataCollection"] = []
     if "library:datasetOwner" in wsAttributes:
-        metadata["TerraDCAT_ap:hasDataCollection"].append({"dct:identifier": wsAttributes["library:datasetOwner"]})
+        metadata["TerraDCAT_ap:hasDataCollection"].append(
+            {"dct:identifier": wsAttributes["library:datasetOwner"]}
+        )
         metadata["TerraDCAT_ap:hasOwner"] = wsAttributes["library:datasetOwner"]
     metadata["TerraDCAT_ap:hasCustodian"] = wsAttributes["library:datasetCustodian"]
     metadata["contributors"] = []
@@ -242,13 +199,9 @@ def generate_catalog_metadata(workspace):
     ):
         contributor = {}
         if "library:datasetDepositor" in wsAttributes:
-            contributor["contactName"] = wsAttributes[
-                "library:datasetDepositor"
-            ]
+            contributor["contactName"] = wsAttributes["library:datasetDepositor"]
             contributor["correspondingContributor"] = True
-        contributor["email"] = wsAttributes.get(
-            "library:contactEmail", None
-        )
+        contributor["email"] = wsAttributes.get("library:contactEmail", None)
         contributor["intstitution"] = next(
             iter(wsAttributes.get("library:institute", {}).get("items", [])), None
         )
