@@ -1,5 +1,5 @@
 {
-  "name": "FullAlpha",
+  "name": "FullIntegration",
   "description": "All alpha tests",
   "serverSpecificationFile": "catalog-alpha.json",
   "testConfigurationFiles": [
