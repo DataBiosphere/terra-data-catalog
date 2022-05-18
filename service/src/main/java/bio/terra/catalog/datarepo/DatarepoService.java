@@ -1,9 +1,8 @@
 package bio.terra.catalog.datarepo;
 
 import bio.terra.catalog.config.DatarepoConfiguration;
-import bio.terra.catalog.iam.SamAction;
-import bio.terra.catalog.model.DatasetAccessLevel;
 import bio.terra.catalog.model.SystemStatusSystems;
+import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.api.SnapshotsApi;
 import bio.terra.datarepo.api.UnauthenticatedApi;
@@ -32,15 +31,12 @@ public class DatarepoService {
   public static final String READER_ROLE_NAME = "reader";
   public static final String DISCOVERER_ROLE_NAME = "discoverer";
 
-  private static final List<String> OWNER_ROLES = List.of(ADMIN_ROLE_NAME, STEWARD_ROLE_NAME);
-  private static final List<String> READER_ROLES =
-      List.of(ADMIN_ROLE_NAME, STEWARD_ROLE_NAME, READER_ROLE_NAME, DISCOVERER_ROLE_NAME);
-
-  public static final Map<String, DatasetAccessLevel> SNAPSHOT_ROLE_TO_DATASET_ACCESS_LEVEL = Map.of(
-      ADMIN_ROLE_NAME, DatasetAccessLevel.OWNER,
-      STEWARD_ROLE_NAME, DatasetAccessLevel.OWNER,
-      READER_ROLE_NAME, DatasetAccessLevel.READER,
-      DISCOVERER_ROLE_NAME, DatasetAccessLevel.DISCOVERER);
+  public static final Map<String, DatasetAccessLevel> SNAPSHOT_ROLE_TO_DATASET_ACCESS_LEVEL =
+      Map.of(
+          ADMIN_ROLE_NAME, DatasetAccessLevel.OWNER,
+          STEWARD_ROLE_NAME, DatasetAccessLevel.OWNER,
+          READER_ROLE_NAME, DatasetAccessLevel.READER,
+          DISCOVERER_ROLE_NAME, DatasetAccessLevel.DISCOVERER);
 
   // This is the maximum number of datasets returned. If we have more than this number of datasets
   // in TDR that are in the catalog, this number will need to be increased.
@@ -55,15 +51,21 @@ public class DatarepoService {
     this.commonHttpClient = new ApiClient().getHttpClient();
   }
 
-
-  public Map<String, List<DatasetAccessLevel>> getSnapshotIdsAndRoles(AuthenticatedUserRequest user) {
+  public Map<String, List<DatasetAccessLevel>> getSnapshotIdsAndRoles(
+      AuthenticatedUserRequest user) {
     try {
-      Map<String, List<String>> response = snapshotsApi(user)
-          .enumerateSnapshots(null, MAX_DATASETS, null, null, null, null, null)
-          .getRoleMap();
-      return response.entrySet().stream().collect(Collectors.toMap(
-          Map.Entry::getKey,
-          entry -> entry.getValue().stream().map(SNAPSHOT_ROLE_TO_DATASET_ACCESS_LEVEL::get).toList()));
+      Map<String, List<String>> response =
+          snapshotsApi(user)
+              .enumerateSnapshots(null, MAX_DATASETS, null, null, null, null, null)
+              .getRoleMap();
+      return response.entrySet().stream()
+          .collect(
+              Collectors.toMap(
+                  Map.Entry::getKey,
+                  entry ->
+                      entry.getValue().stream()
+                          .map(SNAPSHOT_ROLE_TO_DATASET_ACCESS_LEVEL::get)
+                          .toList()));
     } catch (ApiException e) {
       throw new DatarepoException("Enumerate snapshots failed", e);
     }
@@ -88,18 +90,21 @@ public class DatarepoService {
     }
   }
 
-  private List<String> rolesForAction(SamAction action) {
-    return switch (action) {
-      case READ_ANY_METADATA -> READER_ROLES;
-      case CREATE_METADATA, DELETE_ANY_METADATA, UPDATE_ANY_METADATA -> OWNER_ROLES;
-    };
-  }
-
-  public boolean userHasAction(AuthenticatedUserRequest user, String snapshotId, SamAction action) {
+  public DatasetAccessLevel getRole(AuthenticatedUserRequest user, String snapshotId) {
     try {
       UUID id = UUID.fromString(snapshotId);
-      var roles = rolesForAction(action);
-      return snapshotsApi(user).retrieveUserSnapshotRoles(id).stream().anyMatch(roles::contains);
+      List<String> roles = snapshotsApi(user).retrieveUserSnapshotRoles(id);
+      for (DatasetAccessLevel datasetAccessLevel : DatasetAccessLevel.values()) {
+        if (roles.stream()
+            .map(SNAPSHOT_ROLE_TO_DATASET_ACCESS_LEVEL::get)
+            .anyMatch(
+                roleAsDatasetAccessLevel -> roleAsDatasetAccessLevel.equals(datasetAccessLevel))) {
+          return datasetAccessLevel;
+        }
+      }
+      // If users can see the snapshot, but somehow don't match any of the known roles,
+      // we grant our lowest possible access level that people who can see the snapshot can have
+      return DatasetAccessLevel.DISCOVERER;
     } catch (ApiException e) {
       throw new DatarepoException("Get snapshot roles failed", e);
     }

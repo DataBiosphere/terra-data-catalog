@@ -5,12 +5,12 @@ import bio.terra.catalog.datarepo.DatarepoService;
 import bio.terra.catalog.iam.SamAction;
 import bio.terra.catalog.iam.SamService;
 import bio.terra.catalog.model.ColumnModel;
-import bio.terra.catalog.model.DatasetAccessLevel;
 import bio.terra.catalog.model.DatasetPreviewTable;
 import bio.terra.catalog.model.DatasetPreviewTablesResponse;
 import bio.terra.catalog.model.DatasetsListResponse;
 import bio.terra.catalog.model.TableMetadata;
 import bio.terra.catalog.service.dataset.Dataset;
+import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.common.exception.NotFoundException;
@@ -92,8 +92,9 @@ public class DatasetService {
   private boolean checkStoragePermission(
       AuthenticatedUserRequest user, Dataset dataset, SamAction action) {
     return switch (dataset.storageSystem()) {
-      case TERRA_DATA_REPO -> datarepoService.userHasAction(
-          user, dataset.storageSourceId(), action);
+      case TERRA_DATA_REPO -> datarepoService
+          .getRole(user, dataset.storageSourceId())
+          .hasAction(action);
       case TERRA_WORKSPACE, EXTERNAL -> false;
     };
   }
@@ -143,8 +144,8 @@ public class DatasetService {
     // can either have permission granted by the storage system that owns the dataset, or if
     // they're a catalog admin user who has permission to perform any operation on any
     // catalog entry.
-    if (!checkStoragePermission(user, dataset, action)
-        && !samService.hasGlobalAction(user, action)) {
+    if (!samService.hasGlobalAction(user, action)
+        && !checkStoragePermission(user, dataset, action)) {
       throw new UnauthorizedException(
           String.format("User %s does not have permission to %s", user.getEmail(), action));
     }
