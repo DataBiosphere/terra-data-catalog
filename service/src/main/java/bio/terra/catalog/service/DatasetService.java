@@ -10,7 +10,6 @@ import bio.terra.catalog.model.DatasetPreviewTablesResponse;
 import bio.terra.catalog.model.DatasetsListResponse;
 import bio.terra.catalog.model.TableMetadata;
 import bio.terra.catalog.service.dataset.Dataset;
-import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.common.exception.NotFoundException;
@@ -72,10 +71,9 @@ public class DatasetService {
 
     // Merge the permission (role) data into the metadata results.
     for (Dataset dataset : datasets) {
+      // Roles will change to not a list in a future PR.
       ArrayNode roles = objectMapper.createArrayNode();
-      for (DatasetAccessLevel role : roleMap.get(dataset.storageSourceId())) {
-        roles.add(TextNode.valueOf(role.toString()));
-      }
+      roles.add(TextNode.valueOf(String.valueOf(roleMap.get(dataset.storageSourceId()))));
       ObjectNode node = toJsonNode(dataset.metadata());
       node.set("roles", roles);
       node.set("id", TextNode.valueOf(dataset.id().toValue()));

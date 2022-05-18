@@ -57,7 +57,7 @@ class DatarepoServiceTest {
   @Test
   void getSnapshots() throws Exception {
     var items = Map.of("id", List.of("steward"));
-    var expectedItems = Map.of("id", List.of(DatasetAccessLevel.OWNER));
+    var expectedItems = Map.of("id", DatasetAccessLevel.OWNER);
     var esm = new EnumerateSnapshotModel().roleMap(items);
     when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any()))
         .thenReturn(esm);

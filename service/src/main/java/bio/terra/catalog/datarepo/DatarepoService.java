@@ -31,7 +31,7 @@ public class DatarepoService {
   public static final String READER_ROLE_NAME = "reader";
   public static final String DISCOVERER_ROLE_NAME = "discoverer";
 
-  public static final Map<String, DatasetAccessLevel> SNAPSHOT_ROLE_TO_DATASET_ACCESS_LEVEL =
+  private static final Map<String, DatasetAccessLevel> ROLE_TO_DATASET_ACCESS =
       Map.of(
           ADMIN_ROLE_NAME, DatasetAccessLevel.OWNER,
           STEWARD_ROLE_NAME, DatasetAccessLevel.OWNER,
@@ -51,8 +51,21 @@ public class DatarepoService {
     this.commonHttpClient = new ApiClient().getHttpClient();
   }
 
-  public Map<String, List<DatasetAccessLevel>> getSnapshotIdsAndRoles(
-      AuthenticatedUserRequest user) {
+  private DatasetAccessLevel getHighestAccessFromRoleList(List<String> roles) {
+    for (DatasetAccessLevel datasetAccessLevel : DatasetAccessLevel.values()) {
+      if (roles.stream()
+          .map(ROLE_TO_DATASET_ACCESS::get)
+          .anyMatch(
+              roleAsDatasetAccessLevel -> roleAsDatasetAccessLevel.equals(datasetAccessLevel))) {
+        return datasetAccessLevel;
+      }
+    }
+    // If users can see the snapshot, but somehow don't match any of the known roles,
+    // we grant our lowest possible access level that people who can see the snapshot can have
+    return DatasetAccessLevel.DISCOVERER;
+  }
+
+  public Map<String, DatasetAccessLevel> getSnapshotIdsAndRoles(AuthenticatedUserRequest user) {
     try {
       Map<String, List<String>> response =
           snapshotsApi(user)
@@ -61,11 +74,7 @@ public class DatarepoService {
       return response.entrySet().stream()
           .collect(
               Collectors.toMap(
-                  Map.Entry::getKey,
-                  entry ->
-                      entry.getValue().stream()
-                          .map(SNAPSHOT_ROLE_TO_DATASET_ACCESS_LEVEL::get)
-                          .toList()));
+                  Map.Entry::getKey, entry -> getHighestAccessFromRoleList(entry.getValue())));
     } catch (ApiException e) {
       throw new DatarepoException("Enumerate snapshots failed", e);
     }
@@ -94,17 +103,7 @@ public class DatarepoService {
     try {
       UUID id = UUID.fromString(snapshotId);
       List<String> roles = snapshotsApi(user).retrieveUserSnapshotRoles(id);
-      for (DatasetAccessLevel datasetAccessLevel : DatasetAccessLevel.values()) {
-        if (roles.stream()
-            .map(SNAPSHOT_ROLE_TO_DATASET_ACCESS_LEVEL::get)
-            .anyMatch(
-                roleAsDatasetAccessLevel -> roleAsDatasetAccessLevel.equals(datasetAccessLevel))) {
-          return datasetAccessLevel;
-        }
-      }
-      // If users can see the snapshot, but somehow don't match any of the known roles,
-      // we grant our lowest possible access level that people who can see the snapshot can have
-      return DatasetAccessLevel.DISCOVERER;
+      return getHighestAccessFromRoleList(roles);
     } catch (ApiException e) {
       throw new DatarepoException("Get snapshot roles failed", e);
     }

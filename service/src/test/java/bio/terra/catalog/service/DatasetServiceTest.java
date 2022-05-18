@@ -72,7 +72,7 @@ class DatasetServiceTest {
   @Test
   void listDatasets() {
     var role = DatasetAccessLevel.OWNER;
-    var idToRole = Map.of(sourceId, List.of(role));
+    var idToRole = Map.of(sourceId, role);
     when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(idToRole);
     var tdrDataset =
         new Dataset(dataset.id(), sourceId, StorageSystem.TERRA_DATA_REPO, metadata, null);
@@ -88,7 +88,7 @@ class DatasetServiceTest {
   void listDatasetsIllegalMetadata() {
     var badDataset =
         new Dataset(dataset.id(), sourceId, StorageSystem.TERRA_DATA_REPO, "invalid", null);
-    var idToRole = Map.of(sourceId, List.<DatasetAccessLevel>of());
+    var idToRole = Map.of(sourceId, DatasetAccessLevel.DISCOVERER);
     when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(idToRole);
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
         .thenReturn(List.of(badDataset));
