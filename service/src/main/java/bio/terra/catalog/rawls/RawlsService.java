@@ -29,12 +29,7 @@ public class RawlsService {
   private final RawlsConfiguration rawlsConfig;
   private final Client commonHttpClient;
   private static final List<WorkspaceAccessLevel> OWNER_ROLES =
-      List.of(WorkspaceAccessLevel.PROJECT_OWNER, WorkspaceAccessLevel.OWNER);
-  private static final List<WorkspaceAccessLevel> WRITER_ROLES =
-      List.of(
-          WorkspaceAccessLevel.PROJECT_OWNER,
-          WorkspaceAccessLevel.OWNER,
-          WorkspaceAccessLevel.WRITER);
+      List.of(WorkspaceAccessLevel.PROJECT_OWNER, WorkspaceAccessLevel.OWNER, WorkspaceAccessLevel.WRITER);
   private static final List<WorkspaceAccessLevel> READER_ROLES =
       List.of(
           WorkspaceAccessLevel.PROJECT_OWNER,
@@ -75,8 +70,7 @@ public class RawlsService {
   private List<WorkspaceAccessLevel> rolesForAction(SamAction action) {
     return switch (action) {
       case READ_ANY_METADATA -> READER_ROLES;
-      case UPDATE_ANY_METADATA -> WRITER_ROLES;
-      case CREATE_METADATA, DELETE_ANY_METADATA -> OWNER_ROLES;
+      case CREATE_METADATA, UPDATE_ANY_METADATA, DELETE_ANY_METADATA -> OWNER_ROLES;
     };
   }
 

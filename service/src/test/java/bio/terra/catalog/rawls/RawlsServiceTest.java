@@ -95,14 +95,6 @@ class RawlsServiceTest {
   }
 
   @Test
-  void userHasActionWriter() throws Exception {
-    String id = "abc";
-    when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL))
-        .thenReturn(new WorkspaceResponse().accessLevel(WorkspaceAccessLevel.WRITER));
-    assertTrue(rawlsService.userHasAction(user, id, SamAction.UPDATE_ANY_METADATA));
-  }
-
-  @Test
   void userHasActionOwner() throws Exception {
     String id = "abc";
     when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL))
