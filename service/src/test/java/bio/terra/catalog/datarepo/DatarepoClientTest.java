@@ -2,6 +2,7 @@ package bio.terra.catalog.datarepo;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import bio.terra.catalog.config.DatarepoConfiguration;
@@ -13,6 +14,7 @@ class DatarepoClientTest {
 
   private static final String BASE_PATH = "basepath";
   private static final String TOKEN = "token";
+  private static final String AUTH_NAME = "googleoauth";
 
   private final DatarepoClient client;
 
@@ -31,12 +33,13 @@ class DatarepoClientTest {
     var snapshotsClient = client.snapshotsApi(user).getApiClient();
     assertThat(snapshotsClient.getBasePath(), is(BASE_PATH));
 
-    OAuth oauth = (OAuth) snapshotsClient.getAuthentication("googleoauth");
+    OAuth oauth = (OAuth) snapshotsClient.getAuthentication(AUTH_NAME);
     assertNotNull(oauth);
     assertThat(oauth.getAccessToken(), is(TOKEN));
 
     var unauthClient = client.unauthenticatedApi().getApiClient();
     assertThat(unauthClient.getBasePath(), is(BASE_PATH));
+    assertThat(unauthClient.getAuthentication(AUTH_NAME), nullValue());
 
     assertThat(unauthClient.getHttpClient(), is(snapshotsClient.getHttpClient()));
   }
