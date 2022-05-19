@@ -9,7 +9,7 @@ public enum DatasetAccessLevel {
   READER("reader", EnumSet.of(SamAction.READ_ANY_METADATA)),
   DISCOVERER("discoverer", EnumSet.of(SamAction.READ_ANY_METADATA));
 
-  // The UUI depends on this fields contents. Changing these will require a change to the UI.
+  // The UI depends on this fields contents. Changing these will require a change to the UI.
   private final String name;
   private final Set<SamAction> allowedActions;
 
