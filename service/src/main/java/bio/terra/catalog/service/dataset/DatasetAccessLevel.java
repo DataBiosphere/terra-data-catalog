@@ -7,9 +7,10 @@ import java.util.Set;
 public enum DatasetAccessLevel {
   OWNER("owner", EnumSet.allOf(SamAction.class)),
   READER("reader", EnumSet.of(SamAction.READ_ANY_METADATA)),
-  DISCOVERER("discoverer", EnumSet.of(SamAction.READ_ANY_METADATA));
+  DISCOVERER("discoverer", EnumSet.of(SamAction.READ_ANY_METADATA)),
+  NO_ACCESS("no_access", Set.of());
 
-  // The UI depends on this fields contents. Changing these will require a change to the UI.
+  // The UI depends on this field's contents. Changing these will require a change to the UI.
   private final String name;
   private final Set<SamAction> allowedActions;
 

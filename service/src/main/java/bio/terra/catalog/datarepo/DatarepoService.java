@@ -60,9 +60,7 @@ public class DatarepoService {
         return datasetAccessLevel;
       }
     }
-    // If users can see the snapshot, but somehow don't match any of the known roles,
-    // we grant our lowest possible access level that people who can see the snapshot can have
-    return DatasetAccessLevel.DISCOVERER;
+    return DatasetAccessLevel.NO_ACCESS;
   }
 
   public Map<String, DatasetAccessLevel> getSnapshotIdsAndRoles(AuthenticatedUserRequest user) {
