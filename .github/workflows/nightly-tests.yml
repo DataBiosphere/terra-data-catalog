@@ -17,7 +17,7 @@ on:
     - cron: "0 6 * * *" # runs at 6 AM UTC, 1 AM EST.
 
 env:
-  TEST_ENV: ${{ github.event.inputs.environment }}
+  TEST_ENV: ${{ github.event.inputs.environment || perf }}
 
 jobs:
   build:
