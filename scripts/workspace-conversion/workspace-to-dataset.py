@@ -28,7 +28,9 @@ import json
 import os, subprocess, sys
 import requests, urllib.parse
 import itertools
+import uuid, time
 
+terraUiRoot = os.environ.get("TERRA_URL") or "https://bvdp-saturn-dev.appspot.com"
 urlRoot = os.environ.get("RAWLS_URL") or "https://rawls.dsde-prod.broadinstitute.org"
 urlWorkspace = f"{urlRoot}/api/workspaces"
 workspaceNamespace = os.environ.get("WORKSPACE_NAMESPACE")
@@ -317,7 +319,7 @@ def generate_catalog_metadata(workspace):
         "TerraDCAT_ap:hasConsentGroup": wsAttributes.get("library:orsp", None),
     }
 
-    return json.dumps(metadata)
+    return metadata
 
 
 def main():
@@ -330,11 +332,16 @@ def main():
     workspace = get_workspace(accessToken)
     metadata = generate_catalog_metadata(workspace)
     print("------------------------------------------------------------")
-    print("JSON Result:\n", metadata)
+    print("JSON Result:\n", json.dumps(metadata))
     print("------------------------------------------------------------")
     print("Demo Link:")
+    # Add demo fields, like the server would
+    metadata["id"] = f"external_id_{uuid.uuid4()}"
+    metadata["dct:modified"] = time.time()
+    metadata["roles"] = ["reader", "admin"]
+    jsonMetadata = json.dumps(metadata)
     print(
-        f"https://bvdp-saturn-dev.appspot.com/#library/browser?externalWorkspace={urllib.parse.quote(metadata)}"
+        f"{terraUiRoot}/#library/browser?externalWorkspace={urllib.parse.quote(jsonMetadata)}"
     )
     print("------------------------------------------------------------")
 
