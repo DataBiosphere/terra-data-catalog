@@ -291,7 +291,7 @@ def generate_catalog_metadata(workspace):
 
 
 def main():
-    print("Adding TDR Snapshot Metadata")
+    print("Adding Rawls Workspace Metadata")
 
     # Obtain google user credentials
     accessToken = get_access_token()
