@@ -27,6 +27,7 @@
 import json
 import os, subprocess, sys
 import requests
+import itertools
 
 urlRoot = os.environ.get("RAWLS_URL") or "https://rawls.dsde-prod.broadinstitute.org"
 urlWorkspace = f"{urlRoot}/api/workspaces"
@@ -55,38 +56,93 @@ policyMap = {
 }
 
 dataModalityMap = {
-    "Epigenomic": "TerraCoreValueSets:Epigenomic",
-    "Epigenomic_3D Contact Maps": "TerraCoreValueSets:Epigenomic_3dContactMaps",
-    "Epigenomic_DNABinding": "TerraCoreValueSets:Epigenomic_DnaBinding",
-    "Epigenomic_DNABinding_HistoneModificationLocation": "TerraCoreValueSets:Epigenomic_DnaBinding_HistoneModificationLocation",
-    "Epigenomic_DNABinding_TranscriptionFactorLocation": "TerraCoreValueSets:Epigenomic_DnaBinding_TranscriptionFactorLocation",
-    "Epigenomic_DNAChromatinAccessibility": "TerraCoreValueSets:Epigenomic_DnaChromatinAccessibility",
-    "Epigenomic_DNAMethylation": "TerraCoreValueSets:Epigenomic_DnaMethylation",
-    "Epigenomic_RNABinding": "TerraCoreValueSets:Epigenomic_RnaBinding",
-    "Genomic": "TerraCoreValueSets:Genomic",
-    "Genomic_Assembly": "TerraCoreValueSets:Genomic_Assembly",
-    "Genomic_Exome": "TerraCoreValueSets:Genomic_Exome",
-    "Genomic_Genotyping_Targeted": "TerraCoreValueSets:Genomic_Genotyping_Targeted",
-    "Genomic_WholeGenome": "TerraCoreValueSets:Genomic_WholeGenome",
-    "Imaging": "TerraCoreValueSets:Imaging",
-    "Imaging_Electrophysiology": "TerraCoreValueSets:Imaging_Electrophysiology",
-    "Imaging_Microscopy": "TerraCoreValueSets:Imaging_Microscopy",
-    "Medical imaging _CTScan": "TerraCoreValueSets:MedicalImaging_CTScan",
-    "Medical imaging _Echocardiogram": "TerraCoreValueSets:MedicalImaging_Echocardiogram",
-    "Medical imaging _MRI": "TerraCoreValueSets:MedicalImaging_MRI",
-    "Medical imaging_PET": "TerraCoreValueSets:MedicalImaging_PET",
-    "Medical imaging _Xray": "TerraCoreValueSets:MedicalImaging_Xray",
-    "Metabolomic": "TerraCoreValueSets:metabolomic",
-    "Microbiome": "TerraCoreValueSets:Microbiome",
-    "Metagenomic": "TerraCoreValueSets:Metagenomic",
-    "Proteomic": "TerraCoreValueSets:Proteomic",
-    "Transcriptomic": "TerraCoreValueSets:Transcriptomic",
-    "SpatialTranscriptomics": "TerraCoreValueSets:SpatialTranscriptomics",
-    "Trascriptomic_Targeted": "TerraCoreValueSets:Transcriptomic_Targeted",
-    "Trascriptomic_NonTargeted": "TerraCoreValueSets:Transcriptomic_NonTargeted",
-    "Trascriptomic_NonTargeted_RnaSeq": "TerraCoreValueSets:Transcriptomic_NoneTargeted_RnaSeq",
-    "Trascriptomic_NonTargeted_MicroRnaCounts": "TerraCoreValueSets:Transcriptomic_NonTargeted_MicroRnaCounts",
-    "Electrocardiogram": "TerraCoreValueSets:Electrocardiogram",
+    "Epigenomic": ["TerraCoreValueSets:Epigenomic"],
+    "Epigenomic_3D Contact Maps": ["TerraCoreValueSets:Epigenomic_3dContactMaps"],
+    "Epigenomic_DNABinding": ["TerraCoreValueSets:Epigenomic_DnaBinding"],
+    "Epigenomic_DNABinding_HistoneModificationLocation": ["TerraCoreValueSets:Epigenomic_DnaBinding_HistoneModificationLocation"],
+    "Epigenomic_DNABinding_TranscriptionFactorLocation": ["TerraCoreValueSets:Epigenomic_DnaBinding_TranscriptionFactorLocation"],
+    "Epigenomic_DNAChromatinAccessibility": ["TerraCoreValueSets:Epigenomic_DnaChromatinAccessibility"],
+    "Epigenomic_DNAMethylation": ["TerraCoreValueSets:Epigenomic_DnaMethylation"],
+    "Epigenomic_RNABinding": ["TerraCoreValueSets:Epigenomic_RnaBinding"],
+    "Genomic": ["TerraCoreValueSets:Genomic"],
+    "Genomic_Assembly": ["TerraCoreValueSets:Genomic_Assembly"],
+    "Genomic_Exome": ["TerraCoreValueSets:Genomic_Exome"],
+    "Genomic_Genotyping_Targeted": ["TerraCoreValueSets:Genomic_Genotyping_Targeted"],
+    "Genomic_WholeGenome": ["TerraCoreValueSets:Genomic_WholeGenome"],
+    "Imaging": ["TerraCoreValueSets:Imaging"],
+    "Imaging_Electrophysiology": ["TerraCoreValueSets:Imaging_Electrophysiology"],
+    "Imaging_Microscopy": ["TerraCoreValueSets:Imaging_Microscopy"],
+    "Medical imaging _CTScan": ["TerraCoreValueSets:MedicalImaging_CTScan"],
+    "Medical imaging _Echocardiogram": ["TerraCoreValueSets:MedicalImaging_Echocardiogram"],
+    "Medical imaging _MRI": ["TerraCoreValueSets:MedicalImaging_MRI"],
+    "Medical imaging_PET": ["TerraCoreValueSets:MedicalImaging_PET"],
+    "Medical imaging _Xray": ["TerraCoreValueSets:MedicalImaging_Xray"],
+    "Metabolomic": ["TerraCoreValueSets:metabolomic"],
+    "Microbiome": ["TerraCoreValueSets:Microbiome"],
+    "Metagenomic": ["TerraCoreValueSets:Metagenomic"],
+    "Proteomic": ["TerraCoreValueSets:Proteomic"],
+    "Transcriptomic": ["TerraCoreValueSets:Transcriptomic"],
+    "SpatialTranscriptomics": ["TerraCoreValueSets:SpatialTranscriptomics"],
+    "Trascriptomic_Targeted": ["TerraCoreValueSets:Transcriptomic_Targeted"],
+    "Trascriptomic_NonTargeted": ["TerraCoreValueSets:Transcriptomic_NonTargeted"],
+    "Trascriptomic_NonTargeted_RnaSeq": ["TerraCoreValueSets:Transcriptomic_NoneTargeted_RnaSeq"],
+    "Trascriptomic_NonTargeted_MicroRnaCounts": ["TerraCoreValueSets:Transcriptomic_NonTargeted_MicroRnaCounts"],
+    "Electrocardiogram": ["TerraCoreValueSets:Electrocardiogram"],
+    # From create-hca-collection.py
+    "10x sequencing": ["TerraCoreValueSets:Transcriptomic"],
+    "10X 3' v1 sequencing": ["TerraCoreValueSets:Transcriptomic"],
+    "10x 3' v2": ["TerraCoreValueSets:Transcriptomic"],
+    "10x 3' v2 sequencing": ["TerraCoreValueSets:Transcriptomic"],
+    "10X 3' v2 sequencing": ["TerraCoreValueSets:Transcriptomic"],
+    "10X 3' V2 sequencing": ["TerraCoreValueSets:Transcriptomic"],
+    "10x 3' V2 sequencing": ["TerraCoreValueSets:Transcriptomic"],
+    "10x 3' v3": ["TerraCoreValueSets:Transcriptomic"],
+    "10x 3' v3 sequencing": ["TerraCoreValueSets:Transcriptomic"],
+    "10X 3' v3 sequencing": ["TerraCoreValueSets:Transcriptomic"],
+    "10x 5' v1": ["TerraCoreValueSets:Transcriptomic"],
+    "10X 5' v2 sequencing": ["TerraCoreValueSets:Transcriptomic"],
+    "10x v2 3'": ["TerraCoreValueSets:Transcriptomic"],
+    "10x v2 sequencing": ["TerraCoreValueSets:Transcriptomic"],
+    "10X v2 sequencing": ["TerraCoreValueSets:Transcriptomic"],
+    "10x v3 sequencing": ["TerraCoreValueSets:Transcriptomic"],
+    "CITE 10x 3' v2": [
+        "TerraCoreValueSets:Transcriptomic",
+        "TerraCoreValueSets:Proteomic",
+    ],
+    "CITE-seq": [
+        "TerraCoreValueSets:Transcriptomic",
+        "TerraCoreValueSets:Proteomic",
+    ],
+    "Smart-seq": ["TerraCoreValueSets:Transcriptomic"],
+    "Smart-Seq": ["TerraCoreValueSets:Transcriptomic"],
+    "Smart-seq2": ["TerraCoreValueSets:Transcriptomic"],
+    "Smart-like": ["TerraCoreValueSets:Transcriptomic"],
+    "Drop-seq": ["TerraCoreValueSets:Transcriptomic"],
+    "Drop-Seq": ["TerraCoreValueSets:Transcriptomic"],
+    "10X Feature Barcoding technology for cell surface proteins": [
+        "TerraCoreValueSets:Transcriptomic",
+        "TerraCoreValueSets:Proteomic",
+    ],
+    "10X Gene Expression Library": [
+        "TerraCoreValueSets:Transcriptomic",
+        "TerraCoreValueSets:Proteomic",
+    ],
+    "10x Ig enrichment": ["TerraCoreValueSets:Transcriptomic"],
+    "10X Ig enrichment": ["TerraCoreValueSets:Transcriptomic"],
+    "10x TCR enrichment": ["TerraCoreValueSets:Transcriptomic"],
+    "10X TCR enrichment": ["TerraCoreValueSets:Transcriptomic"],
+    "Fluidigm C1-based library preparation": ["TerraCoreValueSets:Transcriptomic"],
+    "barcoded plate-based single cell RNA-seq": [
+        "TerraCoreValueSets:Transcriptomic"
+    ],
+    "cDNA library construction": ["TerraCoreValueSets:Transcriptomic"],
+    "ATAC 10x v1": ["TerraCoreValueSets:Epigenomic"],
+    "inDrop": ["TerraCoreValueSets:Transcriptomic"],
+    "DNA library construction": ["TerraCoreValueSets:Genomic"],
+    "sci-CAR": ["TerraCoreValueSets:Transcriptomic"],
+    "sci-RNA-seq": ["TerraCoreValueSets:Transcriptomic"],
+    "DroNc-Seq": ["TerraCoreValueSets:Transcriptomic"],
+    "MARS-seq": ["TerraCoreValueSets:Transcriptomic"]
 }
 
 
@@ -142,8 +198,9 @@ def map_dataset_release_policy(policyString):
 def map_data_modality(modalityArray):
     ret = []
     for modality in modalityArray:
-        dataModalityMap.get(modality, None)
-    return list(filter(None, ret))
+        if modality in dataModalityMap:
+            ret = list(itertools.chain(ret, dataModalityMap[modality]))
+    return list(set(ret))
 
 
 def generate_catalog_metadata(workspace):
