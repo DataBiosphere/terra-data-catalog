@@ -202,54 +202,8 @@ def map_data_modality(modalityArray):
             ret = list(itertools.chain(ret, dataModalityMap[modality]))
     return list(set(ret))
 
-
-def generate_catalog_metadata(workspace):
-    print("Generating workspace metadata")
-
-    wsAttributes = workspace["workspace"]["attributes"]
-
-    # Set empty up the major objects
-    metadata = {}
-    metadata["samples"] = {}
-    metadata["samples"]["disease"] = list(
-        filter(
-            None,
-            [
-                wsAttributes.get("library:diseaseOntologyLabel", None),
-                wsAttributes.get("library:indication", None),
-                wsAttributes.get("library:primaryDiseaseSite", None),
-                wsAttributes.get("library:studyDesign", None),
-                wsAttributes.get("library:cellType", None),
-            ],
-        )
-    )
-    metadata["counts"] = {}
-    metadata["counts"]["donors"] = wsAttributes.get("library:numSubjects", 0)
-    metadata["dct:dataCategory"] = wsAttributes.get("library:dataCategory", {}).get(
-        "items", None
-    )
-    metadata["TerraDCAT_ap:hasDataUsePermission"] = list(
-        filter(
-            None,
-            [
-                map_dataset_release_policy(
-                    wsAttributes.get("library:dataUseRestriction", "No restrictions")
-                )
-            ],
-        )
-    )
-    metadata["dct:title"] = wsAttributes.get("library:datasetName", None)
-    metadata["dct:version"] = wsAttributes.get("library:datasetVersion", None)
-    metadata["dct:description"] = wsAttributes.get("library:datasetDescription", None)
-    metadata["TerraDCAT_ap:hasOwner"] = wsAttributes.get("library:datasetOwner", None)
-    metadata["TerraDCAT_ap:hasDataCollection"] = []
-    if "library:datasetOwner" in wsAttributes:
-        metadata["TerraDCAT_ap:hasDataCollection"].append(
-            {"dct:identifier": wsAttributes["library:datasetOwner"]}
-        )
-        metadata["TerraDCAT_ap:hasOwner"] = wsAttributes["library:datasetOwner"]
-    metadata["TerraDCAT_ap:hasCustodian"] = wsAttributes["library:datasetCustodian"]
-    metadata["contributors"] = []
+def get_workspace_contributors(wsAttributes):
+    ret = []
     if (
         "library:datasetDepositor" in wsAttributes
         or "library:contactEmail" in wsAttributes
@@ -262,30 +216,95 @@ def generate_catalog_metadata(workspace):
         contributor["intstitution"] = next(
             iter(wsAttributes.get("library:institute", {}).get("items", [])), None
         )
-        metadata["contributors"].append(contributor)
-    metadata["prov:wasAssociatedWith"] = next(
-        iter(wsAttributes.get("library:institute", {}).get("items", [])), None
-    )
-    metadata["prov:wasGeneratedBy"] = []
+        ret.append(contributor)
+    return ret
+
+
+def get_workspace_generated(wsAttributes):
+    ret = []
     if "library:projectName" in wsAttributes:
-        metadata["prov:wasGeneratedBy"].append(
+        ret.append(
             {"TerraCore:hasAssayType": [wsAttributes["library:projectName"]]}
         )
     # Get the intersection of the datatype.items array and the data modality types
-    metadata["prov:wasGeneratedBy"].append(
+    ret.append(
         {
             "TerraCore:hasDataModality": map_data_modality(
                 wsAttributes.get("library:datatype", {}).get("items", [])
             )
         }
     )
-    metadata["files"] = []
+    return ret
+
+
+def get_workspace_files(wsAttributes):
+    ret = []
     fileList = wsAttributes.get("library:dataFileFormats", {}).get("items", [])
     for ext in fileList:
         fileObj = {"dcat:mediaType": ext, "count": 0, "byteSize": 0}
-        metadata["files"].append(fileObj)
+        ret.append(fileObj)
+    return ret
 
-    metadata["TerraDCAT_ap:hasConsentGroup"] = wsAttributes.get("library:orsp")
+
+def generate_catalog_metadata(workspace):
+    print("Generating workspace metadata")
+
+    wsAttributes = workspace["workspace"]["attributes"]
+
+    # Set empty up the major objects
+    metadata = {
+        "samples": {
+            "disease": list(
+                filter(
+                    None,
+                    [
+                        wsAttributes.get("library:diseaseOntologyLabel", None),
+                        wsAttributes.get("library:indication", None),
+                        wsAttributes.get("library:primaryDiseaseSite", None),
+                        wsAttributes.get("library:studyDesign", None),
+                        wsAttributes.get("library:cellType", None),
+                    ],
+                )
+            )
+        },
+        "counts": {
+            "donors": wsAttributes.get("library:numSubjects", 0)
+        },
+        "dct:dataCategory": wsAttributes.get("library:dataCategory", {}).get(
+            "items", None
+        ),
+        "TerraDCAT_ap:hasDataUsePermission": list(
+            filter(
+                None,
+                [
+                    map_dataset_release_policy(
+                        wsAttributes.get("library:dataUseRestriction", "No restrictions")
+                    )
+                ],
+            )
+        ),
+        "dct:title": wsAttributes.get("library:datasetName", None),
+        "dct:version": wsAttributes.get("library:datasetVersion", None),
+        "dct:description": wsAttributes.get("library:datasetDescription", None),
+        "TerraDCAT_ap:hasOwner": wsAttributes.get("library:datasetOwner", None),
+        "TerraDCAT_ap:hasDataCollection": list(
+            filter(
+                None,
+                [
+                    {"dct:identifier": wsAttributes["library:datasetOwner"]} if "library:datasetOwner" in wsAttributes else None
+                ]
+            )
+        ),
+        "TerraDCAT_ap:hasOnwer": wsAttributes.get("library:datasetOwner", None),
+        "TerraDCAT_ap:hasCustodian": wsAttributes.get("library:datasetCustodian", None),
+        "contributors": get_workspace_contributors(wsAttributes),
+        "prov:wasAssociatedWith": next(
+            iter(wsAttributes.get("library:institute", {}).get("items", [])), None
+        ),
+        "prov:wasGeneratedBy": get_workspace_generated(wsAttributes),
+        "files": get_workspace_files(wsAttributes),
+        "TerraDCAT_ap:hasConsentGroup": wsAttributes.get("library:orsp", None)
+    }
 
     return json.dumps(metadata)
 
