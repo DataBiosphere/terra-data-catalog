@@ -23,6 +23,7 @@
 #   WORKSPACE_NAMESPACE: workspace namespace for the rawls query
 #   WORKSPACE_NAME: workspace name for the rawls query
 #   RAWLS_URL: url for rawls. Default set to rawls-prod
+#   TERRA_URL: url for terra ui. Default set to staging. Used to output demo link.
 # ------------------------------------------------------------------------------
 import json
 import os, subprocess, sys
@@ -338,7 +339,7 @@ def main():
     # Add demo fields, like the server would
     metadata["id"] = f"external_id_{uuid.uuid4()}"
     metadata["dct:modified"] = time.time()
-    metadata["roles"] = ["reader", "admin"]
+    metadata["roles"] = ["reader", "admin "]
     jsonMetadata = json.dumps(metadata)
     print(
         f"{terraUiRoot}/#library/browser?externalWorkspace={urllib.parse.quote(jsonMetadata)}"
