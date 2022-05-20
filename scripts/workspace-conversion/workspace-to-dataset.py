@@ -26,7 +26,7 @@
 # ------------------------------------------------------------------------------
 import json
 import os, subprocess, sys
-import requests
+import requests, urllib.parse
 import itertools
 
 urlRoot = os.environ.get("RAWLS_URL") or "https://rawls.dsde-prod.broadinstitute.org"
@@ -329,7 +329,14 @@ def main():
     # Get workspace information
     workspace = get_workspace(accessToken)
     metadata = generate_catalog_metadata(workspace)
-    print(metadata)
+    print("------------------------------------------------------------")
+    print("JSON Result:\n", metadata)
+    print("------------------------------------------------------------")
+    print("Demo Link:")
+    print(
+        f"https://bvdp-saturn-dev.appspot.com/#library/browser?externalWorkspace={urllib.parse.quote(metadata)}"
+    )
+    print("------------------------------------------------------------")
 
 
 main()
