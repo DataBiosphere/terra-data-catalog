@@ -59,9 +59,15 @@ dataModalityMap = {
     "Epigenomic": ["TerraCoreValueSets:Epigenomic"],
     "Epigenomic_3D Contact Maps": ["TerraCoreValueSets:Epigenomic_3dContactMaps"],
     "Epigenomic_DNABinding": ["TerraCoreValueSets:Epigenomic_DnaBinding"],
-    "Epigenomic_DNABinding_HistoneModificationLocation": ["TerraCoreValueSets:Epigenomic_DnaBinding_HistoneModificationLocation"],
-    "Epigenomic_DNABinding_TranscriptionFactorLocation": ["TerraCoreValueSets:Epigenomic_DnaBinding_TranscriptionFactorLocation"],
-    "Epigenomic_DNAChromatinAccessibility": ["TerraCoreValueSets:Epigenomic_DnaChromatinAccessibility"],
+    "Epigenomic_DNABinding_HistoneModificationLocation": [
+        "TerraCoreValueSets:Epigenomic_DnaBinding_HistoneModificationLocation"
+    ],
+    "Epigenomic_DNABinding_TranscriptionFactorLocation": [
+        "TerraCoreValueSets:Epigenomic_DnaBinding_TranscriptionFactorLocation"
+    ],
+    "Epigenomic_DNAChromatinAccessibility": [
+        "TerraCoreValueSets:Epigenomic_DnaChromatinAccessibility"
+    ],
     "Epigenomic_DNAMethylation": ["TerraCoreValueSets:Epigenomic_DnaMethylation"],
     "Epigenomic_RNABinding": ["TerraCoreValueSets:Epigenomic_RnaBinding"],
     "Genomic": ["TerraCoreValueSets:Genomic"],
@@ -73,7 +79,9 @@ dataModalityMap = {
     "Imaging_Electrophysiology": ["TerraCoreValueSets:Imaging_Electrophysiology"],
     "Imaging_Microscopy": ["TerraCoreValueSets:Imaging_Microscopy"],
     "Medical imaging _CTScan": ["TerraCoreValueSets:MedicalImaging_CTScan"],
-    "Medical imaging _Echocardiogram": ["TerraCoreValueSets:MedicalImaging_Echocardiogram"],
+    "Medical imaging _Echocardiogram": [
+        "TerraCoreValueSets:MedicalImaging_Echocardiogram"
+    ],
     "Medical imaging _MRI": ["TerraCoreValueSets:MedicalImaging_MRI"],
     "Medical imaging_PET": ["TerraCoreValueSets:MedicalImaging_PET"],
     "Medical imaging _Xray": ["TerraCoreValueSets:MedicalImaging_Xray"],
@@ -85,8 +93,12 @@ dataModalityMap = {
     "SpatialTranscriptomics": ["TerraCoreValueSets:SpatialTranscriptomics"],
     "Trascriptomic_Targeted": ["TerraCoreValueSets:Transcriptomic_Targeted"],
     "Trascriptomic_NonTargeted": ["TerraCoreValueSets:Transcriptomic_NonTargeted"],
-    "Trascriptomic_NonTargeted_RnaSeq": ["TerraCoreValueSets:Transcriptomic_NoneTargeted_RnaSeq"],
-    "Trascriptomic_NonTargeted_MicroRnaCounts": ["TerraCoreValueSets:Transcriptomic_NonTargeted_MicroRnaCounts"],
+    "Trascriptomic_NonTargeted_RnaSeq": [
+        "TerraCoreValueSets:Transcriptomic_NoneTargeted_RnaSeq"
+    ],
+    "Trascriptomic_NonTargeted_MicroRnaCounts": [
+        "TerraCoreValueSets:Transcriptomic_NonTargeted_MicroRnaCounts"
+    ],
     "Electrocardiogram": ["TerraCoreValueSets:Electrocardiogram"],
     # From create-hca-collection.py
     "10x sequencing": ["TerraCoreValueSets:Transcriptomic"],
@@ -132,9 +144,7 @@ dataModalityMap = {
     "10x TCR enrichment": ["TerraCoreValueSets:Transcriptomic"],
     "10X TCR enrichment": ["TerraCoreValueSets:Transcriptomic"],
     "Fluidigm C1-based library preparation": ["TerraCoreValueSets:Transcriptomic"],
-    "barcoded plate-based single cell RNA-seq": [
-        "TerraCoreValueSets:Transcriptomic"
-    ],
+    "barcoded plate-based single cell RNA-seq": ["TerraCoreValueSets:Transcriptomic"],
     "cDNA library construction": ["TerraCoreValueSets:Transcriptomic"],
     "ATAC 10x v1": ["TerraCoreValueSets:Epigenomic"],
     "inDrop": ["TerraCoreValueSets:Transcriptomic"],
@@ -142,7 +152,7 @@ dataModalityMap = {
     "sci-CAR": ["TerraCoreValueSets:Transcriptomic"],
     "sci-RNA-seq": ["TerraCoreValueSets:Transcriptomic"],
     "DroNc-Seq": ["TerraCoreValueSets:Transcriptomic"],
-    "MARS-seq": ["TerraCoreValueSets:Transcriptomic"]
+    "MARS-seq": ["TerraCoreValueSets:Transcriptomic"],
 }
 
 
@@ -202,6 +212,7 @@ def map_data_modality(modalityArray):
             ret = list(itertools.chain(ret, dataModalityMap[modality]))
     return list(set(ret))
 
+
 def get_workspace_contributors(wsAttributes):
     ret = []
     if (
@@ -223,9 +234,7 @@ def get_workspace_contributors(wsAttributes):
 def get_workspace_generated(wsAttributes):
     ret = []
     if "library:projectName" in wsAttributes:
-        ret.append(
-            {"TerraCore:hasAssayType": [wsAttributes["library:projectName"]]}
-        )
+        ret.append({"TerraCore:hasAssayType": [wsAttributes["library:projectName"]]})
     # Get the intersection of the datatype.items array and the data modality types
     ret.append(
         {
@@ -267,9 +276,7 @@ def generate_catalog_metadata(workspace):
                 )
             )
         },
-        "counts": {
-            "donors": wsAttributes.get("library:numSubjects", 0)
-        },
+        "counts": {"donors": wsAttributes.get("library:numSubjects", 0)},
         "dct:dataCategory": wsAttributes.get("library:dataCategory", {}).get(
             "items", None
         ),
@@ -278,7 +285,9 @@ def generate_catalog_metadata(workspace):
                 None,
                 [
                     map_dataset_release_policy(
-                        wsAttributes.get("library:dataUseRestriction", "No restrictions")
+                        wsAttributes.get(
+                            "library:dataUseRestriction", "No restrictions"
+                        )
                     )
                 ],
             )
@@ -291,8 +300,10 @@ def generate_catalog_metadata(workspace):
             filter(
                 None,
                 [
-                    {"dct:identifier": wsAttributes["library:datasetOwner"]} if "library:datasetOwner" in wsAttributes else None
-                ]
+                    {"dct:identifier": wsAttributes["library:datasetOwner"]}
+                    if "library:datasetOwner" in wsAttributes
+                    else None
+                ],
             )
         ),
         "TerraDCAT_ap:hasOnwer": wsAttributes.get("library:datasetOwner", None),
@@ -303,7 +314,7 @@ def generate_catalog_metadata(workspace):
         ),
         "prov:wasGeneratedBy": get_workspace_generated(wsAttributes),
         "files": get_workspace_files(wsAttributes),
-        "TerraDCAT_ap:hasConsentGroup": wsAttributes.get("library:orsp", None)
+        "TerraDCAT_ap:hasConsentGroup": wsAttributes.get("library:orsp", None),
     }
 
     return json.dumps(metadata)
