@@ -281,7 +281,7 @@ def generate_catalog_metadata(workspace):
     )
     metadata["files"] = []
     fileList = wsAttributes.get("library:dataFileFormats", {}).get("items", [])
-    for x in fileList:
+    for ext in fileList:
         fileObj = {"dcat:mediaType": x, "count": 0, "byteSize": 0}
         metadata["files"].append(fileObj)
 
