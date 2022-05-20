@@ -282,7 +282,7 @@ def generate_catalog_metadata(workspace):
     metadata["files"] = []
     fileList = wsAttributes.get("library:dataFileFormats", {}).get("items", [])
     for ext in fileList:
-        fileObj = {"dcat:mediaType": x, "count": 0, "byteSize": 0}
+        fileObj = {"dcat:mediaType": ext, "count": 0, "byteSize": 0}
         metadata["files"].append(fileObj)
 
     metadata["TerraDCAT_ap:hasConsentGroup"] = wsAttributes.get("library:orsp")
