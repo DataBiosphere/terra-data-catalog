@@ -11,6 +11,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import bio.terra.catalog.iam.SamAction;
+import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.rawls.api.StatusApi;
 import bio.terra.rawls.api.WorkspacesApi;
@@ -68,7 +69,7 @@ class RawlsServiceTest {
 
   @Test
   void getWorkspaces() throws Exception {
-    var items = Map.of("id", List.of("OWNER"));
+    var items = Map.of("id", DatasetAccessLevel.OWNER);
     var workspaceResponses =
         List.of(
             new WorkspaceListResponse()

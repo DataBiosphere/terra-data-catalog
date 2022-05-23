@@ -109,7 +109,9 @@ public class DatasetService {
       case TERRA_DATA_REPO -> datarepoService
           .getRole(user, dataset.storageSourceId())
           .hasAction(action);
-      case TERRA_WORKSPACE -> rawlsService.getRole(user, dataset.storageSourceId()).hasAction(action);
+      case TERRA_WORKSPACE -> rawlsService
+          .getRole(user, dataset.storageSourceId())
+          .hasAction(action);
       case EXTERNAL -> false;
     };
   }
