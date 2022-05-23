@@ -1,8 +1,10 @@
 package bio.terra.catalog.rawls;
 
 import bio.terra.catalog.config.RawlsConfiguration;
+import bio.terra.catalog.datarepo.DatarepoException;
 import bio.terra.catalog.iam.SamAction;
 import bio.terra.catalog.model.SystemStatusSystems;
+import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.rawls.api.StatusApi;
 import bio.terra.rawls.api.WorkspacesApi;
@@ -12,6 +14,7 @@ import bio.terra.rawls.model.WorkspaceAccessLevel;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.ws.rs.client.Client;
 import org.slf4j.Logger;
@@ -40,6 +43,15 @@ public class RawlsService {
           WorkspaceAccessLevel.WRITER,
           WorkspaceAccessLevel.READER);
 
+  private static final Map<WorkspaceAccessLevel, DatasetAccessLevel> ROLE_TO_DATASET_ACCESS =
+      Map.of(
+          WorkspaceAccessLevel.PROJECT_OWNER, DatasetAccessLevel.OWNER,
+          WorkspaceAccessLevel.OWNER, DatasetAccessLevel.OWNER,
+          WorkspaceAccessLevel.WRITER, DatasetAccessLevel.OWNER,
+          WorkspaceAccessLevel.READER, DatasetAccessLevel.DISCOVERER,
+          WorkspaceAccessLevel.NO_ACCESS, DatasetAccessLevel.NO_ACCESS);
+
+
   @Autowired
   public RawlsService(RawlsConfiguration rawlsConfig) {
     this.rawlsConfig = rawlsConfig;
@@ -57,16 +69,24 @@ public class RawlsService {
     return new ApiClient().setHttpClient(commonHttpClient).setBasePath(rawlsConfig.basePath());
   }
 
-  public Map<String, List<String>> getWorkspaceIdsAndRoles(AuthenticatedUserRequest user) {
+  public Map<String, DatasetAccessLevel> getWorkspaceIdsAndRoles(AuthenticatedUserRequest user) {
     try {
       return workspacesApi(user).listWorkspaces(ACCESS_LEVEL_AND_ID).stream()
           .collect(
               Collectors.toMap(
                   workspaceListResponse -> workspaceListResponse.getWorkspace().getWorkspaceId(),
-                  workspaceListResponse ->
-                      List.of(workspaceListResponse.getAccessLevel().toString())));
+                  workspaceListResponse -> ROLE_TO_DATASET_ACCESS.get(workspaceListResponse.getAccessLevel())));
     } catch (ApiException e) {
       throw new RawlsException("List workspaces failed", e);
+    }
+  }
+
+  public DatasetAccessLevel getRole(AuthenticatedUserRequest user, String workspaceId) {
+    try {
+      WorkspaceAccessLevel accessLevel = workspacesApi(user).getWorkspaceById(workspaceId, ACCESS_LEVEL).getAccessLevel();
+      return ROLE_TO_DATASET_ACCESS.get(accessLevel);
+    } catch (ApiException e) {
+      throw new RawlsException("Get workspace role failed", e);
     }
   }
 

@@ -18,6 +18,7 @@ import bio.terra.catalog.model.DatasetPreviewTablesResponse;
 import bio.terra.catalog.model.TableMetadata;
 import bio.terra.catalog.rawls.RawlsService;
 import bio.terra.catalog.service.dataset.Dataset;
+import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.common.exception.UnauthorizedException;
@@ -92,9 +93,8 @@ class DatasetServiceTest {
   @Test
   void listDatasets() {
     var workspaceRole = WorkspaceAccessLevel.OWNER;
-    var workspaces = Map.of(workspaceSourceId, List.of(workspaceRole.getValue()));
-    var role = "role";
-    var idToRole = Map.of(sourceId, List.of(role));
+    var workspaces = Map.of(workspaceSourceId, DatasetAccessLevel.OWNER);
+    var idToRole = Map.of(sourceId, DatasetAccessLevel.OWNER);
     when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(idToRole);
     when(rawlsService.getWorkspaceIdsAndRoles(user)).thenReturn(workspaces);
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, workspaces.keySet()))
@@ -105,17 +105,17 @@ class DatasetServiceTest {
     ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets(user).getResult().get(1);
     assertThat(workspaceJson.get("name").asText(), is("name"));
     assertThat(workspaceJson.get("id").asText(), is(workspaceDataset.id().toValue()));
-    assertThat(workspaceJson.get("roles").get(0).asText(), is(workspaceRole.getValue()));
+    assertThat(workspaceJson.get("roles").get(0).asText(), is(DatasetAccessLevel.OWNER));
     assertThat(tdrJson.get("name").asText(), is("name"));
     assertThat(tdrJson.get("id").asText(), is(tdrDataset.id().toValue()));
-    assertThat(tdrJson.get("roles").get(0).asText(), is(role));
+    assertThat(tdrJson.get("roles").get(0).asText(), is(DatasetAccessLevel.OWNER));
   }
 
   @Test
   void listDatasetsIllegalMetadata() {
     var badDataset =
         new Dataset(dataset.id(), sourceId, StorageSystem.TERRA_DATA_REPO, "invalid", null);
-    var idToRole = Map.of(sourceId, List.<String>of());
+    var idToRole = Map.of(sourceId, DatasetAccessLevel.DISCOVERER);
     when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(idToRole);
     when(rawlsService.getWorkspaceIdsAndRoles(user)).thenReturn(Map.of());
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, Set.of())).thenReturn(List.of());
@@ -157,8 +157,7 @@ class DatasetServiceTest {
   void testGetMetadataUsingTdrPermission() {
     reset(datasetDao);
     when(datasetDao.retrieve(datasetId)).thenReturn(tdrDataset);
-    when(datarepoService.userHasAction(user, sourceId, SamAction.READ_ANY_METADATA))
-        .thenReturn(true);
+    when(datarepoService.getRole(user, sourceId)).thenReturn(DatasetAccessLevel.READER);
     datasetService.getMetadata(user, datasetId);
     verify(datasetDao).retrieve(datasetId);
   }
@@ -181,6 +180,7 @@ class DatasetServiceTest {
 
   @Test
   void testCreateDatasetWithInvalidUser() {
+    when(datarepoService.getRole(user, null)).thenReturn(DatasetAccessLevel.DISCOVERER);
     assertThrows(
         UnauthorizedException.class,
         () -> datasetService.createDataset(user, StorageSystem.TERRA_DATA_REPO, null, null));
