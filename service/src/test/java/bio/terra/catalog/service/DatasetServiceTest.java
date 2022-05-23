@@ -17,6 +17,7 @@ import bio.terra.catalog.model.DatasetPreviewTable;
 import bio.terra.catalog.model.DatasetPreviewTablesResponse;
 import bio.terra.catalog.model.TableMetadata;
 import bio.terra.catalog.service.dataset.Dataset;
+import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.common.exception.UnauthorizedException;
@@ -70,8 +71,8 @@ class DatasetServiceTest {
 
   @Test
   void listDatasets() {
-    var role = "role";
-    var idToRole = Map.of(sourceId, List.of(role));
+    var role = DatasetAccessLevel.OWNER;
+    var idToRole = Map.of(sourceId, role);
     when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(idToRole);
     var tdrDataset =
         new Dataset(dataset.id(), sourceId, StorageSystem.TERRA_DATA_REPO, metadata, null);
@@ -80,14 +81,14 @@ class DatasetServiceTest {
     ObjectNode json = (ObjectNode) datasetService.listDatasets(user).getResult().get(0);
     assertThat(json.get("name").asText(), is("name"));
     assertThat(json.get("id").asText(), is(tdrDataset.id().toValue()));
-    assertThat(json.get("roles").get(0).asText(), is(role));
+    assertThat(json.get("roles").get(0).asText(), is(role.toString()));
   }
 
   @Test
   void listDatasetsIllegalMetadata() {
     var badDataset =
         new Dataset(dataset.id(), sourceId, StorageSystem.TERRA_DATA_REPO, "invalid", null);
-    var idToRole = Map.of(sourceId, List.<String>of());
+    var idToRole = Map.of(sourceId, DatasetAccessLevel.DISCOVERER);
     when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(idToRole);
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
         .thenReturn(List.of(badDataset));
@@ -128,8 +129,7 @@ class DatasetServiceTest {
     var tdrDataset = new Dataset(datasetId, sourceId, StorageSystem.TERRA_DATA_REPO, null, null);
     reset(datasetDao);
     when(datasetDao.retrieve(datasetId)).thenReturn(tdrDataset);
-    when(datarepoService.userHasAction(user, sourceId, SamAction.READ_ANY_METADATA))
-        .thenReturn(true);
+    when(datarepoService.getRole(user, sourceId)).thenReturn(DatasetAccessLevel.READER);
     datasetService.getMetadata(user, datasetId);
     verify(datasetDao).retrieve(datasetId);
   }
@@ -152,6 +152,7 @@ class DatasetServiceTest {
 
   @Test
   void testCreateDatasetWithInvalidUser() {
+    when(datarepoService.getRole(user, null)).thenReturn(DatasetAccessLevel.DISCOVERER);
     assertThrows(
         UnauthorizedException.class,
         () -> datasetService.createDataset(user, StorageSystem.TERRA_DATA_REPO, null, null));

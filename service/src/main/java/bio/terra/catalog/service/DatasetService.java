@@ -71,10 +71,9 @@ public class DatasetService {
 
     // Merge the permission (role) data into the metadata results.
     for (Dataset dataset : datasets) {
+      // Roles will change to not a list in a future PR.
       ArrayNode roles = objectMapper.createArrayNode();
-      for (String role : roleMap.get(dataset.storageSourceId())) {
-        roles.add(TextNode.valueOf(role));
-      }
+      roles.add(TextNode.valueOf(String.valueOf(roleMap.get(dataset.storageSourceId()))));
       ObjectNode node = toJsonNode(dataset.metadata());
       node.set("roles", roles);
       node.set("id", TextNode.valueOf(dataset.id().toValue()));
@@ -91,8 +90,9 @@ public class DatasetService {
   private boolean checkStoragePermission(
       AuthenticatedUserRequest user, Dataset dataset, SamAction action) {
     return switch (dataset.storageSystem()) {
-      case TERRA_DATA_REPO -> datarepoService.userHasAction(
-          user, dataset.storageSourceId(), action);
+      case TERRA_DATA_REPO -> datarepoService
+          .getRole(user, dataset.storageSourceId())
+          .hasAction(action);
       case TERRA_WORKSPACE, EXTERNAL -> false;
     };
   }
@@ -142,8 +142,8 @@ public class DatasetService {
     // can either have permission granted by the storage system that owns the dataset, or if
     // they're a catalog admin user who has permission to perform any operation on any
     // catalog entry.
-    if (!checkStoragePermission(user, dataset, action)
-        && !samService.hasGlobalAction(user, action)) {
+    if (!samService.hasGlobalAction(user, action)
+        && !checkStoragePermission(user, dataset, action)) {
       throw new UnauthorizedException(
           String.format("User %s does not have permission to %s", user.getEmail(), action));
     }
