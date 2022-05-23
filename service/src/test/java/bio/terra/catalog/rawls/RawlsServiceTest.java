@@ -92,7 +92,7 @@ class RawlsServiceTest {
     String id = "abc";
     when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL))
         .thenReturn(new WorkspaceResponse().accessLevel(WorkspaceAccessLevel.READER));
-    assertEquals(rawlsService.getRole(user, id), DatasetAccessLevel.READER);
+    assertThat(rawlsService.getRole(user, id), is(DatasetAccessLevel.READER));
   }
 
   @Test
@@ -100,7 +100,7 @@ class RawlsServiceTest {
     String id = "abc";
     when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL))
         .thenReturn(new WorkspaceResponse().accessLevel(WorkspaceAccessLevel.OWNER));
-    assertEquals(rawlsService.getRole(user, id), DatasetAccessLevel.OWNER);
+    assertThat(rawlsService.getRole(user, id), is(DatasetAccessLevel.OWNER));
   }
 
   @Test
