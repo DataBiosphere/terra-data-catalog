@@ -9,7 +9,7 @@ import bio.terra.catalog.api.DatasetsApi;
 import bio.terra.catalog.client.ApiException;
 import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.StorageSystem;
-import bio.terra.datarepo.model.PolicyMemberRequest;
+import bio.terra.datarepo.model.DatasetModel;
 import bio.terra.datarepo.model.SnapshotRequestContentsModel;
 import bio.terra.datarepo.model.SnapshotRequestModel;
 import bio.terra.testrunner.runner.TestScript;
@@ -20,14 +20,14 @@ import java.util.List;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scripts.api.SnapshotsSyncApi;
+import scripts.api.SnapshotsApi;
+import scripts.api.TdrDatasetsApi;
 import scripts.client.CatalogClient;
 import scripts.client.DatarepoClient;
 
 public class DatasetPermissionOperations extends TestScript {
 
   private static final Logger log = LoggerFactory.getLogger(DatasetPermissionOperations.class);
-  private static final String TEST_DATASET_NAME = "CatalogTestDataset";
   private static final String ADMIN_EMAIL = "datacatalogadmin@test.firecloud.org";
   private static final String USER_EMAIL = "datacataloguser@test.firecloud.org";
 
@@ -35,9 +35,10 @@ public class DatasetPermissionOperations extends TestScript {
   private TestUserSpecification regularUser;
 
   // TDR APIs
-  private SnapshotsSyncApi adminSnapshotsApi;
-  private SnapshotsSyncApi userSnapshotsApi;
-  private UUID defaultProfileId;
+  private SnapshotsApi adminSnapshotsApi;
+  private SnapshotsApi userSnapshotsApi;
+  private TdrDatasetsApi tdrDatasetsApi;
+  private DatasetModel tdrDataset;
   private UUID adminTestSnapshotId;
 
   // Catalog APis
@@ -61,18 +62,15 @@ public class DatasetPermissionOperations extends TestScript {
     assertNotNull(regularUser);
 
     DatarepoClient adminDatarepoClient = new DatarepoClient(server, adminUser);
-    adminSnapshotsApi = new SnapshotsSyncApi(adminDatarepoClient);
-    userSnapshotsApi = new SnapshotsSyncApi(new DatarepoClient(server, regularUser));
-    defaultProfileId =
-        new bio.terra.datarepo.api.DatasetsApi(adminDatarepoClient)
-            .enumerateDatasets(null, null, null, null, TEST_DATASET_NAME, null)
-            .getItems()
-            .get(0)
-            .getDefaultProfileId();
+    adminSnapshotsApi = new SnapshotsApi(adminDatarepoClient);
+    userSnapshotsApi = new SnapshotsApi(new DatarepoClient(server, regularUser));
+    tdrDatasetsApi = adminDatarepoClient.datasetsApi();
+    tdrDataset = tdrDatasetsApi.createTestDataset();
     adminDatasetsApi = new DatasetsApi(new CatalogClient(server, adminUser));
     userDatasetsApi = new DatasetsApi(new CatalogClient(server, regularUser));
-    adminTestSnapshotId = createSnapshot(adminSnapshotsApi);
-    userTestSnapshotId = createSnapshot(userSnapshotsApi);
+    adminTestSnapshotId = adminSnapshotsApi.createSnapshot(createSnapshotRequest());
+    tdrDatasetsApi.addDatasetPolicyMember(tdrDataset.getId(), "custodian", regularUser.userEmail);
+    userTestSnapshotId = userSnapshotsApi.createSnapshot(createSnapshotRequest());
     adminTestDatasetId = adminCreateDataset(datasetRequestForSnapshot(adminTestSnapshotId));
   }
 
@@ -145,8 +143,7 @@ public class DatasetPermissionOperations extends TestScript {
   private void setTestSnapshotPermissionForRegularUser(String policy) throws Exception {
     // first clear the shared snapshot of policy state caused by previous tests
     clearTestSnapshotPermissions();
-    adminSnapshotsApi.addSnapshotPolicyMember(
-        adminTestSnapshotId, policy, new PolicyMemberRequest().email(regularUser.userEmail));
+    adminSnapshotsApi.addSnapshotPolicyMember(adminTestSnapshotId, policy, regularUser.userEmail);
   }
 
   private void clearTestSnapshotPermissions() throws Exception {
@@ -172,20 +169,15 @@ public class DatasetPermissionOperations extends TestScript {
     return datasetId;
   }
 
-  private UUID createSnapshot(SnapshotsSyncApi snapshotsApi) throws Exception {
-    assertNotNull(defaultProfileId);
-    var request =
-        new SnapshotRequestModel()
-            .name("catalog_integration_test_" + System.currentTimeMillis())
-            .description("catalog test snapshot")
-            .profileId(defaultProfileId)
-            .addContentsItem(
-                new SnapshotRequestContentsModel()
-                    .datasetName(TEST_DATASET_NAME)
-                    .mode(SnapshotRequestContentsModel.ModeEnum.BYFULLVIEW));
-    UUID snapshotId = snapshotsApi.synchronousCreateSnapshot(request);
-    log.info("created snapshot " + snapshotId);
-    return snapshotId;
+  private SnapshotRequestModel createSnapshotRequest() {
+    return new SnapshotRequestModel()
+        .name("catalog_integration_test_" + System.currentTimeMillis())
+        .description("permission test snapshot")
+        .profileId(tdrDataset.getDefaultProfileId())
+        .addContentsItem(
+            new SnapshotRequestContentsModel()
+                .datasetName(tdrDataset.getName())
+                .mode(SnapshotRequestContentsModel.ModeEnum.BYFULLVIEW));
   }
 
   @Override
@@ -194,7 +186,12 @@ public class DatasetPermissionOperations extends TestScript {
       adminDatasetsApi.deleteDataset(datasetId);
       log.info("deleted dataset " + datasetId);
     }
-    adminSnapshotsApi.synchronousDeleteSnapshot(adminTestSnapshotId);
-    userSnapshotsApi.synchronousDeleteSnapshot(userTestSnapshotId);
+    if (adminTestSnapshotId != null) {
+      adminSnapshotsApi.deleteSnapshot(adminTestSnapshotId);
+    }
+    if (userTestSnapshotId != null) {
+      userSnapshotsApi.deleteSnapshot(userTestSnapshotId);
+    }
+    tdrDatasetsApi.deleteDataset(tdrDataset.getId());
   }
 }

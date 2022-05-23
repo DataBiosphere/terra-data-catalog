@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import scripts.api.TdrDatasetsApi;
 
 public class DatarepoClient extends ApiClient {
   /**
@@ -37,18 +38,24 @@ public class DatarepoClient extends ApiClient {
     }
   }
 
-  public Map<Object, Object> waitForJobSuccess(String jobId)
-      throws ApiException, InterruptedException {
-    var jobApi = new JobsApi(this);
+  public TdrDatasetsApi datasetsApi() {
+    return new TdrDatasetsApi(this);
+  }
+
+  public Map<Object, String> waitForJob(String jobId) throws ApiException, InterruptedException {
     JobModel job;
+    var jobsApi = new JobsApi(this);
     do {
-      job = jobApi.retrieveJob(jobId);
+      job = jobsApi.retrieveJob(jobId);
       TimeUnit.SECONDS.sleep(5);
     } while (job.getJobStatus() == JobModel.JobStatusEnum.RUNNING);
 
     if (job.getJobStatus() != JobModel.JobStatusEnum.SUCCEEDED) {
       throw new RuntimeException("Job failed: " + job);
     }
-    return (Map<Object, Object>) jobApi.retrieveJobResult(jobId);
+
+    @SuppressWarnings("unchecked")
+    var result = (Map<Object, String>) jobsApi.retrieveJobResult(jobId);
+    return result;
   }
 }
