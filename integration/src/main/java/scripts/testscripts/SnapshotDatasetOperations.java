@@ -175,7 +175,7 @@ public class SnapshotDatasetOperations extends TestScript {
         assertThat(dataset, hasEntry(is("id"), is(datasetId.toString())));
         @SuppressWarnings("unchecked")
         List<Object> roles = (List<Object>) dataset.get("roles");
-        assertThat(roles, hasItem("steward"));
+        assertThat(roles, hasItem("owner"));
         return;
       }
     }

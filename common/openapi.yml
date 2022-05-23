@@ -303,6 +303,7 @@ components:
       description: |
         ⚠️ Do not add sensitive data. All catalog entries are publicly accessible to all Terra users. ⚠️
       type: object
+      required: [storageSystem, storageSourceId]
       properties:
         storageSystem:
           $ref: '#/components/schemas/StorageSystem'
