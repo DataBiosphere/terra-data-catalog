@@ -8,8 +8,8 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import bio.terra.catalog.iam.SamAction;
 import bio.terra.catalog.model.SystemStatusSystems;
+import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.api.SnapshotsApi;
 import bio.terra.datarepo.api.UnauthenticatedApi;
@@ -56,11 +56,12 @@ class DatarepoServiceTest {
 
   @Test
   void getSnapshots() throws Exception {
-    var items = Map.of("id", List.of("role"));
+    var items = Map.of("id", List.of("steward"));
+    var expectedItems = Map.of("id", DatasetAccessLevel.OWNER);
     var esm = new EnumerateSnapshotModel().roleMap(items);
     when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any()))
         .thenReturn(esm);
-    assertThat(datarepoService.getSnapshotIdsAndRoles(user), is(items));
+    assertThat(datarepoService.getSnapshotIdsAndRoles(user), is(expectedItems));
   }
 
   @Test
@@ -71,19 +72,19 @@ class DatarepoServiceTest {
   }
 
   @Test
-  void userHasActionReader() throws Exception {
+  void getRoleReader() throws Exception {
     var id = UUID.randomUUID();
     when(snapshotsApi.retrieveUserSnapshotRoles(id))
         .thenReturn(List.of(DatarepoService.READER_ROLE_NAME));
-    assertTrue(datarepoService.userHasAction(user, id.toString(), SamAction.READ_ANY_METADATA));
+    assertThat(datarepoService.getRole(user, id.toString()), is(DatasetAccessLevel.READER));
   }
 
   @Test
-  void userHasActionOwner() throws Exception {
+  void getRoleSteward() throws Exception {
     var id = UUID.randomUUID();
     when(snapshotsApi.retrieveUserSnapshotRoles(id))
         .thenReturn(List.of(DatarepoService.STEWARD_ROLE_NAME));
-    assertTrue(datarepoService.userHasAction(user, id.toString(), SamAction.CREATE_METADATA));
+    assertEquals(datarepoService.getRole(user, id.toString()), DatasetAccessLevel.OWNER);
   }
 
   @Test
@@ -91,9 +92,7 @@ class DatarepoServiceTest {
     var id = UUID.randomUUID();
     when(snapshotsApi.retrieveUserSnapshotRoles(id)).thenThrow(new ApiException());
     var stringId = id.toString();
-    assertThrows(
-        DatarepoException.class,
-        () -> datarepoService.userHasAction(user, stringId, SamAction.CREATE_METADATA));
+    assertThrows(DatarepoException.class, () -> datarepoService.getRole(user, stringId));
   }
 
   @Test
