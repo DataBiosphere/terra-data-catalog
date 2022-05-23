@@ -1,11 +1,13 @@
 #!/bin/sh
 
-TOKEN=$(cat $HOME/.github-token)
+set -eu
+
+TOKEN=$(cat "$HOME/.github-token")
 TEST_ENV="perf"
 
 # ensure the script always runs in the parent directory terra-data-catalog
-CWD=$(dirname $(dirname $(readlink -f "$0")))
-cd $CWD
+CWD=$(dirname "$(dirname "$(readlink -f "$0")")")
+cd "$CWD"
 
 # get the helm chart versions for the perf env
 curl -H "Authorization: token ${TOKEN}" \
