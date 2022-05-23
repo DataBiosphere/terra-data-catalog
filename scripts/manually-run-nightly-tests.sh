@@ -2,7 +2,7 @@
 
 set -eu
 
-TOKEN=$(cat "$HOME/.github-token")
+TOKEN=$(find "$HOME" -type f -maxdepth 2 -exec grep -l "^ghp_" {} \; -quit | xargs cat)
 TEST_ENV="perf"
 
 # ensure the script always runs in the parent directory terra-data-catalog
