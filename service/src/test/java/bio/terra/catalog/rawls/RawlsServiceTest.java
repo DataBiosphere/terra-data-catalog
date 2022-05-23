@@ -2,6 +2,7 @@ package bio.terra.catalog.rawls;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -10,7 +11,6 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import bio.terra.catalog.iam.SamAction;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.rawls.api.StatusApi;
@@ -88,19 +88,19 @@ class RawlsServiceTest {
   }
 
   @Test
-  void userHasActionReader() throws Exception {
+  void getRoleReader() throws Exception {
     String id = "abc";
     when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL))
         .thenReturn(new WorkspaceResponse().accessLevel(WorkspaceAccessLevel.READER));
-    assertTrue(rawlsService.userHasAction(user, id, SamAction.READ_ANY_METADATA));
+    assertEquals(rawlsService.getRole(user, id), DatasetAccessLevel.READER);
   }
 
   @Test
-  void userHasActionOwner() throws Exception {
+  void getRoleOwner() throws Exception {
     String id = "abc";
     when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL))
         .thenReturn(new WorkspaceResponse().accessLevel(WorkspaceAccessLevel.OWNER));
-    assertTrue(rawlsService.userHasAction(user, id, SamAction.CREATE_METADATA));
+    assertEquals(rawlsService.getRole(user, id), DatasetAccessLevel.OWNER);
   }
 
   @Test
@@ -108,8 +108,6 @@ class RawlsServiceTest {
     String id = "abc";
     when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL))
         .thenThrow(new ApiException());
-    assertThrows(
-        RawlsException.class,
-        () -> rawlsService.userHasAction(user, id, SamAction.CREATE_METADATA));
+    assertThrows(RawlsException.class, () -> rawlsService.getRole(user, id));
   }
 }

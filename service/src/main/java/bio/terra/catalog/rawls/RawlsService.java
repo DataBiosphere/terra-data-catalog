@@ -1,7 +1,6 @@
 package bio.terra.catalog.rawls;
 
 import bio.terra.catalog.config.RawlsConfiguration;
-import bio.terra.catalog.iam.SamAction;
 import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.common.iam.AuthenticatedUserRequest;
@@ -29,25 +28,14 @@ public class RawlsService {
 
   private final RawlsConfiguration rawlsConfig;
   private final Client commonHttpClient;
-  private static final List<WorkspaceAccessLevel> OWNER_ROLES =
-      List.of(
-          WorkspaceAccessLevel.PROJECT_OWNER,
-          WorkspaceAccessLevel.OWNER,
-          WorkspaceAccessLevel.WRITER);
-  private static final List<WorkspaceAccessLevel> READER_ROLES =
-      List.of(
-          WorkspaceAccessLevel.PROJECT_OWNER,
-          WorkspaceAccessLevel.OWNER,
-          WorkspaceAccessLevel.WRITER,
-          WorkspaceAccessLevel.READER);
 
   private static final Map<WorkspaceAccessLevel, DatasetAccessLevel> ROLE_TO_DATASET_ACCESS =
       Map.of(
           WorkspaceAccessLevel.PROJECT_OWNER, DatasetAccessLevel.OWNER,
           WorkspaceAccessLevel.OWNER, DatasetAccessLevel.OWNER,
           WorkspaceAccessLevel.WRITER, DatasetAccessLevel.OWNER,
-          WorkspaceAccessLevel.READER, DatasetAccessLevel.DISCOVERER,
-          WorkspaceAccessLevel.NO_ACCESS, DatasetAccessLevel.NO_ACCESS);
+          WorkspaceAccessLevel.READER, DatasetAccessLevel.READER,
+          WorkspaceAccessLevel.NO_ACCESS, DatasetAccessLevel.DISCOVERER);
 
   @Autowired
   public RawlsService(RawlsConfiguration rawlsConfig) {
@@ -86,24 +74,6 @@ public class RawlsService {
       return ROLE_TO_DATASET_ACCESS.get(accessLevel);
     } catch (ApiException e) {
       throw new RawlsException("Get workspace role failed", e);
-    }
-  }
-
-  private List<WorkspaceAccessLevel> rolesForAction(SamAction action) {
-    return switch (action) {
-      case READ_ANY_METADATA -> READER_ROLES;
-      case CREATE_METADATA, UPDATE_ANY_METADATA, DELETE_ANY_METADATA -> OWNER_ROLES;
-    };
-  }
-
-  public boolean userHasAction(
-      AuthenticatedUserRequest user, String workspaceId, SamAction action) {
-    try {
-      var roles = rolesForAction(action);
-      return roles.contains(
-          workspacesApi(user).getWorkspaceById(workspaceId, ACCESS_LEVEL).getAccessLevel());
-    } catch (ApiException e) {
-      throw new RawlsException("Get workspace roles failed", e);
     }
   }
 
