@@ -18,8 +18,6 @@ import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.StorageSystem;
 import bio.terra.catalog.model.TableMetadata;
 import bio.terra.datarepo.model.DatasetModel;
-import bio.terra.datarepo.model.SnapshotRequestContentsModel;
-import bio.terra.datarepo.model.SnapshotRequestModel;
 import bio.terra.testrunner.runner.TestScript;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
 import com.google.api.client.http.HttpStatusCodes;
@@ -29,7 +27,6 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scripts.api.SnapshotsApi;
-import scripts.api.TdrDatasetsApi;
 import scripts.client.CatalogClient;
 import scripts.client.DatarepoClient;
 
@@ -45,9 +42,7 @@ public class SnapshotDatasetOperations extends TestScript {
 
   // TDR APIs
   private SnapshotsApi snapshotsApi;
-  private TdrDatasetsApi tdrDatasetsApi;
   private UUID snapshotId;
-  private DatasetModel tdrDataset;
 
   // Catalog APis
   private UUID datasetId;
@@ -56,20 +51,10 @@ public class SnapshotDatasetOperations extends TestScript {
   @Override
   public void setup(List<TestUserSpecification> testUsers) throws Exception {
     DatarepoClient datarepoClient = new DatarepoClient(server, testUsers.get(0));
-    tdrDatasetsApi = datarepoClient.datasetsApi();
-    tdrDataset = tdrDatasetsApi.createTestDataset();
+    DatasetModel tdrDataset = datarepoClient.datasetsApi().getTestDataset();
 
     snapshotsApi = new SnapshotsApi(datarepoClient);
-    var request =
-        new SnapshotRequestModel()
-            .name("catalog_integration_test_" + System.currentTimeMillis())
-            .description("catalog test snapshot")
-            .profileId(tdrDataset.getDefaultProfileId())
-            .addContentsItem(
-                new SnapshotRequestContentsModel()
-                    .datasetName(tdrDataset.getName())
-                    .mode(SnapshotRequestContentsModel.ModeEnum.BYFULLVIEW));
-    snapshotId = snapshotsApi.createSnapshot(request);
+    snapshotId = snapshotsApi.createTestSnapshot(tdrDataset);
   }
 
   private static final String METADATA_1 = """
@@ -84,10 +69,10 @@ public class SnapshotDatasetOperations extends TestScript {
     datasetsApi = new DatasetsApi(client);
 
     crudUserJourney(client);
-    previewUserJourney(client);
+    previewUserJourney();
   }
 
-  private void previewUserJourney(CatalogClient client) throws ApiException {
+  private void previewUserJourney() throws ApiException {
     // Given a snapshot, create a catalog entry.
     var request =
         new CreateDatasetRequest()
@@ -186,9 +171,8 @@ public class SnapshotDatasetOperations extends TestScript {
       log.info("deleted dataset " + datasetId);
     }
     if (snapshotId != null) {
-      snapshotsApi.deleteSnapshot(snapshotId);
+      snapshotsApi.delete(snapshotId);
       log.info("deleted snapshot " + snapshotId);
     }
-    tdrDatasetsApi.deleteDataset(tdrDataset.getId());
   }
 }

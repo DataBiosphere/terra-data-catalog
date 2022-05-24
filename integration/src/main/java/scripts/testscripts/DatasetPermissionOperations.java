@@ -10,8 +10,6 @@ import bio.terra.catalog.client.ApiException;
 import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.StorageSystem;
 import bio.terra.datarepo.model.DatasetModel;
-import bio.terra.datarepo.model.SnapshotRequestContentsModel;
-import bio.terra.datarepo.model.SnapshotRequestModel;
 import bio.terra.testrunner.runner.TestScript;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
 import com.google.api.client.http.HttpStatusCodes;
@@ -37,8 +35,6 @@ public class DatasetPermissionOperations extends TestScript {
   // TDR APIs
   private SnapshotsApi adminSnapshotsApi;
   private SnapshotsApi userSnapshotsApi;
-  private TdrDatasetsApi tdrDatasetsApi;
-  private DatasetModel tdrDataset;
   private UUID adminTestSnapshotId;
 
   // Catalog APis
@@ -64,13 +60,13 @@ public class DatasetPermissionOperations extends TestScript {
     DatarepoClient adminDatarepoClient = new DatarepoClient(server, adminUser);
     adminSnapshotsApi = new SnapshotsApi(adminDatarepoClient);
     userSnapshotsApi = new SnapshotsApi(new DatarepoClient(server, regularUser));
-    tdrDatasetsApi = adminDatarepoClient.datasetsApi();
-    tdrDataset = tdrDatasetsApi.createTestDataset();
+    TdrDatasetsApi tdrDatasetsApi = adminDatarepoClient.datasetsApi();
+    DatasetModel tdrDataset = tdrDatasetsApi.getTestDataset();
     adminDatasetsApi = new DatasetsApi(new CatalogClient(server, adminUser));
     userDatasetsApi = new DatasetsApi(new CatalogClient(server, regularUser));
-    adminTestSnapshotId = adminSnapshotsApi.createSnapshot(createSnapshotRequest());
+    adminTestSnapshotId = adminSnapshotsApi.createTestSnapshot(tdrDataset);
     tdrDatasetsApi.addDatasetPolicyMember(tdrDataset.getId(), "custodian", regularUser.userEmail);
-    userTestSnapshotId = userSnapshotsApi.createSnapshot(createSnapshotRequest());
+    userTestSnapshotId = userSnapshotsApi.createTestSnapshot(tdrDataset);
     adminTestDatasetId = adminCreateDataset(datasetRequestForSnapshot(adminTestSnapshotId));
   }
 
@@ -143,13 +139,12 @@ public class DatasetPermissionOperations extends TestScript {
   private void setTestSnapshotPermissionForRegularUser(String policy) throws Exception {
     // first clear the shared snapshot of policy state caused by previous tests
     clearTestSnapshotPermissions();
-    adminSnapshotsApi.addSnapshotPolicyMember(adminTestSnapshotId, policy, regularUser.userEmail);
+    adminSnapshotsApi.addPolicyMember(adminTestSnapshotId, policy, regularUser.userEmail);
   }
 
   private void clearTestSnapshotPermissions() throws Exception {
     for (String policy : List.of("reader", "discoverer")) {
-      adminSnapshotsApi.deleteSnapshotPolicyMember(
-          adminTestSnapshotId, policy, regularUser.userEmail);
+      adminSnapshotsApi.deletePolicyMember(adminTestSnapshotId, policy, regularUser.userEmail);
     }
   }
 
@@ -169,17 +164,6 @@ public class DatasetPermissionOperations extends TestScript {
     return datasetId;
   }
 
-  private SnapshotRequestModel createSnapshotRequest() {
-    return new SnapshotRequestModel()
-        .name("catalog_integration_test_" + System.currentTimeMillis())
-        .description("permission test snapshot")
-        .profileId(tdrDataset.getDefaultProfileId())
-        .addContentsItem(
-            new SnapshotRequestContentsModel()
-                .datasetName(tdrDataset.getName())
-                .mode(SnapshotRequestContentsModel.ModeEnum.BYFULLVIEW));
-  }
-
   @Override
   public void cleanup(List<TestUserSpecification> testUsers) throws Exception {
     for (var datasetId : datasetIds) {
@@ -187,11 +171,10 @@ public class DatasetPermissionOperations extends TestScript {
       log.info("deleted dataset " + datasetId);
     }
     if (adminTestSnapshotId != null) {
-      adminSnapshotsApi.deleteSnapshot(adminTestSnapshotId);
+      adminSnapshotsApi.delete(adminTestSnapshotId);
     }
     if (userTestSnapshotId != null) {
-      userSnapshotsApi.deleteSnapshot(userTestSnapshotId);
+      userSnapshotsApi.delete(userTestSnapshotId);
     }
-    tdrDatasetsApi.deleteDataset(tdrDataset.getId());
   }
 }

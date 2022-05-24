@@ -8,6 +8,7 @@ import bio.terra.datarepo.model.IngestRequestModel;
 import bio.terra.datarepo.model.PolicyMemberRequest;
 import bio.terra.datarepo.model.TableDataType;
 import bio.terra.datarepo.model.TableModel;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -17,65 +18,93 @@ import scripts.client.DatarepoClient;
 
 public class TdrDatasetsApi {
   private static final Logger log = LoggerFactory.getLogger(TdrDatasetsApi.class);
+  private static final UUID TEST_BILLING_PROFILE_ID =
+      UUID.fromString("1d29ed8f-6554-4366-8fa0-e212ee553d29");
+
+  private static TdrDatasetsApi theApi;
+  private DatasetModel testDataset;
 
   private final bio.terra.datarepo.api.DatasetsApi datasetsApi;
 
-  public TdrDatasetsApi(DatarepoClient apiClient) {
+  private TdrDatasetsApi(DatarepoClient apiClient) {
     datasetsApi = new bio.terra.datarepo.api.DatasetsApi(apiClient);
+    Runtime.getRuntime()
+        .addShutdownHook(
+            new Thread(
+                () -> {
+                  if (testDataset != null) {
+                    try {
+                      deleteDataset(testDataset.getId());
+                      testDataset = null;
+                    } catch (Exception e) {
+                      log.error("error deleting dataset during shutdown", e);
+                    }
+                  }
+                }));
+  }
+
+  public static synchronized TdrDatasetsApi createApi(DatarepoClient apiClient) {
+    if (theApi == null) {
+      theApi = new TdrDatasetsApi(apiClient);
+    }
+    return theApi;
   }
 
   private DatarepoClient getApiClient() {
     return (DatarepoClient) datasetsApi.getApiClient();
   }
 
-  private DatasetRequestModel createDatasetRequestModel() {
+  private static class Column extends ColumnModel {
+    Column(String name, TableDataType dataType) {
+      setName(name);
+      setDatatype(dataType);
+    }
+  }
+
+  private static class Table extends TableModel {
+    Table(String name, ColumnModel... columns) {
+      setName(name);
+      setColumns(Arrays.asList(columns));
+    }
+  }
+
+  private static DatasetRequestModel createDatasetRequestModel() {
     var schema =
         new DatasetSpecificationModel()
             .tables(
                 List.of(
-                    new TableModel()
-                        .name("participant")
-                        .columns(
-                            List.of(
-                                new ColumnModel()
-                                    .name("participant_id")
-                                    .datatype(TableDataType.STRING),
-                                new ColumnModel()
-                                    .name("biological_sex")
-                                    .datatype(TableDataType.STRING),
-                                new ColumnModel().name("age").datatype(TableDataType.INTEGER))),
-                    new TableModel()
-                        .name("sample")
-                        .columns(
-                            List.of(
-                                new ColumnModel().name("sample_id").datatype(TableDataType.STRING),
-                                new ColumnModel()
-                                    .name("participant_id")
-                                    .datatype(TableDataType.STRING),
-                                new ColumnModel()
-                                    .name("files")
-                                    .datatype(TableDataType.STRING)
-                                    .arrayOf(true),
-                                new ColumnModel().name("type").datatype(TableDataType.STRING)))));
+                    new Table(
+                        "participant",
+                        new Column("participant_id", TableDataType.STRING),
+                        new Column("biological_sex", TableDataType.STRING),
+                        new Column("age", TableDataType.INTEGER)),
+                    new Table(
+                        "sample",
+                        new Column("sample_id", TableDataType.STRING),
+                        new Column("participant_id", TableDataType.STRING),
+                        new Column("files", TableDataType.STRING).arrayOf(true),
+                        new Column("type", TableDataType.STRING))));
     return new DatasetRequestModel()
         .name("catalog_integration_test_" + System.currentTimeMillis())
-        .defaultProfileId(UUID.fromString("1d29ed8f-6554-4366-8fa0-e212ee553d29"))
+        .defaultProfileId(TEST_BILLING_PROFILE_ID)
         .schema(schema);
   }
 
-  public DatasetModel createTestDataset() throws Exception {
-    var request = createDatasetRequestModel();
-    String createJobId = datasetsApi.createDataset(request).getId();
-    var result = getApiClient().waitForJob(createJobId);
-    UUID id = UUID.fromString(result.get("id"));
-    log.info("created TDR dataset {} - {}", id, request.getName());
-    var dataset = datasetsApi.retrieveDataset(id, List.of());
-    ingestData(dataset);
-    log.info("data ingest complete");
-    return dataset;
+  public synchronized DatasetModel getTestDataset() throws Exception {
+    if (testDataset == null) {
+      var request = createDatasetRequestModel();
+      String createJobId = datasetsApi.createDataset(request).getId();
+      var result = getApiClient().waitForJob(createJobId);
+      UUID id = UUID.fromString(result.get("id"));
+      log.info("created TDR dataset {} - {}", id, request.getName());
+      testDataset = datasetsApi.retrieveDataset(id, List.of());
+      ingestData(testDataset);
+      log.info("data ingest complete");
+    }
+    return testDataset;
   }
 
-  public void ingestData(DatasetModel dataset) throws Exception {
+  private void ingestData(DatasetModel dataset) throws Exception {
     var participants =
         new IngestRequestModel().table("participant").format(IngestRequestModel.FormatEnum.ARRAY);
     for (int i = 1; i <= 15; i++) {
@@ -107,7 +136,7 @@ public class TdrDatasetsApi {
     getApiClient().waitForJob(datasetsApi.ingestDataset(dataset.getId(), samples).getId());
   }
 
-  public void deleteDataset(UUID id) throws Exception {
+  private void deleteDataset(UUID id) throws Exception {
     getApiClient().waitForJob(datasetsApi.deleteDataset(id).getId());
     log.info("deleted dataset " + id);
   }

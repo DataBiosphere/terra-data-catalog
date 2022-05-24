@@ -1,7 +1,9 @@
 package scripts.api;
 
 import bio.terra.datarepo.client.ApiException;
+import bio.terra.datarepo.model.DatasetModel;
 import bio.terra.datarepo.model.PolicyMemberRequest;
+import bio.terra.datarepo.model.SnapshotRequestContentsModel;
 import bio.terra.datarepo.model.SnapshotRequestModel;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -21,7 +23,19 @@ public class SnapshotsApi {
     return (DatarepoClient) snapshotsApi.getApiClient();
   }
 
-  public UUID createSnapshot(SnapshotRequestModel request) throws Exception {
+  private static SnapshotRequestModel createRequest(DatasetModel dataset) {
+    return new SnapshotRequestModel()
+        .name("catalog_integration_test_" + System.currentTimeMillis())
+        .description("test snapshot")
+        .profileId(dataset.getDefaultProfileId())
+        .addContentsItem(
+            new SnapshotRequestContentsModel()
+                .datasetName(dataset.getName())
+                .mode(SnapshotRequestContentsModel.ModeEnum.BYFULLVIEW));
+  }
+
+  public UUID createTestSnapshot(DatasetModel dataset) throws Exception {
+    var request = createRequest(dataset);
     String createJobId = snapshotsApi.createSnapshot(request).getId();
     var result = getApiClient().waitForJob(createJobId);
     UUID id = UUID.fromString(result.get("id"));
@@ -29,16 +43,16 @@ public class SnapshotsApi {
     return id;
   }
 
-  public void deleteSnapshot(UUID snapshotId) throws Exception {
+  public void delete(UUID snapshotId) throws Exception {
     getApiClient().waitForJob(snapshotsApi.deleteSnapshot(snapshotId).getId());
     log.info("deleted snapshot {}", snapshotId);
   }
 
-  public void addSnapshotPolicyMember(UUID id, String policy, String email) throws ApiException {
+  public void addPolicyMember(UUID id, String policy, String email) throws ApiException {
     snapshotsApi.addSnapshotPolicyMember(id, policy, new PolicyMemberRequest().email(email));
   }
 
-  public void deleteSnapshotPolicyMember(UUID id, String policy, String email) throws ApiException {
+  public void deletePolicyMember(UUID id, String policy, String email) throws ApiException {
     snapshotsApi.deleteSnapshotPolicyMember(id, policy, email);
   }
 }

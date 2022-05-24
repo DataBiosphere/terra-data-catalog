@@ -39,7 +39,7 @@ public class DatarepoClient extends ApiClient {
   }
 
   public TdrDatasetsApi datasetsApi() {
-    return new TdrDatasetsApi(this);
+    return TdrDatasetsApi.createApi(this);
   }
 
   public Map<Object, String> waitForJob(String jobId) throws ApiException, InterruptedException {
