@@ -176,7 +176,7 @@ jobs:
         run: ./gradlew --build-cache runTest --args="suites/dev/FullIntegration.json build/reports"
 
   notify-slack:
-    needs: [ build, jib, unit-tests-and-sonarqube, source-clear, integration-tests ]
+    needs: [ build, unit-tests-and-sonarqube, source-clear, integration-tests ]
     runs-on: ubuntu-latest
 
     if: failure() && github.ref == 'refs/heads/main'
@@ -195,7 +195,7 @@ jobs:
           username: 'Data Explorer GitHub Action'
 
   dispatch-tag:
-    needs: [ build, jib, unit-tests-and-sonarqube, source-clear, integration-tests ]
+    needs: [ build, unit-tests-and-sonarqube, source-clear, integration-tests ]
     runs-on: ubuntu-latest
 
     if: success() && github.ref == 'refs/heads/main'
