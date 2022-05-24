@@ -84,7 +84,7 @@ class DatarepoServiceTest {
     var id = UUID.randomUUID();
     when(snapshotsApi.retrieveUserSnapshotRoles(id))
         .thenReturn(List.of(DatarepoService.STEWARD_ROLE_NAME));
-    assertEquals(datarepoService.getRole(user, id.toString()), DatasetAccessLevel.OWNER);
+    assertThat(datarepoService.getRole(user, id.toString()), is(DatasetAccessLevel.OWNER));
   }
 
   @Test
