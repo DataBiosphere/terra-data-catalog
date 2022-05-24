@@ -106,10 +106,10 @@ class DatasetServiceTest {
     assertThat(workspaceJson.get("name").asText(), is("name"));
     assertThat(workspaceJson.get("id").asText(), is(workspaceDataset.id().toValue()));
     assertThat(
-        workspaceJson.get("roles").get(0).asText(), is(String.valueOf(DatasetAccessLevel.OWNER)));
+        workspaceJson.get("accessLevel").asText(), is(String.valueOf(DatasetAccessLevel.OWNER)));
     assertThat(tdrJson.get("name").asText(), is("name"));
     assertThat(tdrJson.get("id").asText(), is(tdrDataset.id().toValue()));
-    assertThat(tdrJson.get("roles").get(0).asText(), is(String.valueOf(DatasetAccessLevel.OWNER)));
+    assertThat(tdrJson.get("accessLevel").asText(), is(String.valueOf(DatasetAccessLevel.OWNER)));
   }
 
   @Test
