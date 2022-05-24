@@ -1,5 +1,7 @@
 package scripts.api;
 
+import bio.terra.datarepo.api.ProfilesApi;
+import bio.terra.datarepo.client.ApiException;
 import bio.terra.datarepo.model.ColumnModel;
 import bio.terra.datarepo.model.DatasetModel;
 import bio.terra.datarepo.model.DatasetRequestModel;
@@ -18,9 +20,7 @@ import scripts.client.DatarepoClient;
 
 public class TdrDatasetsApi {
   private static final Logger log = LoggerFactory.getLogger(TdrDatasetsApi.class);
-  private static final UUID TEST_BILLING_PROFILE_ID =
-      UUID.fromString("1d29ed8f-6554-4366-8fa0-e212ee553d29");
-
+  private static final String TEST_BILLING_PROFILE_PREFIX = "catalog_test_profile";
   private static TdrDatasetsApi theApi;
   private DatasetModel testDataset;
 
@@ -28,6 +28,9 @@ public class TdrDatasetsApi {
 
   private TdrDatasetsApi(DatarepoClient apiClient) {
     datasetsApi = new bio.terra.datarepo.api.DatasetsApi(apiClient);
+    // Register a shutdown hook to clean up the test dataset on JVM shutdown. It's done this way
+    // because we don't know which test that uses a dataset will run last, and we don't want to
+    // make and delete a dataset for every test.
     Runtime.getRuntime()
         .addShutdownHook(
             new Thread(
@@ -54,6 +57,15 @@ public class TdrDatasetsApi {
     return (DatarepoClient) datasetsApi.getApiClient();
   }
 
+  private UUID getBillingProfileId() throws ApiException {
+    ProfilesApi profilesApi = new ProfilesApi(getApiClient());
+    return profilesApi.enumerateProfiles(0, 100).getItems().stream()
+        .filter(model -> model.getProfileName().startsWith(TEST_BILLING_PROFILE_PREFIX))
+        .findFirst()
+        .orElseThrow(() -> new RuntimeException("Test billing profile not found"))
+        .getId();
+  }
+
   private static class Column extends ColumnModel {
     Column(String name, TableDataType dataType) {
       setName(name);
@@ -68,7 +80,7 @@ public class TdrDatasetsApi {
     }
   }
 
-  private static DatasetRequestModel createDatasetRequestModel() {
+  private DatasetRequestModel createDatasetRequestModel(UUID billingProfileId) {
     var schema =
         new DatasetSpecificationModel()
             .tables(
@@ -86,13 +98,20 @@ public class TdrDatasetsApi {
                         new Column("type", TableDataType.STRING))));
     return new DatasetRequestModel()
         .name("catalog_integration_test_" + System.currentTimeMillis())
-        .defaultProfileId(TEST_BILLING_PROFILE_ID)
+        .defaultProfileId(billingProfileId)
         .schema(schema);
   }
 
+  /**
+   * Return the test dataset for integration tests. If the dataset doesn't exist yet, it's created
+   * and stored, so it will be deleted on JVM shutdown.
+   *
+   * @return the test dataset
+   */
   public synchronized DatasetModel getTestDataset() throws Exception {
     if (testDataset == null) {
-      var request = createDatasetRequestModel();
+      var billingProfileId = getBillingProfileId();
+      var request = createDatasetRequestModel(billingProfileId);
       String createJobId = datasetsApi.createDataset(request).getId();
       var result = getApiClient().waitForJob(createJobId);
       UUID id = UUID.fromString(result.get("id"));
