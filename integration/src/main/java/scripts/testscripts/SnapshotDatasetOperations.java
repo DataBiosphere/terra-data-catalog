@@ -4,7 +4,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -173,9 +172,7 @@ public class SnapshotDatasetOperations extends TestScript {
       if (dataset.get("id").equals(datasetId.toString())) {
         assertThat(dataset, hasEntry(is("name"), is("test")));
         assertThat(dataset, hasEntry(is("id"), is(datasetId.toString())));
-        @SuppressWarnings("unchecked")
-        List<Object> roles = (List<Object>) dataset.get("roles");
-        assertThat(roles, hasItem("owner"));
+        assertThat(dataset, hasEntry(is("accessLevel"), is("owner")));
         return;
       }
     }

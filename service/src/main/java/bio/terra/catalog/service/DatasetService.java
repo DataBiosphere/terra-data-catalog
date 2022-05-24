@@ -20,7 +20,6 @@ import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.model.TableModel;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import java.util.List;
@@ -77,9 +76,8 @@ public class DatasetService {
   private ObjectNode sourceAndDatasetToObjectNode(
       Map<String, DatasetAccessLevel> roleMap, Dataset dataset) {
     ObjectNode node = toJsonNode(dataset.metadata());
-    ArrayNode roles = objectMapper.createArrayNode();
-    roles.add(TextNode.valueOf(String.valueOf(roleMap.get(dataset.storageSourceId()))));
-    node.set("roles", roles);
+    node.set(
+        "accessLevel", TextNode.valueOf(String.valueOf(roleMap.get(dataset.storageSourceId()))));
     node.set("id", TextNode.valueOf(dataset.id().toValue()));
     return node;
   }
