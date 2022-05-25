@@ -17,7 +17,8 @@ on:
     - cron: "0 6 * * *" # runs at 6 AM UTC, 1 AM EST.
 
 env:
-  TEST_ENV: ${{ github.event.inputs.environment || perf }}
+  TEST_ENV: ${{ github.event.inputs.environment }}
+  TEST_DEFAULT: perf
 
 jobs:
   build:
@@ -72,6 +73,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      - name: Set default test env
+        run: |
+          echo "TEST_ENV=${{ env.TEST_ENV || env.TEST_DEFAULT }}" >> $GITHUB_ENV
 
       - name: Get the helm chart versions for the perf env
         run: |
