@@ -6,8 +6,22 @@ import bio.terra.testrunner.runner.config.ServerSpecification;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
 import com.google.auth.oauth2.GoogleCredentials;
 import java.io.IOException;
+import java.util.Objects;
 
 public class RawlsClient extends ApiClient {
+
+  boolean deleteWorkspaceWorkaround;
+
+  @Override
+  public String selectHeaderAccept(String[] accepts) {
+    // This workaround is necessary because the rawls openAPI spec doesn't match the endpoint's
+    // behavior. Without this change, calling deleteWorkspace() will fail with a 406 status.
+    if (deleteWorkspaceWorkaround) {
+      return "text/plain";
+    }
+    return super.selectHeaderAccept(accepts);
+  }
+
   /**
    * Build the API client object for the given test user and catalog server. The test user's token
    * is always refreshed. If a test user isn't configured (e.g. when running locally), return an
@@ -18,8 +32,7 @@ public class RawlsClient extends ApiClient {
    */
   public RawlsClient(ServerSpecification server, TestUserSpecification testUser)
       throws IOException {
-    // FIXME
-    //    setBasePath(Objects.requireNonNull(server.rawlsUri, "Rawls URI required"));
+    setBasePath(Objects.requireNonNull(server.workspaceManagerUri, "Rawls URI required"));
 
     if (testUser != null) {
       GoogleCredentials userCredential =
@@ -30,5 +43,9 @@ public class RawlsClient extends ApiClient {
         setAccessToken(accessToken.getTokenValue());
       }
     }
+  }
+
+  public WorkspacesApi createWorkspacesApi() {
+    return new WorkspacesApi(this);
   }
 }

@@ -18,6 +18,8 @@ import bio.terra.catalog.model.StorageSystem;
 import bio.terra.catalog.model.TableMetadata;
 import bio.terra.datarepo.model.SnapshotRequestContentsModel;
 import bio.terra.datarepo.model.SnapshotRequestModel;
+import bio.terra.rawls.model.WorkspaceDetails;
+import bio.terra.rawls.model.WorkspaceRequest;
 import bio.terra.testrunner.runner.TestScript;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
 import com.google.api.client.http.HttpStatusCodes;
@@ -29,6 +31,8 @@ import org.slf4j.LoggerFactory;
 import scripts.api.SnapshotsSyncApi;
 import scripts.client.CatalogClient;
 import scripts.client.DatarepoClient;
+import scripts.client.RawlsClient;
+import scripts.client.WorkspacesApi;
 
 /**
  * A test for dataset operations using the catalog service endpoints, with TDR snapshots as the
@@ -36,15 +40,18 @@ import scripts.client.DatarepoClient;
  *
  * <p>Create, Read, Update, Delete are tested.
  */
-public class SnapshotDatasetOperations extends TestScript {
+public class DatasetOperations extends TestScript {
 
-  private static final Logger log = LoggerFactory.getLogger(SnapshotDatasetOperations.class);
+  private static final Logger log = LoggerFactory.getLogger(DatasetOperations.class);
   private static final String TEST_DATASET_NAME = "CatalogTestDataset";
-  private static final String ADMIN_EMAIL = "datacatalogadmin@test.firecloud.org";
 
   // TDR APIs
   private SnapshotsSyncApi snapshotsApi;
   private UUID snapshotId;
+
+  // Rawls APIs
+  private WorkspacesApi workspacesApi;
+  private WorkspaceDetails workspaceDetails;
 
   // Catalog APis
   private UUID datasetId;
@@ -52,7 +59,19 @@ public class SnapshotDatasetOperations extends TestScript {
 
   @Override
   public void setup(List<TestUserSpecification> testUsers) throws Exception {
-    DatarepoClient datarepoClient = new DatarepoClient(server, testUsers.get(0));
+    var user = testUsers.get(0);
+    setupSnapshot(user);
+    setupWorkspace(user);
+  }
+
+  private void setupWorkspace(TestUserSpecification user) throws Exception {
+    var rawlsClient = new RawlsClient(server, user);
+    workspacesApi = rawlsClient.createWorkspacesApi();
+    workspaceDetails = workspacesApi.createTestWorkspace();
+  }
+
+  private void setupSnapshot(TestUserSpecification user) throws Exception {
+    DatarepoClient datarepoClient = new DatarepoClient(server, user);
     var datasetsApi = new bio.terra.datarepo.api.DatasetsApi(datarepoClient);
     var dataset =
         datasetsApi
@@ -85,17 +104,20 @@ public class SnapshotDatasetOperations extends TestScript {
     var client = new CatalogClient(server, testUser);
     datasetsApi = new DatasetsApi(client);
 
-    crudUserJourney(client);
-    previewUserJourney(client);
+    crudUserJourney(client, StorageSystem.TDR, snapshotId.toString());
+    crudUserJourney(client, StorageSystem.WKS, workspaceDetails.getWorkspaceId());
+
+    previewUserJourney(StorageSystem.TDR, snapshotId.toString());
   }
 
-  private void previewUserJourney(CatalogClient client) throws ApiException {
+  private void previewUserJourney(StorageSystem storageSystem, String sourceId)
+      throws ApiException {
     // Given a snapshot, create a catalog entry.
     var request =
         new CreateDatasetRequest()
             .catalogEntry(METADATA_1)
-            .storageSourceId(snapshotId.toString())
-            .storageSystem(StorageSystem.TDR);
+            .storageSourceId(sourceId)
+            .storageSystem(storageSystem);
     datasetId = datasetsApi.createDataset(request).getId();
     log.info("created dataset " + datasetId);
 
@@ -125,13 +147,14 @@ public class SnapshotDatasetOperations extends TestScript {
     datasetId = null;
   }
 
-  private void crudUserJourney(CatalogClient client) throws ApiException {
+  private void crudUserJourney(CatalogClient client, StorageSystem storageSystem, String sourceId)
+      throws ApiException {
     // Given a snapshot, create a catalog entry.
     var request =
         new CreateDatasetRequest()
             .catalogEntry(METADATA_1)
-            .storageSourceId(snapshotId.toString())
-            .storageSystem(StorageSystem.TDR);
+            .storageSourceId(sourceId)
+            .storageSystem(storageSystem);
     datasetId = datasetsApi.createDataset(request).getId();
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
     assertThat(datasetId, notNullValue());
@@ -188,6 +211,9 @@ public class SnapshotDatasetOperations extends TestScript {
     if (snapshotId != null) {
       snapshotsApi.synchronousDeleteSnapshot(snapshotId);
       log.info("deleted snapshot " + snapshotId);
+    }
+    if (workspaceDetails != null) {
+      workspacesApi.deleteWorkspace(workspaceDetails);
     }
   }
 }

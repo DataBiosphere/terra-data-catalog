@@ -4,6 +4,7 @@
 
   "catalogUri": "https://catalog.dsde-staging.broadinstitute.org/",
   "datarepoUri": "https://data.staging.envs-terra.bio/",
+  "workspaceManagerUri": "https://rawls.dsde-staging.broadinstitute.org/",
 
   "cluster": {
     "clusterName": "terra-staging",
