@@ -25,7 +25,7 @@ public class SnapshotsApi {
 
   private static SnapshotRequestModel createRequest(DatasetModel dataset) {
     return new SnapshotRequestModel()
-        .name("catalog_integration_test_" + System.currentTimeMillis())
+        .name(DatarepoClient.randomName())
         .description("test snapshot")
         .profileId(dataset.getDefaultProfileId())
         .addContentsItem(

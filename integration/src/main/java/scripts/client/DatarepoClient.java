@@ -11,10 +11,22 @@ import com.google.auth.oauth2.GoogleCredentials;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import scripts.api.TdrDatasetsApi;
 
 public class DatarepoClient extends ApiClient {
+
+  /**
+   * Generate a random name for use in TDR APIs. TDR doesn't allow hyphens so they're converted to
+   * underscores.
+   *
+   * @return the random name.
+   */
+  public static String randomName() {
+    return "catalog_integration_test_" + UUID.randomUUID().toString().replace('-', '_');
+  }
+
   /**
    * Build the API client object for the given test user and datarepo server. The test user's token
    * is always refreshed. If a test user isn't configured (e.g. when running locally), return an

@@ -97,7 +97,7 @@ public class TdrDatasetsApi {
                         new Column("files", TableDataType.STRING).arrayOf(true),
                         new Column("type", TableDataType.STRING))));
     return new DatasetRequestModel()
-        .name("catalog_integration_test_" + System.currentTimeMillis())
+        .name(DatarepoClient.randomName())
         .defaultProfileId(billingProfileId)
         .schema(schema);
   }
