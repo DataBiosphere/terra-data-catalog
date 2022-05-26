@@ -19,7 +19,6 @@ import bio.terra.catalog.model.TableMetadata;
 import bio.terra.datarepo.model.SnapshotRequestContentsModel;
 import bio.terra.datarepo.model.SnapshotRequestModel;
 import bio.terra.rawls.model.WorkspaceDetails;
-import bio.terra.rawls.model.WorkspaceRequest;
 import bio.terra.testrunner.runner.TestScript;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
 import com.google.api.client.http.HttpStatusCodes;
@@ -32,7 +31,6 @@ import scripts.api.SnapshotsSyncApi;
 import scripts.client.CatalogClient;
 import scripts.client.DatarepoClient;
 import scripts.client.RawlsClient;
-import scripts.client.WorkspacesApi;
 
 /**
  * A test for dataset operations using the catalog service endpoints, with TDR snapshots as the
@@ -50,7 +48,7 @@ public class DatasetOperations extends TestScript {
   private UUID snapshotId;
 
   // Rawls APIs
-  private WorkspacesApi workspacesApi;
+  private RawlsClient rawlsClient;
   private WorkspaceDetails workspaceDetails;
 
   // Catalog APis
@@ -65,9 +63,8 @@ public class DatasetOperations extends TestScript {
   }
 
   private void setupWorkspace(TestUserSpecification user) throws Exception {
-    var rawlsClient = new RawlsClient(server, user);
-    workspacesApi = rawlsClient.createWorkspacesApi();
-    workspaceDetails = workspacesApi.createTestWorkspace();
+    rawlsClient = new RawlsClient(server, user);
+    workspaceDetails = rawlsClient.createTestWorkspace();
   }
 
   private void setupSnapshot(TestUserSpecification user) throws Exception {
@@ -213,7 +210,7 @@ public class DatasetOperations extends TestScript {
       log.info("deleted snapshot " + snapshotId);
     }
     if (workspaceDetails != null) {
-      workspacesApi.deleteWorkspace(workspaceDetails);
+      rawlsClient.deleteWorkspace(workspaceDetails);
     }
   }
 }
