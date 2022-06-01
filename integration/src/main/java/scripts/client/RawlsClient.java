@@ -83,7 +83,7 @@ public class RawlsClient {
    */
   public RawlsClient(ServerSpecification server, TestUserSpecification testUser)
       throws IOException {
-    String basePath = Objects.requireNonNull(server.workspaceManagerUri, "Rawls URI required");
+    String basePath = Objects.requireNonNull(server.rawlsUri, "Rawls URI required");
     workspacesApi = createWorkspacesApi(basePath, testUser);
     billingApi = createBillingApi(basePath, testUser);
   }

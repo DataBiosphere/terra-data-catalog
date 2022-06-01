@@ -4,7 +4,7 @@
 
   "catalogUri": "http://localhost:8080",
   "datarepoUri": "https://jade.datarepo-dev.broadinstitute.org/",
-  "workspaceManagerUri": "https://rawls.dsde-dev.broadinstitute.org/",
+  "rawlsUri": "https://rawls.dsde-dev.broadinstitute.org/",
 
   "testRunnerServiceAccountFile": "testrunner-perf.json",
 
