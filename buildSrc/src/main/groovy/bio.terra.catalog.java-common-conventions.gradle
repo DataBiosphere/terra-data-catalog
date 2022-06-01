@@ -50,7 +50,7 @@ dependencies {
     testImplementation 'org.hamcrest:hamcrest:2.2'
 
     implementation 'bio.terra:terra-common-lib:0.0.53-SNAPSHOT'
-    implementation 'bio.terra:datarepo-client:1.313.0-SNAPSHOT'
+    implementation 'bio.terra:datarepo-client:1.349.0-SNAPSHOT'
 }
 
 tasks.named('test') {

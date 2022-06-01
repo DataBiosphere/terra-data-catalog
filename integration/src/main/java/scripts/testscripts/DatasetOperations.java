@@ -18,6 +18,7 @@ import bio.terra.catalog.model.StorageSystem;
 import bio.terra.catalog.model.TableMetadata;
 import bio.terra.datarepo.model.SnapshotRequestContentsModel;
 import bio.terra.datarepo.model.SnapshotRequestModel;
+import bio.terra.datarepo.model.DatasetModel;
 import bio.terra.rawls.model.WorkspaceDetails;
 import bio.terra.testrunner.runner.TestScript;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
@@ -27,7 +28,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scripts.api.SnapshotsSyncApi;
+import scripts.api.SnapshotsApi;
 import scripts.client.CatalogClient;
 import scripts.client.DatarepoClient;
 import scripts.client.RawlsClient;
@@ -44,7 +45,7 @@ public class DatasetOperations extends TestScript {
   private static final String TEST_DATASET_NAME = "CatalogTestDataset";
 
   // TDR APIs
-  private SnapshotsSyncApi snapshotsApi;
+  private SnapshotsApi snapshotsApi;
   private UUID snapshotId;
 
   // Rawls APIs
@@ -69,25 +70,15 @@ public class DatasetOperations extends TestScript {
 
   private void setupSnapshot(TestUserSpecification user) throws Exception {
     DatarepoClient datarepoClient = new DatarepoClient(server, user);
-    var datasetsApi = new bio.terra.datarepo.api.DatasetsApi(datarepoClient);
+    DatasetModel tdrDataset = datarepoClient.datasetsApi().getTestDataset();
     var dataset =
         datasetsApi
             .enumerateDatasets(null, null, null, null, TEST_DATASET_NAME, null)
             .getItems()
             .get(0);
 
-    snapshotsApi = new SnapshotsSyncApi(datarepoClient);
-    var request =
-        new SnapshotRequestModel()
-            .name("catalog_integration_test_" + System.currentTimeMillis())
-            .description("catalog test snapshot")
-            .profileId(dataset.getDefaultProfileId())
-            .addContentsItem(
-                new SnapshotRequestContentsModel()
-                    .datasetName(TEST_DATASET_NAME)
-                    .mode(SnapshotRequestContentsModel.ModeEnum.BYFULLVIEW));
-    snapshotId = snapshotsApi.synchronousCreateSnapshot(request);
-    log.info("created snapshot " + snapshotId);
+    snapshotsApi = new SnapshotsApi(datarepoClient);
+    snapshotId = snapshotsApi.createTestSnapshot(tdrDataset);
   }
 
   private static final String METADATA_1 = """
@@ -206,7 +197,7 @@ public class DatasetOperations extends TestScript {
       log.info("deleted dataset " + datasetId);
     }
     if (snapshotId != null) {
-      snapshotsApi.synchronousDeleteSnapshot(snapshotId);
+      snapshotsApi.delete(snapshotId);
       log.info("deleted snapshot " + snapshotId);
     }
     if (workspaceDetails != null) {

@@ -141,7 +141,7 @@ class DatarepoServiceTest {
   void getPreviewTable() throws Exception {
     var id = UUID.randomUUID();
     var tableName = "table";
-    when(snapshotsApi.lookupSnapshotPreviewById(id, tableName, null, null))
+    when(snapshotsApi.lookupSnapshotPreviewById(id, tableName, null, null, null, null))
         .thenReturn(new SnapshotPreviewModel());
     assertThat(
         datarepoService.getPreviewTable(user, id.toString(), tableName),
@@ -154,7 +154,7 @@ class DatarepoServiceTest {
     var tableName = "table";
     var errorMessage = "Oops, I have errored";
 
-    when(snapshotsApi.lookupSnapshotPreviewById(id, tableName, null, null))
+    when(snapshotsApi.lookupSnapshotPreviewById(id, tableName, null, null, null, null))
         .thenThrow(new ApiException(HttpStatus.NOT_FOUND.value(), errorMessage));
 
     DatarepoException t =
