@@ -16,8 +16,6 @@ import bio.terra.catalog.model.ColumnModel;
 import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.StorageSystem;
 import bio.terra.catalog.model.TableMetadata;
-import bio.terra.datarepo.model.SnapshotRequestContentsModel;
-import bio.terra.datarepo.model.SnapshotRequestModel;
 import bio.terra.datarepo.model.DatasetModel;
 import bio.terra.rawls.model.WorkspaceDetails;
 import bio.terra.testrunner.runner.TestScript;
@@ -71,12 +69,6 @@ public class DatasetOperations extends TestScript {
   private void setupSnapshot(TestUserSpecification user) throws Exception {
     DatarepoClient datarepoClient = new DatarepoClient(server, user);
     DatasetModel tdrDataset = datarepoClient.datasetsApi().getTestDataset();
-    var dataset =
-        datasetsApi
-            .enumerateDatasets(null, null, null, null, TEST_DATASET_NAME, null)
-            .getItems()
-            .get(0);
-
     snapshotsApi = new SnapshotsApi(datarepoClient);
     snapshotId = snapshotsApi.createTestSnapshot(tdrDataset);
   }
