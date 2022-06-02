@@ -4,6 +4,7 @@
 
   "catalogUri": "https://catalog.dsde-perf.broadinstitute.org/",
   "datarepoUri": "https://jade.datarepo-dev.broadinstitute.org/",
+  "rawlsUri": "https://rawls.dsde-perf.broadinstitute.org/",
 
   "cluster": {
     "clusterName": "terra-perf",

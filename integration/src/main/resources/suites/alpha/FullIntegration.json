@@ -5,6 +5,7 @@
   "testConfigurationFiles": [
     "integration/GetStatus.json",
     "integration/GetVersion.json",
-    "integration/SnapshotDatasetOperations.json"
+    "integration/DatasetPermissionOperations.json",
+    "integration/DatasetOperations.json"
   ]
 }

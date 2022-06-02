@@ -6,6 +6,6 @@
     "perf/GetStatus.json",
     "perf/GetVersion.json",
     "perf/DatasetPermissionOperations.json",
-    "perf/SnapshotDatasetOperations.json"
+    "perf/DatasetOperations.json"
   ]
 }
