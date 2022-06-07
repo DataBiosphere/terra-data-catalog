@@ -13,7 +13,7 @@
 #   delete_wks    deletes all test workspaces
 #   delete_prj    deletes the workspace billing project (not recommended)
 #   list          lists all test workspaces
-#
+# ------------------------------------------------------------------------------
 set -eu
 
 usage() {
@@ -64,7 +64,7 @@ list_workspaces() {
   curl -s -X 'GET' \
     -H 'accept: application/json' \
     -H "${AUTH_TOKEN}" \
-    "${RAWLS_ENV}/workspaces" | jq -r '.[].workspace | select(.namespace == "catalog_test_project") | [ .namespace, .name ] | join("/")'
+    "${RAWLS_ENV}/workspaces" | jq -r '.[].workspace | select(.namespace == "'"${PROJECT_NAME}"'") | [ .namespace, .name ] | join("/")'
 }
 
 delete_workspace() {
