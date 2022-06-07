@@ -39,7 +39,9 @@ class DatarepoClientTest {
 
     var unauthClient = client.unauthenticatedApi().getApiClient();
     assertThat(unauthClient.getBasePath(), is(BASE_PATH));
-    assertThat(unauthClient.getAuthentication(AUTH_NAME), nullValue());
+    oauth = (OAuth) unauthClient.getAuthentication(AUTH_NAME);
+    assertNotNull(oauth);
+    assertThat(oauth.getAccessToken(), nullValue());
 
     assertThat(unauthClient.getHttpClient(), is(snapshotsClient.getHttpClient()));
   }

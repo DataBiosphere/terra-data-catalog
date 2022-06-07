@@ -30,8 +30,6 @@ class SamClientTest {
     var statusClient = client.statusApi().getApiClient();
     assertThat(statusClient.getBasePath(), is(BASE_PATH));
 
-    //    assertThat(statusClient.getHttpClient(), is(usersClient.getHttpClient()));
-
     var resourcesClient = client.resourcesApi(TOKEN).getApiClient();
     assertThat(resourcesClient.getBasePath(), is(BASE_PATH));
   }
