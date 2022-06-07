@@ -41,7 +41,7 @@ delete_action() {
   delete_billing_project
 }
 
-AUTH_TOKEN=$(printf "Authorization: Bearer %s" "$(gcloud auth print-access-token)")
+AUTH_TOKEN="Authorization: Bearer $(gcloud auth print-access-token)"
 BILLING_ACCT="billingAccounts/00708C-45D19D-27AAFA"
 PROJECT_NAME="catalog_test_project"
 WORKSPACE_NAME="catalog_test_workspace_discoverable"
@@ -53,7 +53,7 @@ case $1 in
   dev | perf | alpha | staging) ;;
   *) usage ;;
 esac
-RAWLS_ENV=$(printf "https://rawls.dsde-%s.broadinstitute.org/api" "$1")
+RAWLS_ENV="https://rawls.dsde-${1}.broadinstitute.org/api"
 case $2 in
   create) create_action ;;
   delete) delete_action ;;
