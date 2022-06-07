@@ -5,20 +5,27 @@
 # A script to manually create, list, and delete test workspaces for data catalog.
 #
 # Usage:
-#   ./manage-test-workspaces.sh <env> <create/delete_wks/delete_prj/list>
+#   ./manage-test-workspaces.sh <env> <create/delete_wks/delete_prj/list> <quiet>
 #
-#   env           should be one of dev, perf, alpha, or staging
+#   <env>         should be one of dev, perf, alpha, or staging
 #
 #   create        creates a new workspace
 #   delete_wks    deletes all test workspaces
 #   delete_prj    deletes the workspace billing project (not recommended)
 #   list          lists all test workspaces
+#
+#   quiet         (optional) hide the email output
 # ------------------------------------------------------------------------------
 set -eu
 
 usage() {
   echo "usage: $0 <env> <create/delete_wks/delete_prj/list>"
   exit 1
+}
+
+list_current_gcloud_account() {
+  ACCT=$(gcloud config list account --format "value(core.account)" 2> /dev/null)
+  echo "Executing script as user: ${ACCT}"
 }
 
 exists_billing_project() {
@@ -91,6 +98,9 @@ case $1 in
   *) usage ;;
 esac
 RAWLS_ENV="https://rawls.dsde-${1}.broadinstitute.org/api"
+if [ "${3:-}" != "quiet" ]; then
+  list_current_gcloud_account
+fi
 case $2 in
   create) create_action ;;
   delete_wks) delete_all_workspaces ;;
