@@ -4,6 +4,7 @@
 
   "catalogUri": "https://catalog.dsde-alpha.broadinstitute.org/",
   "datarepoUri": "https://data.alpha.envs-terra.bio/",
+  "rawlsUri": "https://rawls.dsde-alpha.broadinstitute.org/",
 
   "cluster": {
     "clusterName": "terra-alpha",

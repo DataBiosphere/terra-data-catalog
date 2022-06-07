@@ -1,10 +1,11 @@
 {
-  "name": "FullStaging",
+  "name": "FullIntegration",
   "description": "All staging tests",
   "serverSpecificationFile": "catalog-staging.json",
   "testConfigurationFiles": [
     "integration/GetStatus.json",
     "integration/GetVersion.json",
-    "integration/SnapshotDatasetOperations.json"
+    "integration/DatasetPermissionOperations.json",
+    "integration/DatasetOperations.json"
   ]
 }
