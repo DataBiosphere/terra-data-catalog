@@ -157,6 +157,7 @@ dataModalityMap = {
     "MARS-seq": ["TerraCoreValueSets:Transcriptomic"],
 }
 
+
 def log_response(response, message):
     if response.ok:
         print("success!", response.text)
@@ -318,9 +319,7 @@ def generate_catalog_metadata(workspace):
         "prov:wasGeneratedBy": get_workspace_generated(wsAttributes),
         "files": get_workspace_files(wsAttributes),
         "TerraDCAT_ap:hasConsentGroup": wsAttributes.pop("library:orsp", None),
-        "workspaces": {
-            "legacy": workspace
-        }
+        "workspaces": {"legacy": workspace},
     }
 
     return wsAttributes, metadata
@@ -340,5 +339,6 @@ def main():
     print("------------------------------------------------------------")
     print("Unused Attributes \n", json.dumps(unusedWorkspaceAttributes))
     print("------------------------------------------------------------")
+
 
 main()
