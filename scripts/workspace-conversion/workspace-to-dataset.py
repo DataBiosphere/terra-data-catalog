@@ -227,7 +227,7 @@ def get_workspace_contributors(wsAttributes):
             contributor["contactName"] = wsAttributes["library:datasetDepositor"]
             contributor["correspondingContributor"] = True
         contributor["email"] = wsAttributes.get("library:contactEmail", None)
-        contributor["intstitution"] = next(
+        contributor["institution"] = next(
             iter(wsAttributes.get("library:institute", {}).get("items", [])), None
         )
         ret.append(contributor)
@@ -298,7 +298,6 @@ def generate_catalog_metadata(workspace):
         "dct:title": wsAttributes.get("library:datasetName", None),
         "dct:version": wsAttributes.get("library:datasetVersion", None),
         "dct:description": wsAttributes.get("library:datasetDescription", None),
-        "TerraDCAT_ap:hasOwner": wsAttributes.get("library:datasetOwner", None),
         "TerraDCAT_ap:hasDataCollection": list(
             filter(
                 None,
@@ -309,7 +308,7 @@ def generate_catalog_metadata(workspace):
                 ],
             )
         ),
-        "TerraDCAT_ap:hasOnwer": wsAttributes.get("library:datasetOwner", None),
+        "TerraDCAT_ap:hasOwner": wsAttributes.get("library:datasetOwner", None),
         "TerraDCAT_ap:hasCustodian": wsAttributes.get("library:datasetCustodian", None),
         "contributors": get_workspace_contributors(wsAttributes),
         "prov:wasAssociatedWith": next(
