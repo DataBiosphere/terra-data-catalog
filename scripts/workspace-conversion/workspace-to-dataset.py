@@ -31,7 +31,6 @@ import requests, urllib.parse
 import itertools
 import uuid, time
 
-terraUiRoot = os.environ.get("TERRA_URL") or "https://bvdp-saturn-dev.appspot.com"
 urlRoot = os.environ.get("RAWLS_URL") or "https://rawls.dsde-prod.broadinstitute.org"
 urlWorkspace = f"{urlRoot}/api/workspaces"
 workspaceNamespace = os.environ.get("WORKSPACE_NAMESPACE")
@@ -158,7 +157,6 @@ dataModalityMap = {
     "MARS-seq": ["TerraCoreValueSets:Transcriptomic"],
 }
 
-
 def log_response(response, message):
     if response.ok:
         print("success!", response.text)
@@ -226,9 +224,9 @@ def get_workspace_contributors(wsAttributes):
         if "library:datasetDepositor" in wsAttributes:
             contributor["contactName"] = wsAttributes["library:datasetDepositor"]
             contributor["correspondingContributor"] = True
-        contributor["email"] = wsAttributes.get("library:contactEmail", None)
+        contributor["email"] = wsAttributes.pop("library:contactEmail", None)
         contributor["institution"] = next(
-            iter(wsAttributes.get("library:institute", {}).get("items", [])), None
+            iter(wsAttributes.pop("library:institute", {}).pop("items", [])), None
         )
         ret.append(contributor)
     return ret
@@ -242,7 +240,7 @@ def get_workspace_generated(wsAttributes):
     ret.append(
         {
             "TerraCore:hasDataModality": map_data_modality(
-                wsAttributes.get("library:datatype", {}).get("items", [])
+                wsAttributes.pop("library:datatype", {}).pop("items", [])
             )
         }
     )
@@ -251,7 +249,7 @@ def get_workspace_generated(wsAttributes):
 
 def get_workspace_files(wsAttributes):
     ret = []
-    fileList = wsAttributes.get("library:dataFileFormats", {}).get("items", [])
+    fileList = wsAttributes.pop("library:dataFileFormats", {}).get("items", [])
     for ext in fileList:
         fileObj = {"dcat:mediaType": ext, "count": 0, "byteSize": 0}
         ret.append(fileObj)
@@ -262,25 +260,29 @@ def generate_catalog_metadata(workspace):
     print("Generating workspace metadata")
 
     wsAttributes = workspace["workspace"]["attributes"]
+    print(type(wsAttributes))
 
     # Set empty up the major objects
     metadata = {
         "samples": {
+            # Use set first to dedup, then list because set is not json serializable
             "disease": list(
-                filter(
-                    None,
-                    [
-                        wsAttributes.get("library:diseaseOntologyLabel", None),
-                        wsAttributes.get("library:indication", None),
-                        wsAttributes.get("library:primaryDiseaseSite", None),
-                        wsAttributes.get("library:studyDesign", None),
-                        wsAttributes.get("library:cellType", None),
-                    ],
+                set(
+                    filter(
+                        None,
+                        [
+                            wsAttributes.pop("library:diseaseOntologyLabel", None),
+                            wsAttributes.pop("library:indication", None),
+                            wsAttributes.pop("library:primaryDiseaseSite", None),
+                            wsAttributes.pop("library:studyDesign", None),
+                            wsAttributes.pop("library:cellType", None),
+                        ],
+                    )
                 )
             )
         },
-        "counts": {"donors": wsAttributes.get("library:numSubjects", 0)},
-        "dct:dataCategory": wsAttributes.get("library:dataCategory", {}).get(
+        "counts": {"donors": wsAttributes.pop("library:numSubjects", 0)},
+        "dct:dataCategory": wsAttributes.pop("library:dataCategory", {}).get(
             "items", None
         ),
         "TerraDCAT_ap:hasDataUsePermission": list(
@@ -288,16 +290,16 @@ def generate_catalog_metadata(workspace):
                 None,
                 [
                     map_dataset_release_policy(
-                        wsAttributes.get(
+                        wsAttributes.pop(
                             "library:dataUseRestriction", "No restrictions"
                         )
                     )
                 ],
             )
         ),
-        "dct:title": wsAttributes.get("library:datasetName", None),
-        "dct:version": wsAttributes.get("library:datasetVersion", None),
-        "dct:description": wsAttributes.get("library:datasetDescription", None),
+        "dct:title": wsAttributes.pop("library:datasetName", None),
+        "dct:version": wsAttributes.pop("library:datasetVersion", None),
+        "dct:description": wsAttributes.pop("library:datasetDescription", None),
         "TerraDCAT_ap:hasDataCollection": list(
             filter(
                 None,
@@ -308,18 +310,21 @@ def generate_catalog_metadata(workspace):
                 ],
             )
         ),
-        "TerraDCAT_ap:hasOwner": wsAttributes.get("library:datasetOwner", None),
-        "TerraDCAT_ap:hasCustodian": wsAttributes.get("library:datasetCustodian", None),
+        "TerraDCAT_ap:hasOwner": wsAttributes.pop("library:datasetOwner", None),
+        "TerraDCAT_ap:hasCustodian": wsAttributes.pop("library:datasetCustodian", None),
         "contributors": get_workspace_contributors(wsAttributes),
         "prov:wasAssociatedWith": next(
-            iter(wsAttributes.get("library:institute", {}).get("items", [])), None
+            iter(wsAttributes.pop("library:institute", {}).get("items", [])), None
         ),
         "prov:wasGeneratedBy": get_workspace_generated(wsAttributes),
         "files": get_workspace_files(wsAttributes),
-        "TerraDCAT_ap:hasConsentGroup": wsAttributes.get("library:orsp", None),
+        "TerraDCAT_ap:hasConsentGroup": wsAttributes.pop("library:orsp", None),
+        "workspaces": {
+            "legacy": workspace
+        }
     }
 
-    return metadata
+    return wsAttributes, metadata
 
 
 def main():
@@ -330,20 +335,11 @@ def main():
 
     # Get workspace information
     workspace = get_workspace(accessToken)
-    metadata = generate_catalog_metadata(workspace)
+    unusedWorkspaceAttributes, metadata = generate_catalog_metadata(workspace)
     print("------------------------------------------------------------")
     print("JSON Result:\n", json.dumps(metadata))
     print("------------------------------------------------------------")
-    print("Demo Link:")
-    # Add demo fields, like the server would
-    metadata["id"] = f"external_id_{uuid.uuid4()}"
-    metadata["dct:modified"] = time.time()
-    metadata["roles"] = ["reader", "admin "]
-    jsonMetadata = json.dumps(metadata)
-    print(
-        f"{terraUiRoot}/#library/browser?externalWorkspace={urllib.parse.quote(jsonMetadata)}"
-    )
+    print("Unused Attributes \n", json.dumps(unusedWorkspaceAttributes))
     print("------------------------------------------------------------")
-
 
 main()
