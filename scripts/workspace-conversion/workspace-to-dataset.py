@@ -260,7 +260,6 @@ def generate_catalog_metadata(workspace):
     print("Generating workspace metadata")
 
     wsAttributes = workspace["workspace"]["attributes"]
-    print(type(wsAttributes))
 
     # Set empty up the major objects
     metadata = {
