@@ -227,7 +227,7 @@ def get_workspace_contributors(wsAttributes):
             contributor["correspondingContributor"] = True
         contributor["email"] = wsAttributes.pop("library:contactEmail", None)
         contributor["institution"] = next(
-            iter(wsAttributes.pop("library:institute", {}).pop("items", [])), None
+            iter(wsAttributes.pop("library:institute", {}).get("items", [])), None
         )
         ret.append(contributor)
     return ret
