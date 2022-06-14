@@ -226,6 +226,8 @@ def get_workspace_contributors(wsAttributes):
             contributor["contactName"] = wsAttributes["library:datasetDepositor"]
             contributor["correspondingContributor"] = True
         contributor["email"] = wsAttributes.pop("library:contactEmail", None)
+        # We currently only get the first item in the institution list.
+        # We may want to revisit this.
         contributor["institution"] = next(
             iter(wsAttributes.pop("library:institute", {}).get("items", [])), None
         )
