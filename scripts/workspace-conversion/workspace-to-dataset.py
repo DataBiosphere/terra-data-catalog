@@ -26,10 +26,10 @@
 #   TERRA_URL: url for terra ui. Default set to staging. Used to output demo link.
 # ------------------------------------------------------------------------------
 import json
-import os, subprocess, sys
-import requests, urllib.parse
+import os, subprocess
+import requests
 import itertools
-import uuid, time
+from datetime import datetime
 
 urlRoot = os.environ.get("RAWLS_URL") or "https://rawls.dsde-prod.broadinstitute.org"
 urlWorkspace = f"{urlRoot}/api/workspaces"
@@ -302,6 +302,7 @@ def generate_catalog_metadata(workspace):
         "dct:title": wsAttributes.pop("library:datasetName", None),
         "dct:version": wsAttributes.pop("library:datasetVersion", None),
         "dct:description": wsAttributes.pop("library:datasetDescription", None),
+        "dct:modified": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
         "TerraDCAT_ap:hasDataCollection": list(
             filter(
                 None,
