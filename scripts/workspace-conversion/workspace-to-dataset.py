@@ -302,7 +302,7 @@ def generate_catalog_metadata(workspace):
         "dct:title": wsAttributes.pop("library:datasetName", None),
         "dct:version": wsAttributes.pop("library:datasetVersion", None),
         "dct:description": wsAttributes.pop("library:datasetDescription", None),
-        "dct:modified": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+        "dct:modified": workspace["workspace"]["lastModified"],
         "TerraDCAT_ap:hasDataCollection": list(
             filter(
                 None,
