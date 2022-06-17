@@ -322,7 +322,7 @@ def generate_catalog_metadata(workspace):
         "prov:wasGeneratedBy": get_workspace_generated(wsAttributes),
         "files": get_workspace_files(wsAttributes),
         "TerraDCAT_ap:hasConsentGroup": wsAttributes.pop("library:orsp", None),
-        "workspaces": {"legacy": workspace},
+        "workspaces": {"legacy": {"workspace": workspace["workspace"]}},
     }
 
     return wsAttributes, metadata

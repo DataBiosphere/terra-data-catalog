@@ -16,10 +16,10 @@ To run this script you must authed as an "admin" on the
 def generate_access_token(user):
     auth_as_user(user)
 
-    printProc = subprocess.Popen(
+    print_proc = subprocess.Popen(
         ["gcloud auth print-access-token"], stdout=subprocess.PIPE, shell=True
     )
-    (out, err) = printProc.communicate()
+    (out, err) = print_proc.communicate()
 
     return out.decode("ASCII").strip()
 
@@ -31,15 +31,15 @@ def auth_as_user(user):
     proc.communicate()
 
 
-def create_dataset(env, accessToken, storage_system, storage_system_id, entry):
+def create_dataset(env, access_token, storage_system, storage_source_id, entry):
     headers = {
-        "Authorization": f"Bearer {accessToken}",
+        "Authorization": f"Bearer {access_token}",
         "Content-Type": "application/json",
     }
 
     request = {
         "storageSystem": str(storage_system),
-        "storageSourceId": str(storage_system_id),
+        "storageSourceId": str(storage_source_id),
         "catalogEntry": json.dumps(entry),
     }
     response = requests.post(
@@ -60,7 +60,7 @@ def main(args, current_user):
         args.environment,
         access_token,
         args.storage_system,
-        args.storage_system_id,
+        args.storage_source_id,
         data,
     )
 
@@ -86,7 +86,7 @@ if __name__ == "__main__":
             type=str,
             choices=["prod", "dev", "alpha", "staging", "perf"],
             default="dev",
-            help="firecloud environment to create dataset in",
+            help="terra data catalog environment to create dataset in",
         )
         parser.add_argument("--user", type=str, default=current_user)
         parser.add_argument(
@@ -97,7 +97,7 @@ if __name__ == "__main__":
             help="storage system for the dataset to be created",
         )
         parser.add_argument(
-            "--storage-system-id",
+            "--storage-source-id",
             type=str,
             required=True,
             help="id for the underlying resource in the storage system",
