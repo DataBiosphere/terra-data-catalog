@@ -42,7 +42,6 @@ def create_dataset(env, accessToken, storage_system, storage_system_id, entry):
         "storageSourceId": str(storage_system_id),
         "catalogEntry": json.dumps(entry),
     }
-    print(headers)
     response = requests.post(
         f"https://catalog.dsde-{env}.broadinstitute.org/api/v1/datasets",
         headers=headers,
@@ -53,9 +52,7 @@ def create_dataset(env, accessToken, storage_system, storage_system_id, entry):
 
 
 def main(args, current_user):
-    print(args)
     access_token = generate_access_token(args.user)
-    print(access_token)
     # Opening JSON file
     with open(args.metadata_file, "r") as f:
         data = json.load(f)
