@@ -243,7 +243,7 @@ def get_workspace_generated(wsAttributes):
     ret.append(
         {
             "TerraCore:hasDataModality": map_data_modality(
-                wsAttributes.pop("library:datatype", {}).pop("items", [])
+                wsAttributes.pop("library:datatype", {}).get("items", [])
             )
         }
     )
@@ -259,7 +259,7 @@ def get_workspace_files(wsAttributes):
     return ret
 
 
-def generate_catalog_metadata(workspace):
+def generate_catalog_metadata(workspace, bucket):
     print("Generating workspace metadata")
 
     wsAttributes = workspace["workspace"]["attributes"]
@@ -322,10 +322,34 @@ def generate_catalog_metadata(workspace):
         "prov:wasGeneratedBy": get_workspace_generated(wsAttributes),
         "files": get_workspace_files(wsAttributes),
         "TerraDCAT_ap:hasConsentGroup": wsAttributes.pop("library:orsp", None),
+        "storage": [
+            {
+                bucket["locationType"]: bucket["location"],
+                "cloudPlatform": "gcp",
+                "cloudResource": "bucket",
+            }
+        ],
         "workspaces": {"legacy": workspace},
     }
 
     return wsAttributes, metadata
+
+
+def get_bucket_information(bucketName, accessToken):
+    print("Getting bucket information from google cloud storage...")
+    headers = {
+        "Authorization": f"Bearer {accessToken}",
+        "Content-Type": "application/json",
+        "authority": "storage.googleapis.com",
+    }
+
+    # Get dataset list once in if lowerPolicy == of collision later
+    response = requests.get(
+        f"https://storage.googleapis.com/storage/v1/b/{bucketName}", headers=headers
+    )
+    responseData = json.loads(response.text)
+    print("loaded bucket information from google cloud storage")
+    return responseData
 
 
 def main():
@@ -336,7 +360,8 @@ def main():
 
     # Get workspace information
     workspace = get_workspace(accessToken)
-    unusedWorkspaceAttributes, metadata = generate_catalog_metadata(workspace)
+    bucket = get_bucket_information(workspace["workspace"]["bucketName"], accessToken)
+    unusedWorkspaceAttributes, metadata = generate_catalog_metadata(workspace, bucket)
     print("------------------------------------------------------------")
     print("JSON Result:\n", json.dumps(metadata))
     print("------------------------------------------------------------")
