@@ -287,6 +287,7 @@ def generate_catalog_metadata(workspace):
         "dct:dataCategory": wsAttributes.pop("library:dataCategory", {}).get(
             "items", None
         ),
+        "dct:identifier": workspace["workspace"].get("workspaceId", None),
         "TerraDCAT_ap:hasDataUsePermission": list(
             filter(
                 None,
