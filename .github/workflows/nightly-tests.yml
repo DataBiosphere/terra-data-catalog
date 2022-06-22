@@ -1,9 +1,24 @@
 name: Nightly Tests
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        description: 'environment to run test in'
+        required: true
+        options:
+          - perf
+          - staging
+          - alpha
+          - dev
+        default: 'perf'
   schedule:
     - cron: "0 6 * * *" # runs at 6 AM UTC, 1 AM EST.
+
+env:
+  TEST_ENV: ${{ github.event.inputs.environment }}
+  TEST_DEFAULT: perf
 
 jobs:
   build:
@@ -58,6 +73,22 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      - name: Set default test env
+        run: |
+          echo "TEST_ENV=${{ env.TEST_ENV || env.TEST_DEFAULT }}" >> $GITHUB_ENV
+
+      - name: Get the helm chart versions for the perf env
+        run: |
+          curl -H 'Authorization: token ${{ secrets.BROADBOT_TOKEN }}' \
+            -H 'Accept: application/vnd.github.v3.raw' \
+            -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/versions/app/dev.yaml \
+            --create-dirs -o "integration/src/main/resources/rendered/dev.yaml"
+          curl -H 'Authorization: token ${{ secrets.BROADBOT_TOKEN }}' \
+            -H 'Accept: application/vnd.github.v3.raw' \
+            -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/environments/live/$TEST_ENV.yaml \
+            --create-dirs -o "integration/src/main/resources/rendered/$TEST_ENV.yaml"
+
       - name: Set up JDK
         uses: actions/setup-java@v2
         with:
@@ -68,11 +99,12 @@ jobs:
       - name: Render GitHub Secrets
         run: |
           echo "${{ secrets.DEV_FIRECLOUD_ACCOUNT_B64 }}" | base64 -d > "integration/src/main/resources/rendered/user-delegated-sa.json"
-          echo "${{ secrets.PERF_TESTRUNNER_ACCOUNT_B64 }}" | base64 -d > "integration/src/main/resources/rendered/testrunner-sa.json"
+          echo "${{ secrets.PERF_TESTRUNNER_ACCOUNT_B64 }}" | base64 -d > "integration/src/main/resources/rendered/testrunner-perf.json"
 
       - name: Run perf test suite
         run: |
-          ./gradlew --build-cache :integration:runTest --scan --args="suites/FullPerf.json build/reports"
+          ./gradlew --build-cache runTest --args="suites/$TEST_ENV/FullIntegration.json build/reports"
+          ./gradlew --build-cache uploadResults --args="CompressDirectoryToTerraKernelK8S.json build/reports"
 
       - name: Upload Test Reports
         if: always()
@@ -81,31 +113,37 @@ jobs:
           name: Test Reports
           path: integration/build/reports
 
-  notify-slack:
+  notify-de-slack:
     needs: [ build, jib, test-runner ]
     runs-on: ubuntu-latest
+    if: failure()
+
     steps:
       - name: "Notify #jade-data-explorer Slack on failure"
         uses: broadinstitute/action-slack@v3.8.0
-        if: failure()
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           channel: '#jade-data-explorer'
-          status: failure
+          status: ${{ needs.test-runner.result }}
           author_name: Nightly test
           fields: workflow,message
           text: 'Nightly test failed :sadpanda:'
           username: 'Data Explorer GitHub Action'
 
+  notify-qa-slack:
+    needs: [ build, jib, test-runner ]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
       - name: "Always notify #dsde-qa Slack"
         uses: broadinstitute/action-slack@v3.8.0
-        if: always()
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           channel: '#dsde-qa'
-          status: ${{ job.status }}
+          status: ${{ needs.test-runner.result }}
           author_name: Nightly test
           fields: workflow,message
           text: 'Nightly performance test results'

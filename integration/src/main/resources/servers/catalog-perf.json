@@ -3,6 +3,8 @@
   "description": "Catalog Performance Testing Environment",
 
   "catalogUri": "https://catalog.dsde-perf.broadinstitute.org/",
+  "datarepoUri": "https://jade.datarepo-dev.broadinstitute.org/",
+  "rawlsUri": "https://rawls.dsde-perf.broadinstitute.org/",
 
   "cluster": {
     "clusterName": "terra-perf",
@@ -15,8 +17,27 @@
     "apiComponentLabel":  "catalog"
   },
   "deploymentScript": {},
-  "testRunnerServiceAccountFile": "testrunner-sa.json",
+  "testRunnerServiceAccountFile": "testrunner-perf.json",
 
   "skipDeployment": true,
-  "skipKubernetes": true
+  "skipKubernetes": true,
+
+  "versionScripts": [
+    {
+      "name": "ReadFromTerraHelmfileRepo",
+      "description": "Version from https://github.com/broadinstitute/terra-helmfile",
+      "parametersMap": {
+        "app-name": "catalog",
+        "base-file-path": "src/main/resources/rendered/dev.yaml",
+        "override-file-path": "src/main/resources/rendered/perf.yaml"
+      }
+    },
+    {
+      "name": "ReadFromGitCommitLog",
+      "description": "Hash of git branch from Git Commit Log",
+      "parametersMap": {
+        "git-dir": "../.git"
+      }
+    }
+  ]
 }

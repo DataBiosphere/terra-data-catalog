@@ -1,17 +1,17 @@
 {
-  "name": "ListDatasets",
-  "description": "List datasets",
-  "serverSpecificationFile": "catalog-local.json",
+  "name": "DatasetPermissionOperations",
+  "description": "Dataset Permission Operations",
+  "serverSpecificationFile": "catalog-perf.json",
   "kubernetes": {},
   "application": {},
   "testScripts": [
     {
-      "name": "ListDatasets",
+      "name": "DatasetPermissionOperations",
       "numberOfUserJourneyThreadsToRun": 1,
       "userJourneyThreadPoolSize": 2,
       "expectedTimeForEach": 5,
       "expectedTimeForEachUnit": "SECONDS"
     }
   ],
-  "testUserFiles": [ "user.json" ]
+  "testUserFiles": [ "admin.json", "user.json" ]
 }

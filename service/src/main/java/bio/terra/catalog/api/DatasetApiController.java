@@ -3,11 +3,14 @@ package bio.terra.catalog.api;
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.CreatedDatasetId;
+import bio.terra.catalog.model.DatasetPreviewTable;
+import bio.terra.catalog.model.DatasetPreviewTablesResponse;
 import bio.terra.catalog.model.DatasetsListResponse;
 import bio.terra.catalog.service.DatasetService;
 import bio.terra.catalog.service.dataset.DatasetId;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
@@ -22,7 +25,9 @@ public class DatasetApiController implements DatasetsApi {
 
   @Override
   public ResponseEntity<DatasetsListResponse> listDatasets() {
-    return ResponseEntity.ok(datasetService.listDatasets());
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.noStore())
+        .body(datasetService.listDatasets());
   }
 
   @Override
@@ -33,7 +38,9 @@ public class DatasetApiController implements DatasetsApi {
 
   @Override
   public ResponseEntity<String> getDataset(UUID id) {
-    return ResponseEntity.ok(datasetService.getMetadata(new DatasetId(id)));
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.noStore())
+        .body(datasetService.getMetadata(new DatasetId(id)));
   }
 
   @Override
@@ -50,5 +57,19 @@ public class DatasetApiController implements DatasetsApi {
             request.getStorageSourceId(),
             request.getCatalogEntry());
     return ResponseEntity.ok(new CreatedDatasetId().id(datasetId.uuid()));
+  }
+
+  @Override
+  public ResponseEntity<DatasetPreviewTablesResponse> listDatasetPreviewTables(UUID id) {
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.noStore())
+        .body(datasetService.listDatasetPreviewTables(new DatasetId(id)));
+  }
+
+  @Override
+  public ResponseEntity<DatasetPreviewTable> getDatasetPreviewTable(UUID id, String tableName) {
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.noStore())
+        .body(datasetService.getDatasetPreview(new DatasetId(id), tableName));
   }
 }

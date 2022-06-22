@@ -15,11 +15,14 @@ first.
 Ensure you have Java 17 and that it is the default. To check this while in the
 `terra-data-catalog` directory, type `java --version`.
 
-Then, to build the code, run:
+Then, to build the code without executing tests, run:
 
 ```sh
-./gradlew build
+./gradlew build -x test
 ```
+
+If you don't include `-x test` ensure the Postgres database is initialized as
+described below.
 
 ## Running the tests
 
@@ -33,24 +36,23 @@ psql -f common/postgres-init.sql
 After the database is initialized, then run integration tests:
 
 ```sh
+./scripts/render_configs.sh    # render service account credentials needed for tests
 ./gradlew bootRun &    # start up a local instance of the data catalog service
 sleep 5                # wait until service comes up
-render-configs.sh      # render service account credentials needed for tests
-./gradlew :integration:runTest --args="suites/FullIntegration.json /tmp/test"
+./gradlew runTest --args="suites/dev/FullIntegration.json build/reports"
 ```
 
 To run performance tests, execute:
 
 ```sh
-render-configs.sh perf
-./gradlew :integration:runTest --args="suites/FullPerf.json /tmp/test"
+./gradlew runTest --args="suites/perf/FullIntegration.json build/reports"
 ```
 
 ## Handling database migrations
 
 The catalog service uses [Liquibase](https://liquibase.org/) to track and manage changes to the
 database schema. Liquibase runs each changeset (migration) listed in the
-[changelog.xml](service/src/resources/db/changelog.xml) file and
+[changelog.xml](service/src/main/resources/db/changelog.xml) file and
 maintains a record of what has been run, so new changes must be added in a new changeset.
 
 To run migrations locally use:
@@ -64,4 +66,35 @@ drop its contents with:
 
 ```
 ./gradlew dropAll
+```
+
+## Running SourceClear locally
+
+[SourceClear](https://srcclr.github.io) is a static analysis tool that scans a project's Java
+dependencies for known vulnerabilities. If you get a build failure due a SourceClear error and want
+to debug the problem locally, you need to get the API token from vault before running the gradle
+task.
+
+```shell
+export SRCCLR_API_TOKEN=$(vault read -field=api_token secret/secops/ci/srcclr/gradle-agent)
+./gradlew srcclr
+```
+
+## Running SonarQube locally
+
+[SonarQube](https://www.sonarqube.org) is a static analysis code that scans code for a wide
+range of issues, including maintainability and possible bugs. If you get a build failure due to
+SonarQube and want to debug the problem locally, you need to get the the sonar token from vault
+before runing the gradle task.
+
+```shell
+export SONAR_TOKEN=$(vault read -field=sonar_token secret/secops/ci/sonarcloud/catalog)
+./gradlew sonarqube
+```
+
+Unlike SourceClear, running this task produces no output unless your project has errors. To always
+generate a report, run using `--info`:
+
+```shell
+./gradlew sonarqube --info
 ```
