@@ -11,7 +11,6 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import bio.terra.catalog.config.DatarepoConfiguration;
-import bio.terra.catalog.iam.SamAction;
 import bio.terra.catalog.iam.SamAuthenticatedUserRequestFactory;
 import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
@@ -31,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 
 @ExtendWith(MockitoExtension.class)
 class DatarepoServiceTest {
@@ -127,6 +127,7 @@ class DatarepoServiceTest {
 
   @Test
   void getPreviewTables() throws Exception {
+    mockSnapshotsApi();
     var id = UUID.randomUUID();
     when(snapshotsApi.retrieveSnapshot(id, List.of(SnapshotRetrieveIncludeModel.TABLES)))
         .thenReturn(new SnapshotModel());
@@ -135,6 +136,7 @@ class DatarepoServiceTest {
 
   @Test
   void getPreviewTablesDatarepoException() throws Exception {
+    mockSnapshotsApi();
     var id = UUID.randomUUID();
     var errorMessage = "Oops, I have errored";
     when(snapshotsApi.retrieveSnapshot(id, List.of(SnapshotRetrieveIncludeModel.TABLES)))
@@ -149,17 +151,18 @@ class DatarepoServiceTest {
 
   @Test
   void getPreviewTable() throws Exception {
+    mockSnapshotsApi();
     var id = UUID.randomUUID();
     var tableName = "table";
     when(snapshotsApi.lookupSnapshotPreviewById(id, tableName, null, null, null, null))
         .thenReturn(new SnapshotPreviewModel());
     assertThat(
-        datarepoService.getPreviewTable(id.toString(), tableName),
-        is(new SnapshotPreviewModel()));
+        datarepoService.getPreviewTable(id.toString(), tableName), is(new SnapshotPreviewModel()));
   }
 
   @Test
   void getPreviewTableDatarepoException() throws Exception {
+    mockSnapshotsApi();
     var id = UUID.randomUUID();
     var tableName = "table";
     var errorMessage = "Oops, I have errored";

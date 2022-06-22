@@ -32,7 +32,7 @@ class SamServiceTest {
 
   @BeforeEach
   void beforeEach() {
-    samService = spy(new SamService(new SamConfiguration(""), userFactory));
+    samService = spy(new SamService(new SamConfiguration("", ""), userFactory));
   }
 
   private void mockResourcesApi() {

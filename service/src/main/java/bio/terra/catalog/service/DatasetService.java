@@ -102,12 +102,8 @@ public class DatasetService {
 
   private boolean checkStoragePermission(Dataset dataset, SamAction action) {
     return switch (dataset.storageSystem()) {
-      case TERRA_DATA_REPO -> datarepoService
-          .getRole(dataset.storageSourceId())
-          .hasAction(action);
-      case TERRA_WORKSPACE -> rawlsService
-          .getRole(dataset.storageSourceId())
-          .hasAction(action);
+      case TERRA_DATA_REPO -> datarepoService.getRole(dataset.storageSourceId()).hasAction(action);
+      case TERRA_WORKSPACE -> rawlsService.getRole(dataset.storageSourceId()).hasAction(action);
       case EXTERNAL -> false;
     };
   }
@@ -115,7 +111,7 @@ public class DatasetService {
   private List<TableMetadata> generateDatasetTables(Dataset dataset) {
     return switch (dataset.storageSystem()) {
       case TERRA_DATA_REPO -> convertDatarepoTablesToCatalogTables(
-          datarepoService.getPreviewTables(user, dataset.storageSourceId()).getTables());
+          datarepoService.getPreviewTables(dataset.storageSourceId()).getTables());
       case TERRA_WORKSPACE, EXTERNAL -> List.of();
     };
   }
@@ -142,10 +138,7 @@ public class DatasetService {
                 .stream()
                 .map(DatasetService::convertDatarepoColumnModelToCatalogColumnModel)
                 .toList())
-        .rows(
-            datarepoService
-                .getPreviewTable(dataset.storageSourceId(), tableName)
-                .getResult());
+        .rows(datarepoService.getPreviewTable(dataset.storageSourceId(), tableName).getResult());
   }
 
   private void ensureActionPermission(Dataset dataset, SamAction action) {
@@ -153,8 +146,7 @@ public class DatasetService {
     // can either have permission granted by the storage system that owns the dataset, or if
     // they're a catalog admin user who has permission to perform any operation on any
     // catalog entry.
-    if (!samService.hasGlobalAction(action)
-        && !checkStoragePermission(dataset, action)) {
+    if (!samService.hasGlobalAction(action) && !checkStoragePermission(dataset, action)) {
       throw new UnauthorizedException(String.format("User does not have permission to %s", action));
     }
   }

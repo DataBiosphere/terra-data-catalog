@@ -25,7 +25,7 @@ class SamUserStatusServiceTest {
 
   @BeforeEach
   void beforeEach() {
-    userStatusService = spy(new SamUserStatusService(new SamConfiguration("")));
+    userStatusService = spy(new SamUserStatusService(new SamConfiguration("", "")));
     doReturn(usersApi).when(userStatusService).usersApi(USER_TOKEN);
   }
 
