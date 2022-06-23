@@ -293,7 +293,7 @@ def generate_catalog_metadata(workspace, bucket):
         "counts": {
             "donors": wsAttributes.pop("library:numSubjects", 0),
             "samples": "PLACEHOLDER_COUNTS_SAMPLES",
-            "files": "PLACEHOLDER_COUNTS_FILES"
+            "files": "PLACEHOLDER_COUNTS_FILES",
         },
         "dct:dataCategory": wsAttributes.pop("library:dataCategory", {}).get(
             "items", None
@@ -320,7 +320,7 @@ def generate_catalog_metadata(workspace, bucket):
                 [
                     {"dct:identifier": wsAttributes["library:datasetOwner"]}
                     if "library:datasetOwner" in wsAttributes
-                    else None
+                    else {"dct:identifier": "PLACEHOLDER_DATA_COLLECTION_NAME"}
                 ],
             )
         ),
