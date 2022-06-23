@@ -7,6 +7,19 @@ import subprocess
 DESCRIPTION = """
 Uploads a given block of metadata to the Terra Data Catalog
 
+You must have the following installed to run this script:
+# The Python library `requests`
+# The Google Cloud SDK
+
+# To set up a venv with requests installed, follow the below instructions
+#   python3 -m venv .env
+#   source .env/bin/activate
+#   pip install --upgrade pip
+#   python3 -m pip install requests
+
+To install the google cloud sdk, follow instructions here:
+ https://github.com/DataBiosphere/terra-data-catalog/blob/main/docs/getting-started.md#5-install-homebrew
+
 To run this script you must authed as an "admin" on the
  specified environment's catalog resource
 
