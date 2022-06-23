@@ -217,7 +217,7 @@ def map_data_modality(modalityArray):
             print("===============")
             print(f"Unknown Data Modality: '{modality}'")
             print("===============")
-            ret = list(itertools.chain(ret, [f"PLACEHOLDER: {modality}"]))
+            ret = list(itertools.chain(ret, [f"DATA_MODALITY_PLACEHOLDER: {modality}"]))
 
     return list(set(ret))
 
