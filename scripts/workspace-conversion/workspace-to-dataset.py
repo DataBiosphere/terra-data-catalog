@@ -75,6 +75,7 @@ dataModalityMap = {
     "Genomic": ["TerraCoreValueSets:Genomic"],
     "Genomic_Assembly": ["TerraCoreValueSets:Genomic_Assembly"],
     "Genomic_Exome": ["TerraCoreValueSets:Genomic_Exome"],
+    "Whole Exome": ["TerraCoreValueSets:Genomic_Exome"],
     "Genomic_Genotyping_Targeted": ["TerraCoreValueSets:Genomic_Genotyping_Targeted"],
     "Genomic_WholeGenome": ["TerraCoreValueSets:Genomic_WholeGenome"],
     "Imaging": ["TerraCoreValueSets:Imaging"],
@@ -212,6 +213,12 @@ def map_data_modality(modalityArray):
     for modality in modalityArray:
         if modality in dataModalityMap:
             ret = list(itertools.chain(ret, dataModalityMap[modality]))
+        else:
+            print("===============")
+            print(f"Unknown Data Modality: '{modality}'")
+            print("===============")
+            ret = list(itertools.chain(ret, [f"DATA_MODALITY_PLACEHOLDER: {modality}"]))
+
     return list(set(ret))
 
 
