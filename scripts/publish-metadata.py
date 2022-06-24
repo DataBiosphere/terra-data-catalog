@@ -11,7 +11,7 @@ You must have the following installed to run this script:
 # The Python library `requests`
 # The Google Cloud SDK
 
-# To set up a venv with requests installed, follow the below instructions
+# To set up a venv with requests installed, follow the instructions below:
 #   python3 -m venv .env
 #   source .env/bin/activate
 #   pip install --upgrade pip
