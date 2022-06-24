@@ -75,6 +75,7 @@ dataModalityMap = {
     "Genomic": ["TerraCoreValueSets:Genomic"],
     "Genomic_Assembly": ["TerraCoreValueSets:Genomic_Assembly"],
     "Genomic_Exome": ["TerraCoreValueSets:Genomic_Exome"],
+    "Whole Exome": ["TerraCoreValueSets:Genomic_Exome"],
     "Genomic_Genotyping_Targeted": ["TerraCoreValueSets:Genomic_Genotyping_Targeted"],
     "Genomic_WholeGenome": ["TerraCoreValueSets:Genomic_WholeGenome"],
     "Imaging": ["TerraCoreValueSets:Imaging"],
@@ -212,6 +213,12 @@ def map_data_modality(modalityArray):
     for modality in modalityArray:
         if modality in dataModalityMap:
             ret = list(itertools.chain(ret, dataModalityMap[modality]))
+        else:
+            print("===============")
+            print(f"Unknown Data Modality: '{modality}'")
+            print("===============")
+            ret = list(itertools.chain(ret, [f"PLACEHOLDER_DATA_MODALITY_{modality}"]))
+
     return list(set(ret))
 
 
@@ -283,7 +290,11 @@ def generate_catalog_metadata(workspace, bucket):
                 )
             )
         },
-        "counts": {"donors": wsAttributes.pop("library:numSubjects", 0)},
+        "counts": {
+            "donors": wsAttributes.pop("library:numSubjects", 0),
+            "samples": "PLACEHOLDER_COUNTS_SAMPLES",
+            "files": "PLACEHOLDER_COUNTS_FILES",
+        },
         "dct:dataCategory": wsAttributes.pop("library:dataCategory", {}).get(
             "items", None
         ),
@@ -309,7 +320,7 @@ def generate_catalog_metadata(workspace, bucket):
                 [
                     {"dct:identifier": wsAttributes["library:datasetOwner"]}
                     if "library:datasetOwner" in wsAttributes
-                    else None
+                    else {"dct:identifier": "PLACEHOLDER_DATA_COLLECTION_NAME"}
                 ],
             )
         ),
