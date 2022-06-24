@@ -348,13 +348,13 @@ def generate_catalog_metadata(workspace, bucket):
         "prov:wasGeneratedBy": get_workspace_generated(wsAttributes),
         "files": get_workspace_files(wsAttributes),
         "TerraDCAT_ap:hasConsentGroup": wsAttributes.pop("library:orsp", None),
-        # "storage": [
-        #     {
-        #         bucket["locationType"]: bucket["location"],
-        #         "cloudPlatform": "gcp",
-        #         "cloudResource": "bucket",
-        #     }
-        # ],
+        "storage": [
+            {
+                bucket["locationType"]: bucket["location"],
+                "cloudPlatform": "gcp",
+                "cloudResource": "bucket",
+            }
+        ],
         "workspaces": {"legacy": workspace},
     }
 
