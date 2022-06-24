@@ -50,6 +50,15 @@ def create_dataset(env, access_token, storage_system, storage_source_id, entry):
         "Content-Type": "application/json",
     }
 
+    if "PLACEHOLDER" in json.dumps(entry):
+        print("!!!!!")
+        print(
+            "PLACEHOLDER exists in json file, replace all"
+            " placeholder values before continuing"
+        )
+        print("!!!!!")
+        return None
+
     request = {
         "storageSystem": str(storage_system),
         "storageSourceId": str(storage_source_id),
