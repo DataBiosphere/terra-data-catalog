@@ -275,7 +275,7 @@ def access_url(workspace):
     else:
         terra_url = f"https://bvdp-saturn-{env}.appspot.com"
 
-    w = workspace['workspace']
+    w = workspace["workspace"]
 
     return f"{terra_url}/#workspaces/{w['namespace']}/{w['name']}"
 
