@@ -217,7 +217,7 @@ def map_data_modality(modalityArray):
             print("===============")
             print(f"Unknown Data Modality: '{modality}'")
             print("===============")
-            ret = list(itertools.chain(ret, [f"DATA_MODALITY_PLACEHOLDER: {modality}"]))
+            ret = list(itertools.chain(ret, [f"PLACEHOLDER_DATA_MODALITY_{modality}"]))
 
     return list(set(ret))
 
@@ -290,7 +290,11 @@ def generate_catalog_metadata(workspace, bucket):
                 )
             )
         },
-        "counts": {"donors": wsAttributes.pop("library:numSubjects", 0)},
+        "counts": {
+            "donors": wsAttributes.pop("library:numSubjects", 0),
+            "samples": "PLACEHOLDER_COUNTS_SAMPLES",
+            "files": "PLACEHOLDER_COUNTS_FILES",
+        },
         "dct:dataCategory": wsAttributes.pop("library:dataCategory", {}).get(
             "items", None
         ),
@@ -316,7 +320,7 @@ def generate_catalog_metadata(workspace, bucket):
                 [
                     {"dct:identifier": wsAttributes["library:datasetOwner"]}
                     if "library:datasetOwner" in wsAttributes
-                    else None
+                    else {"dct:identifier": "PLACEHOLDER_DATA_COLLECTION_NAME"}
                 ],
             )
         ),
