@@ -27,9 +27,10 @@
 # ------------------------------------------------------------------------------
 import json
 import os, subprocess
+import re
+
 import requests
 import itertools
-from datetime import datetime
 
 urlRoot = os.environ.get("RAWLS_URL") or "https://rawls.dsde-prod.broadinstitute.org"
 urlWorkspace = f"{urlRoot}/api/workspaces"
@@ -266,6 +267,19 @@ def get_workspace_files(wsAttributes):
     return ret
 
 
+def access_url(workspace):
+    p = re.compile("rawls.dsde-(\\w+)")
+    env = p.search(urlRoot).group(1)
+    if env == "prod":
+        terra_url = "https://app.terra.bio"
+    else:
+        terra_url = f"https://bvdp-saturn-{env}.appspot.com"
+
+    w = workspace['workspace']
+
+    return f"{terra_url}/#workspaces/{w['namespace']}/{w['name']}"
+
+
 def generate_catalog_metadata(workspace, bucket):
     print("Generating workspace metadata")
 
@@ -314,6 +328,7 @@ def generate_catalog_metadata(workspace, bucket):
         "dct:version": wsAttributes.pop("library:datasetVersion", None),
         "dct:description": wsAttributes.pop("library:datasetDescription", None),
         "dct:modified": workspace["workspace"]["lastModified"],
+        "dcat:accessURL": access_url(workspace),
         "TerraDCAT_ap:hasDataCollection": list(
             filter(
                 None,
@@ -333,13 +348,13 @@ def generate_catalog_metadata(workspace, bucket):
         "prov:wasGeneratedBy": get_workspace_generated(wsAttributes),
         "files": get_workspace_files(wsAttributes),
         "TerraDCAT_ap:hasConsentGroup": wsAttributes.pop("library:orsp", None),
-        "storage": [
-            {
-                bucket["locationType"]: bucket["location"],
-                "cloudPlatform": "gcp",
-                "cloudResource": "bucket",
-            }
-        ],
+        # "storage": [
+        #     {
+        #         bucket["locationType"]: bucket["location"],
+        #         "cloudPlatform": "gcp",
+        #         "cloudResource": "bucket",
+        #     }
+        # ],
         "workspaces": {"legacy": workspace},
     }
 
