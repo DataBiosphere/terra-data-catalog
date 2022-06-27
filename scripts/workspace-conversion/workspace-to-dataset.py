@@ -16,24 +16,22 @@
 #
 # Run:
 #   `python3 workspace-to-dataset.py`
-#   `export GCLOUD_USER={your-email}; export WORKSPACE_NAMESPACE={workspace-namespace}; export WORKSPACE_NAME={workspace-name}; python3 workspace-to-dataset.py`
+#   `WORKSPACE_NAMESPACE={workspace-namespace} WORKSPACE_NAME={workspace-name} python3 workspace-to-dataset.py`
 #
 # Environment Variables:
-#   GCLOUD_USER: user account email
 #   WORKSPACE_NAMESPACE: workspace namespace for the rawls query
 #   WORKSPACE_NAME: workspace name for the rawls query
-#   RAWLS_URL: url for rawls. Default set to rawls-prod
-#   TERRA_URL: url for terra ui. Default set to staging. Used to output demo link.
+#   GCLOUD_USER: user account email; default is `datacatalogadmin@test.firecloud.org`
+#   ENV: terra environment to get workspace data from; default is `prod`
 # ------------------------------------------------------------------------------
 import json
 import os, subprocess
-import re
 
 import requests
 import itertools
 
-urlRoot = os.environ.get("RAWLS_URL") or "https://rawls.dsde-prod.broadinstitute.org"
-urlWorkspace = f"{urlRoot}/api/workspaces"
+env = os.environ.get("ENV") or "prod"
+urlWorkspace = f"https://rawls.dsde-{env}.broadinstitute.org/api/workspaces"
 workspaceNamespace = os.environ.get("WORKSPACE_NAMESPACE")
 workspaceName = os.environ.get("WORKSPACE_NAME")
 user = os.environ.get("GCLOUD_USER") or "datacatalogadmin@test.firecloud.org"
@@ -268,10 +266,11 @@ def get_workspace_files(wsAttributes):
 
 
 def access_url(workspace):
-    p = re.compile("rawls.dsde-(\\w+)")
-    env = p.search(urlRoot).group(1)
-    terra_url = "https://app.terra.bio" if env == "prod"
-    else f"https://bvdp-saturn-{env}.appspot.com"
+    terra_url = (
+        "https://app.terra.bio"
+        if env == "prod"
+        else f"https://bvdp-saturn-{env}.appspot.com"
+    )
 
     w = workspace["workspace"]
 
