@@ -270,10 +270,8 @@ def get_workspace_files(wsAttributes):
 def access_url(workspace):
     p = re.compile("rawls.dsde-(\\w+)")
     env = p.search(urlRoot).group(1)
-    if env == "prod":
-        terra_url = "https://app.terra.bio"
-    else:
-        terra_url = f"https://bvdp-saturn-{env}.appspot.com"
+    terra_url = "https://app.terra.bio" if env == "prod"
+    else f"https://bvdp-saturn-{env}.appspot.com"
 
     w = workspace["workspace"]
 
