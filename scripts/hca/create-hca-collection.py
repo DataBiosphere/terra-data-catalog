@@ -13,11 +13,7 @@ def hca_creator():
 
 
 def access_url(snapshot):
-    return (
-        "https://jade.datarepo-dev.broadinstitute.org/snapshots/details/{uuid}".format(
-            uuid=snapshot["id"]
-        )
-    )
+    return f"https://jade.datarepo-dev.broadinstitute.org/snapshots/{snapshot['id']}"
 
 
 def get_publications(project):
@@ -49,14 +45,14 @@ def get_files(hit):
 def get_sample_ids(hit):
     samples = []
     for sample in hit["samples"]:
-        for id in sample["id"]:
-            samples.append({"dct:identifier": id})
+        for sample_id in sample["id"]:
+            samples.append({"dct:identifier": sample_id})
 
     return samples
 
 
 def get_modalities(hit):
-    modalityMap = {
+    modality_map = {
         "10x sequencing": ["TerraCoreValueSets:Transcriptomic"],
         "10X 3' v1 sequencing": ["TerraCoreValueSets:Transcriptomic"],
         "10x 3' v2": ["TerraCoreValueSets:Transcriptomic"],
@@ -113,7 +109,7 @@ def get_modalities(hit):
         "MARS-seq": ["TerraCoreValueSets:Transcriptomic"],
     }
 
-    categoryMap = {
+    category_map = {
         "single cell": "scRNA-seq",
         "single nucleus": "snRNA-seq",
         "bulk cell": "RNA-seq",
@@ -126,12 +122,12 @@ def get_modalities(hit):
     for protocol in hit["protocols"]:
         if "libraryConstructionApproach" in protocol:
             for assay in protocol["libraryConstructionApproach"]:
-                assert assay in modalityMap
+                assert assay in modality_map
                 assays.append(assay)
-                modalities.extend(modalityMap[assay])
+                modalities.extend(modality_map[assay])
         if "nucleicAcidSource" in protocol:
             for source in protocol["nucleicAcidSource"]:
-                categories.append(categoryMap[source])
+                categories.append(category_map[source])
 
     return list(set(assays)), list(set(modalities)), list(set(categories))
 
@@ -149,74 +145,82 @@ def get_genus_disease(hit):
     return {"genus": genus, "disease": disease}
 
 
-with open("hca-projects.json", "r") as f:
-    projects = json.load(f)
+def main():
+    with open("hca-projects.json", "r") as f:
+        projects = json.load(f)
 
-with open("hca-snapshots.json", "r") as f:
-    snapshots = json.load(f)
+    with open("hca-snapshots.json", "r") as f:
+        snapshots = json.load(f)
 
-assert len(projects) == 1
+    assert len(projects) == 1
 
-data = []
-for hit in projects[0]["hits"]:
-    assert len(hit["projects"]) == 1
+    data = []
+    for hit in projects[0]["hits"]:
+        assert len(hit["projects"]) == 1
 
-    if hit["entryId"] not in snapshots:
-        continue
+        if hit["entryId"] not in snapshots:
+            continue
 
-    project = hit["projects"][0]
-    dates = hit["dates"][0]
-    snapshot = snapshots[project["projectId"]]
+        project = hit["projects"][0]
+        dates = hit["dates"][0]
+        snapshot = snapshots[project["projectId"]]
 
-    get_sample_ids(hit)
+        get_sample_ids(hit)
 
-    assays, modalities, categories = get_modalities(hit)
+        assays, modalities, categories = get_modalities(hit)
 
-    obj = {
-        "dct:identifier": snapshot["id"],
-        "dct:title": project["projectTitle"],
-        "dct:description": project["projectDescription"],
-        "dct:creator": hca_creator(),
-        "dct:issued": dates["submissionDate"],
-        "dct:modified": dates["updateDate"],
-        "dcat:accessURL": access_url(snapshot),
-        "TerraDCAT_ap:hasDataUsePermission": ["TerraCore:NoRestriction"],
-        "TerraDCAT_ap:hasOriginalPublication": get_publications(project),
-        "TerraDCAT_ap:hasDataCollection": [
-            {
-                "dct:identifier": "HCA",
-                "dct:title": "Human Cell Atlas",
-                "dct:description": "The Human Cell Atlas (HCA) data collection contains comprehensive reference maps of all human cells - the fundamental units of life - as a basis for understanding fundamental human biological processes and diagnosing, monitoring, and treating disease.",
-                "dct:creator": hca_creator(),
-                "dct:publisher": "Human Cell Atlas",
-                "dct:issued": now(),
-                "dct:modified": now(),
-            }
-        ],
-        "prov:wasGeneratedBy": [
-            {
-                "TerraCore:hasAssayType": assays,
+        obj = {
+            "dct:identifier": snapshot["id"],
+            "dct:title": project["projectTitle"],
+            "dct:description": project["projectDescription"],
+            "dct:creator": hca_creator(),
+            "dct:issued": dates["submissionDate"],
+            "dct:modified": dates["updateDate"],
+            "dcat:accessURL": access_url(snapshot),
+            "TerraDCAT_ap:hasDataUsePermission": ["TerraCore:NoRestriction"],
+            "TerraDCAT_ap:hasOriginalPublication": get_publications(project),
+            "TerraDCAT_ap:hasDataCollection": [
+                {
+                    "dct:identifier": "HCA",
+                    "dct:title": "Human Cell Atlas",
+                    "dct:description": "The Human Cell Atlas (HCA) data collection contains "
+                    "comprehensive reference maps of all human cells - the "
+                    "fundamental units of life - as a basis for understanding "
+                    "fundamental human biological processes and diagnosing, "
+                    "monitoring, and treating disease.",
+                    "dct:creator": hca_creator(),
+                    "dct:publisher": "Human Cell Atlas",
+                    "dct:issued": now(),
+                    "dct:modified": now(),
+                }
+            ],
+            "prov:wasGeneratedBy": [
+                {
+                    "TerraCore:hasAssayType": assays,
+                },
+                {
+                    "TerraCore:hasDataModality": modalities,
+                },
+                {
+                    "TerraCore:hasAssayCategory": categories,
+                },
+            ],
+            "storage": snapshot["storage"],
+            "counts": {
+                "donors": sum(d["donorCount"] for d in hit["donorOrganisms"]),
+                "samples": sum(len(s["id"]) for s in hit["samples"]),
+                "files": sum(f["count"] for f in hit["fileTypeSummaries"]),
             },
-            {
-                "TerraCore:hasDataModality": modalities,
-            },
-            {
-                "TerraCore:hasAssayCategory": categories,
-            },
-        ],
-        "storage": snapshot["storage"],
-        "counts": {
-            "donors": sum(d["donorCount"] for d in hit["donorOrganisms"]),
-            "samples": sum(len(s["id"]) for s in hit["samples"]),
-            "files": sum(f["count"] for f in hit["fileTypeSummaries"]),
-        },
-        "files": get_files(hit),
-        "samples": get_genus_disease(hit),
-        "contributors": project["contributors"],
-    }
-    data.append(obj)
+            "files": get_files(hit),
+            "samples": get_genus_disease(hit),
+            "contributors": project["contributors"],
+        }
+        data.append(obj)
 
-collection = {"data": data}
+    collection = {"data": data}
 
-with open("hca-collection.json", "w") as f:
-    json.dump(collection, f, indent=2)
+    with open("hca-collection.json", "w") as f:
+        json.dump(collection, f, indent=2)
+
+
+main()
