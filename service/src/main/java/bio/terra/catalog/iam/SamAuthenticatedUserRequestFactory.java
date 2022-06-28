@@ -5,10 +5,8 @@ import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.common.iam.BearerTokenParser;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.annotation.SessionScope;
 
 /**
  * A Component which always resolves the user email and subjectId from Sam given a request token.
@@ -17,7 +15,7 @@ import org.springframework.web.context.WebApplicationContext;
  * request header, but Sam will return the owner's email.
  */
 @Component
-@Scope(proxyMode = ScopedProxyMode.TARGET_CLASS, scopeName = WebApplicationContext.SCOPE_REQUEST)
+@SessionScope
 public class SamAuthenticatedUserRequestFactory {
   static final String OAUTH2_ACCESS_TOKEN = "OAUTH2_CLAIM_access_token";
   static final String AUTHORIZATION = "Authorization";
