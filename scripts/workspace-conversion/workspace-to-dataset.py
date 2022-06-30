@@ -352,6 +352,11 @@ def generate_catalog_metadata(workspace, bucket):
                 "cloudPlatform": "gcp",
                 "cloudResource": "bucket",
             }
+            if "locationType" in bucket and "location" in bucket
+            else {
+                "cloudPlatform": "gcp",
+                "cloudResource": "bucket",
+            }
         ],
     }
 
