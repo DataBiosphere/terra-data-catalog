@@ -19,7 +19,14 @@
 : "${ENV:?}"
 PORT=${PORT:-5431}
 
-VAULT_PATH="secret/dsde/terra/kernel/${ENV}/${ENV}/catalog/postgres"
+if [ "${ENV}" = "prod" ]; then
+  VAULT_ENTRY="suitable"
+  echo "CAREFUL! Setting up a PROD database proxy."
+else
+  VAULT_ENTRY="dsde"
+fi
+
+VAULT_PATH="secret/${VAULT_ENTRY}/terra/kernel/${ENV}/${ENV}/catalog/postgres"
 
 INSTANCE=$(vault read -field=data -format=json "${VAULT_PATH}/instance" |
            jq -r '"\(.project):\(.region):\(.name)"')=tcp:$PORT
