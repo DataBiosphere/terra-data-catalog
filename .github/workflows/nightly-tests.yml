@@ -142,7 +142,7 @@ jobs:
           status: ${{ env.STATUS }}
           fields: workflow,ref
           text: >
-            ${{ format('Catalog tests {0} in the {1} environment {2}',
+            ${{ format('Catalog tests *{0}* in the {1} environment {2}',
             env.STATUS, needs.test-env.outputs.test-env,
             env.STATUS == 'success' && ':check_green:' || ':sadpanda:') }}
           username: 'Data Explorer Tests'
@@ -168,7 +168,7 @@ jobs:
           status: ${{ env.STATUS }}
           fields: workflow,ref
           text: >
-            ${{ format('Catalog tests {0} in the {1} environment {2}',
+            ${{ format('Catalog tests *{0}* in the {1} environment {2}',
             env.STATUS, needs.test-env.outputs.test-env,
             env.STATUS == 'success' && ':check_green:' || ':sadpanda:') }}
           username: 'Data Explorer Tests'
