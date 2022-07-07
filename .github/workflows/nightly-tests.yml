@@ -135,7 +135,7 @@ jobs:
         uses: broadinstitute/action-slack@v3.8.0
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          STATUS: failed
+          STATUS: failure
         with:
           author_name: ${{ github.actor }}
           channel: 'W016GLU78GM'
@@ -143,8 +143,8 @@ jobs:
           fields: workflow,ref
           text: >
             ${{ format('Catalog tests {0} in the {1} environment {2}',
-                env.STATUS, needs.test-env.outputs.test-env,
-                env.STATUS == 'success' && ':check_green:' || ':sadpanda:') }}
+            env.STATUS, needs.test-env.outputs.test-env,
+            env.STATUS == 'success' && ':check_green:' || ':sadpanda:') }}
           username: 'Data Explorer Tests'
 
   notify-qa-slack:
@@ -158,10 +158,10 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           STATUS: >
-            ${{ needs.build.result == 'success' &&
-                needs.jib.result == 'success' &&
-                needs.test-runner.result == 'success' &&
-                'success' || 'failure' }}
+            ${{ needs.build.result == 'success'
+            && needs.jib.result == 'success'
+            && needs.test-runner.result == 'success'
+            && 'success' || 'failure' }}
         with:
           author_name: ${{ github.actor }}
           channel: 'W016GLU78GM'
@@ -169,6 +169,6 @@ jobs:
           fields: workflow,ref
           text: >
             ${{ format('Catalog tests {0} in the {1} environment {2}',
-                env.STATUS, needs.test-env.outputs.test-env,
-                env.STATUS == 'success' && ':check_green:' || ':sadpanda:') }}
+            env.STATUS, needs.test-env.outputs.test-env,
+            env.STATUS == 'success' && ':check_green:' || ':sadpanda:') }}
           username: 'Data Explorer Tests'
