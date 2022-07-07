@@ -136,11 +136,11 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
-          author_name: ${{ github.event_name }}
+          author_name: ${{ github.actor }}
           channel: 'W016GLU78GM'
           status: 'failure'
-          fields: job,ref
-          text: ${{ format('{0} test run - status {1}', needs.test-env.outputs.test-env, 'failure') }}
+          fields: workflow,ref
+          text: ${{ format('{0} when running catalog tests in the {1} environment', env.STATUS, needs.test-env.outputs.test-env) }}
           username: 'Data Explorer Tests'
 
   notify-qa-slack:
@@ -149,28 +149,15 @@ jobs:
     if: always()
 
     steps:
-      - name: Dump GitHub context
-        id: github_context_step
-        run: echo '${{ toJSON(github) }}'
-      - name: Dump job context
-        run: echo '${{ toJSON(job) }}'
-      - name: Dump steps context
-        run: echo '${{ toJSON(steps) }}'
-      - name: Dump runner context
-        run: echo '${{ toJSON(runner) }}'
-      - name: Dump strategy context
-        run: echo '${{ toJSON(strategy) }}'
-      - name: Dump matrix context
-        run: echo '${{ toJSON(matrix) }}'
       - name: "Always notify #dsde-qa Slack"
         uses: broadinstitute/action-slack@v3.8.0
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           STATUS: ${{ needs.build.success && needs.jib.success && needs.test-env.success && needs.test-runner.success && 'success' || 'failure' }}
         with:
-          author_name: ${{ github.event_name }}
+          author_name: ${{ github.actor }}
           channel: 'W016GLU78GM'
           status: ${{ env.STATUS }}
-          fields: job,ref
-          text: ${{ format('{0} test run - status {1}', needs.test-env.outputs.test-env, env.STATUS) }}
+          fields: workflow,ref
+          text: ${{ format('{0} when running catalog tests in the {1} environment', env.STATUS, needs.test-env.outputs.test-env) }}
           username: 'Data Explorer Tests'
