@@ -110,7 +110,7 @@ jobs:
 
       - name: Run perf test suite
         run: |
-          mkdir -p build/reports
+          mkdir -p integration/build/reports
           exit 0
 #          ./gradlew --build-cache runTest --args="suites/$TEST_ENV/FullIntegration.json build/reports"
 
