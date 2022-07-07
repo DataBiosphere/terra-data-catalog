@@ -110,12 +110,13 @@ jobs:
 
       - name: Run perf test suite
         run: |
-          ./gradlew --build-cache runTest --args="suites/$TEST_ENV/FullIntegration.json build/reports"
+           exit 1
+#          ./gradlew --build-cache runTest --args="suites/$TEST_ENV/FullIntegration.json build/reports"
 
-      - name: Upload Test Reports for QA
-        if: always()
-        run: |
-          ./gradlew --build-cache uploadResults --args="CompressDirectoryToTerraKernelK8S.json build/reports"
+#      - name: Upload Test Reports for QA
+#        if: always()
+#        run: |
+#          ./gradlew --build-cache uploadResults --args="CompressDirectoryToTerraKernelK8S.json build/reports"
 
       - name: Upload Test Reports for GitHub
         if: always()
@@ -138,7 +139,7 @@ jobs:
           author_name: ${{ github.event_name }}
           channel: 'W016GLU78GM'
           status: 'failure'
-          fields: eventName,ref
+          fields: job,ref
           text: ${{ format('{0} test run - status {1}', needs.test-env.outputs.test-env, 'failure') }}
           username: 'Data Explorer Tests'
 
@@ -148,6 +149,19 @@ jobs:
     if: always()
 
     steps:
+      - name: Dump GitHub context
+        id: github_context_step
+        run: echo '${{ toJSON(github) }}'
+      - name: Dump job context
+        run: echo '${{ toJSON(job) }}'
+      - name: Dump steps context
+        run: echo '${{ toJSON(steps) }}'
+      - name: Dump runner context
+        run: echo '${{ toJSON(runner) }}'
+      - name: Dump strategy context
+        run: echo '${{ toJSON(strategy) }}'
+      - name: Dump matrix context
+        run: echo '${{ toJSON(matrix) }}'
       - name: "Always notify #dsde-qa Slack"
         uses: broadinstitute/action-slack@v3.8.0
         env:
@@ -157,6 +171,6 @@ jobs:
           author_name: ${{ github.event_name }}
           channel: 'W016GLU78GM'
           status: ${{ env.STATUS }}
-          fields: eventName,ref
+          fields: job,ref
           text: ${{ format('{0} test run - status {1}', needs.test-env.outputs.test-env, env.STATUS) }}
           username: 'Data Explorer Tests'
