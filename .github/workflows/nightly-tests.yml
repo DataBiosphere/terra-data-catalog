@@ -67,16 +67,21 @@ jobs:
         with:
           image: ${{ steps.image-name.outputs.name }}
 
+  test-env:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set default test env
+        id: test-env
+        run: |
+          echo ::set-output name=test-env::${{ env.TEST_ENV || env.TEST_DEFAULT }}
+
   test-runner:
-    needs: [ build ]
+    needs: [ build, test-env ]
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
-
-      - name: Set default test env
-        run: |
-          echo "TEST_ENV=${{ env.TEST_ENV || env.TEST_DEFAULT }}" >> $GITHUB_ENV
 
       - name: Get the helm chart versions for the perf env
         run: |
@@ -86,8 +91,8 @@ jobs:
             --create-dirs -o "integration/src/main/resources/rendered/dev.yaml"
           curl -H 'Authorization: token ${{ secrets.BROADBOT_TOKEN }}' \
             -H 'Accept: application/vnd.github.v3.raw' \
-            -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/environments/live/$TEST_ENV.yaml \
-            --create-dirs -o "integration/src/main/resources/rendered/$TEST_ENV.yaml"
+            -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/environments/live/${{ test-env.outputs.test-env }}.yaml \
+            --create-dirs -o "integration/src/main/resources/rendered/${{ test-env.outputs.test-env }}.yaml"
 
       - name: Set up JDK
         uses: actions/setup-java@v2
@@ -104,9 +109,13 @@ jobs:
       - name: Run perf test suite
         run: |
           ./gradlew --build-cache runTest --args="suites/$TEST_ENV/FullIntegration.json build/reports"
+
+      - name: Upload Test Reports for QA
+        if: always()
+        run: |
           ./gradlew --build-cache uploadResults --args="CompressDirectoryToTerraKernelK8S.json build/reports"
 
-      - name: Upload Test Reports
+      - name: Upload Test Reports for GitHub
         if: always()
         uses: actions/upload-artifact@v1
         with:
@@ -114,7 +123,7 @@ jobs:
           path: integration/build/reports
 
   notify-de-slack:
-    needs: [ build, jib, test-runner ]
+    needs: [ build, jib, test-env, test-runner ]
     runs-on: ubuntu-latest
     if: failure()
 
@@ -124,15 +133,14 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
-          channel: '#jade-data-explorer'
-          status: ${{ needs.test-runner.result }}
-          author_name: Nightly test
-          fields: workflow,message
-          text: 'Nightly test failed :sadpanda:'
-          username: 'Data Explorer GitHub Action'
+          channel: 'W016GLU78GM'
+          status: 'failure'
+          fields: eventName,ref
+          text: ${{ format("{0} test run, status {1}", test-env.outputs.test-env, success() && 'success' || 'failure') }}
+          username: 'Data Explorer Tests'
 
   notify-qa-slack:
-    needs: [ build, jib, test-runner ]
+    needs: [ build, jib, test-env, test-runner ]
     runs-on: ubuntu-latest
     if: always()
 
@@ -142,9 +150,8 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
-          channel: '#dsde-qa'
-          status: ${{ needs.test-runner.result }}
-          author_name: Nightly test
-          fields: workflow,message
-          text: 'Nightly performance test results'
-          username: 'Data Explorer GitHub Action'
+          channel: 'W016GLU78GM'
+          status: ${{ success() && 'success' || 'failure' }}
+          fields: eventName,ref
+          text: ${{ format("{0} test run, status {1}", test-env.outputs.test-env, success() && 'success' || 'failure') }}
+          username: 'Data Explorer Tests'
