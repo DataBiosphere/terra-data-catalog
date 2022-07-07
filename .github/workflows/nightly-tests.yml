@@ -110,13 +110,12 @@ jobs:
 
       - name: Run perf test suite
         run: |
-          exit 1
-#          ./gradlew --build-cache runTest --args="suites/$TEST_ENV/FullIntegration.json build/reports"
+          ./gradlew --build-cache runTest --args="suites/$TEST_ENV/FullIntegration.json build/reports"
 
-#      - name: Upload Test Reports for QA
-#        if: always()
-#        run: |
-#          ./gradlew --build-cache uploadResults --args="CompressDirectoryToTerraKernelK8S.json build/reports"
+      - name: Upload Test Reports for QA
+        if: always()
+        run: |
+          ./gradlew --build-cache uploadResults --args="CompressDirectoryToTerraKernelK8S.json build/reports"
 
       - name: Upload Test Reports for GitHub
         if: always()
@@ -137,8 +136,8 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           STATUS: failure
         with:
+          channel: '#jade-data-explorer'
           author_name: ${{ github.actor }}
-          channel: 'W016GLU78GM'
           status: ${{ env.STATUS }}
           fields: workflow,ref
           text: >
@@ -163,8 +162,8 @@ jobs:
             && needs.test-runner.result == 'success'
             && 'success' || 'failure' }}
         with:
+          channel: '#dsde-qa'
           author_name: ${{ github.actor }}
-          channel: 'W016GLU78GM'
           status: ${{ env.STATUS }}
           fields: workflow,ref
           text: >
