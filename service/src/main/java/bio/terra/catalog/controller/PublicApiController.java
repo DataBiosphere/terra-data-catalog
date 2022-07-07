@@ -29,11 +29,8 @@ public class PublicApiController implements PublicApi {
 
     String clientId = "";
 
-    try {
-      clientId =
-          new String(
-              getClass().getResourceAsStream("/rendered/swagger-client-id").readAllBytes(),
-              StandardCharsets.UTF_8);
+    try (var stream = getClass().getResourceAsStream("/rendered/swagger-client-id")) {
+      clientId = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
     } catch (IOException | NullPointerException e) {
       log.error(
           "It doesn't look like configs have been rendered! Unable to parse swagger client id.", e);
