@@ -69,6 +69,8 @@ jobs:
 
   test-env:
     runs-on: ubuntu-latest
+    outputs:
+      test-env: ${{ steps.test-env.outputs.test-env }}
 
     steps:
       - name: Set default test env
@@ -91,8 +93,8 @@ jobs:
             --create-dirs -o "integration/src/main/resources/rendered/dev.yaml"
           curl -H 'Authorization: token ${{ secrets.BROADBOT_TOKEN }}' \
             -H 'Accept: application/vnd.github.v3.raw' \
-            -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/environments/live/${{ test-env.outputs.test-env }}.yaml \
-            --create-dirs -o "integration/src/main/resources/rendered/${{ test-env.outputs.test-env }}.yaml"
+            -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/environments/live/${{ needs.test-env.outputs.test-env }}.yaml \
+            --create-dirs -o "integration/src/main/resources/rendered/${{ needs.test-env.outputs.test-env }}.yaml"
 
       - name: Set up JDK
         uses: actions/setup-java@v2
@@ -136,7 +138,7 @@ jobs:
           channel: 'W016GLU78GM'
           status: 'failure'
           fields: eventName,ref
-          text: ${{ format("{0} test run, status {1}", test-env.outputs.test-env, success() && 'success' || 'failure') }}
+          text: ${{ format('{0} test run, status {1}', needs.test-env.outputs.test-env, success() && 'success' || 'failure') }}
           username: 'Data Explorer Tests'
 
   notify-qa-slack:
@@ -153,5 +155,5 @@ jobs:
           channel: 'W016GLU78GM'
           status: ${{ success() && 'success' || 'failure' }}
           fields: eventName,ref
-          text: ${{ format("{0} test run, status {1}", test-env.outputs.test-env, success() && 'success' || 'failure') }}
+          text: ${{ format('{0} test run, status {1}', needs.test-env.outputs.test-env, success() && 'success' || 'failure') }}
           username: 'Data Explorer Tests'
