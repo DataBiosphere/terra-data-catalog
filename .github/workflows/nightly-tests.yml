@@ -135,10 +135,11 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
+          author_name: ${{ github.event_name }}
           channel: 'W016GLU78GM'
           status: 'failure'
           fields: eventName,ref
-          text: ${{ format('{0} test run, status {1}', needs.test-env.outputs.test-env, success() && 'success' || 'failure') }}
+          text: ${{ format('{0} test run, status {1}', needs.test-env.outputs.test-env, 'failure') }}
           username: 'Data Explorer Tests'
 
   notify-qa-slack:
@@ -152,8 +153,9 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
+          author_name: ${{ github.event_name }}
           channel: 'W016GLU78GM'
           status: ${{ success() && 'success' || 'failure' }}
           fields: eventName,ref
-          text: ${{ format('{0} test run, status {1}', needs.test-env.outputs.test-env, success() && 'success' || 'failure') }}
+          text: ${{ format('{0} test run, status {1}', needs.test-env.outputs.test-env, github.action_status) }}
           username: 'Data Explorer Tests'
