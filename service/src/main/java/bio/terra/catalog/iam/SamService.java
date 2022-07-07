@@ -12,9 +12,7 @@ import org.broadinstitute.dsde.workbench.client.sam.ApiClient;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
 import org.broadinstitute.dsde.workbench.client.sam.api.ResourcesApi;
 import org.broadinstitute.dsde.workbench.client.sam.api.StatusApi;
-import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
 import org.broadinstitute.dsde.workbench.client.sam.model.SystemStatus;
-import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,13 +22,17 @@ import org.springframework.stereotype.Component;
 public class SamService {
   private static final Logger logger = LoggerFactory.getLogger(SamService.class);
   private final SamConfiguration samConfig;
+  private final SamAuthenticatedUserRequestFactory userFactory;
   private final OkHttpClient commonHttpClient;
 
   private static final String CATALOG_RESOURCE_TYPE = "catalog";
 
   @Autowired
-  public SamService(SamConfiguration samConfig) {
+  public SamService(
+      SamConfiguration samConfig,
+      SamAuthenticatedUserRequestFactory authenticatedUserRequestFactory) {
     this.samConfig = samConfig;
+    this.userFactory = authenticatedUserRequestFactory;
     this.commonHttpClient = new ApiClient().getHttpClient();
   }
 
@@ -40,13 +42,11 @@ public class SamService {
    * <p>This checks the action against the "global" catalog resource, which is used for global
    * permission checks.
    *
-   * @param userRequest authenticated user
    * @param action sam action
    * @return true if the user has any actions on that resource; false otherwise.
    */
-  public boolean hasGlobalAction(AuthenticatedUserRequest userRequest, SamAction action) {
-    String accessToken = userRequest.getToken();
-    ResourcesApi resourceApi = resourcesApi(accessToken);
+  public boolean hasGlobalAction(SamAction action) {
+    ResourcesApi resourceApi = resourcesApi(userFactory.getUser());
     try {
       return SamRetry.retry(
               () -> resourceApi.resourceActions(CATALOG_RESOURCE_TYPE, samConfig.resourceId()))
@@ -58,24 +58,6 @@ public class SamService {
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw SamExceptionFactory.create("Error checking resource permission in Sam", e);
-    }
-  }
-
-  /**
-   * Fetch the user status (email and subjectId) from Sam.
-   *
-   * @param userToken user token
-   * @return {@link UserStatusInfo}
-   */
-  public UserStatusInfo getUserStatusInfo(String userToken) {
-    UsersApi usersApi = usersApi(userToken);
-    try {
-      return SamRetry.retry(usersApi::getUserStatusInfo);
-    } catch (ApiException e) {
-      throw SamExceptionFactory.create("Error getting user email from Sam", e);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw SamExceptionFactory.create("Error getting user email from Sam", e);
     }
   }
 
@@ -101,13 +83,8 @@ public class SamService {
   }
 
   @VisibleForTesting
-  UsersApi usersApi(String accessToken) {
-    return new UsersApi(getApiClient(accessToken));
-  }
-
-  @VisibleForTesting
-  ResourcesApi resourcesApi(String accessToken) {
-    return new ResourcesApi(getApiClient(accessToken));
+  ResourcesApi resourcesApi(AuthenticatedUserRequest user) {
+    return new ResourcesApi(getApiClient(user.getToken()));
   }
 
   @VisibleForTesting

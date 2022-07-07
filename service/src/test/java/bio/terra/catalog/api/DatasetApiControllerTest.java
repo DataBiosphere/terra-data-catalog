@@ -1,6 +1,5 @@
 package bio.terra.catalog.api;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -14,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import bio.terra.catalog.common.StorageSystem;
+import bio.terra.catalog.iam.SamAuthenticatedUserRequestFactory;
 import bio.terra.catalog.model.ColumnModel;
 import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.DatasetPreviewTable;
@@ -24,7 +24,6 @@ import bio.terra.catalog.service.DatasetService;
 import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.catalog.service.dataset.exception.DatasetNotFoundException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
-import bio.terra.common.iam.AuthenticatedUserRequestFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
@@ -57,13 +56,13 @@ class DatasetApiControllerTest {
 
   @MockBean private DatasetService datasetService;
 
-  @MockBean private AuthenticatedUserRequestFactory authenticatedUserRequestFactory;
+  @MockBean private SamAuthenticatedUserRequestFactory authenticatedUserRequestFactory;
 
   private final AuthenticatedUserRequest user = mock(AuthenticatedUserRequest.class);
 
   @BeforeEach
   void beforeEach() {
-    when(authenticatedUserRequestFactory.from(any())).thenReturn(user);
+    when(authenticatedUserRequestFactory.getUser()).thenReturn(user);
   }
 
   @Test
@@ -72,7 +71,7 @@ class DatasetApiControllerTest {
     ObjectNode node = new ObjectMapper().createObjectNode();
     node.put("id", "id");
     response.addResultItem(node);
-    when(datasetService.listDatasets(user)).thenReturn(response);
+    when(datasetService.listDatasets()).thenReturn(response);
     mockMvc
         .perform(get(API))
         .andExpect(status().isOk())
@@ -84,7 +83,7 @@ class DatasetApiControllerTest {
   @Test
   void emptyListDatasets() throws Exception {
     DatasetsListResponse response = new DatasetsListResponse();
-    when(datasetService.listDatasets(user)).thenReturn(response);
+    when(datasetService.listDatasets()).thenReturn(response);
     mockMvc
         .perform(get(API))
         .andExpect(status().isOk())
@@ -97,7 +96,7 @@ class DatasetApiControllerTest {
   void deleteDataset() throws Exception {
     var datasetId = new DatasetId(UUID.randomUUID());
     mockMvc.perform(delete(API_ID, datasetId.uuid())).andExpect(status().is2xxSuccessful());
-    verify(datasetService).deleteMetadata(user, datasetId);
+    verify(datasetService).deleteMetadata(datasetId);
   }
 
   @Test
@@ -107,13 +106,13 @@ class DatasetApiControllerTest {
         .perform(get(API_ID, datasetId.uuid()))
         .andExpect(status().isOk())
         .andExpect(header().string("Cache-Control", "no-store"));
-    verify(datasetService).getMetadata(user, datasetId);
+    verify(datasetService).getMetadata(datasetId);
   }
 
   @Test
   void getDatasetNoRecordFound() throws Exception {
     var datasetId = new DatasetId(UUID.randomUUID());
-    when(datasetService.getMetadata(user, datasetId)).thenThrow(new DatasetNotFoundException(""));
+    when(datasetService.getMetadata(datasetId)).thenThrow(new DatasetNotFoundException(""));
     mockMvc.perform(get(API_ID, datasetId.uuid())).andExpect(status().isNotFound());
   }
 
@@ -124,7 +123,7 @@ class DatasetApiControllerTest {
         .perform(
             put(API_ID, datasetId.uuid()).contentType(MediaType.APPLICATION_JSON).content(METADATA))
         .andExpect(status().is2xxSuccessful());
-    verify(datasetService).updateMetadata(user, datasetId, METADATA);
+    verify(datasetService).updateMetadata(datasetId, METADATA);
   }
 
   @Test
@@ -137,15 +136,14 @@ class DatasetApiControllerTest {
             .storageSourceId(id)
             .catalogEntry(METADATA);
     var uuid = UUID.randomUUID();
-    when(datasetService.createDataset(user, storageSystem, id, METADATA))
-        .thenReturn(new DatasetId(uuid));
+    when(datasetService.createDataset(storageSystem, id, METADATA)).thenReturn(new DatasetId(uuid));
     var postBody = new ObjectMapper().writeValueAsString(request);
     mockMvc
         .perform(post(API).contentType(MediaType.APPLICATION_JSON).content(postBody))
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.id").value(uuid.toString()));
-    verify(datasetService).createDataset(user, storageSystem, id, METADATA);
+    verify(datasetService).createDataset(storageSystem, id, METADATA);
   }
 
   @Test
@@ -155,7 +153,7 @@ class DatasetApiControllerTest {
     DatasetPreviewTablesResponse response = new DatasetPreviewTablesResponse();
     TableMetadata node = new TableMetadata().name(tableName).hasData(true);
     response.addTablesItem(node);
-    when(datasetService.listDatasetPreviewTables(user, datasetId)).thenReturn(response);
+    when(datasetService.listDatasetPreviewTables(datasetId)).thenReturn(response);
     mockMvc
         .perform(get(PREVIEW_TABLES_API, datasetId.uuid()))
         .andExpect(status().isOk())
@@ -173,14 +171,14 @@ class DatasetApiControllerTest {
         new DatasetPreviewTablesResponse();
     TableMetadata node = new TableMetadata().name(tableName).hasData(true);
     listDatasetPreviewTablesResponse.addTablesItem(node);
-    when(datasetService.listDatasetPreviewTables(user, datasetId))
+    when(datasetService.listDatasetPreviewTables(datasetId))
         .thenReturn(listDatasetPreviewTablesResponse);
 
     DatasetPreviewTable response =
         new DatasetPreviewTable()
             .columns(List.of(new ColumnModel().name(columnName)))
             .rows(List.of());
-    when(datasetService.getDatasetPreview(user, datasetId, tableName)).thenReturn(response);
+    when(datasetService.getDatasetPreview(datasetId, tableName)).thenReturn(response);
     mockMvc
         .perform(get(PREVIEW_TABLES_API_TABLE_NAME, datasetId.uuid(), tableName))
         .andExpect(status().isOk())

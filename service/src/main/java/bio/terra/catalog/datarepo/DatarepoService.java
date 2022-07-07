@@ -1,9 +1,9 @@
 package bio.terra.catalog.datarepo;
 
 import bio.terra.catalog.config.DatarepoConfiguration;
+import bio.terra.catalog.iam.SamAuthenticatedUserRequestFactory;
 import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
-import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.api.SnapshotsApi;
 import bio.terra.datarepo.api.UnauthenticatedApi;
 import bio.terra.datarepo.client.ApiClient;
@@ -43,11 +43,14 @@ public class DatarepoService {
   private static final int MAX_DATASETS = 1000;
 
   private final DatarepoConfiguration datarepoConfig;
+  private final SamAuthenticatedUserRequestFactory userFactory;
   private final Client commonHttpClient;
 
   @Autowired
-  public DatarepoService(DatarepoConfiguration datarepoConfig) {
+  public DatarepoService(
+      DatarepoConfiguration datarepoConfig, SamAuthenticatedUserRequestFactory userFactory) {
     this.datarepoConfig = datarepoConfig;
+    this.userFactory = userFactory;
     this.commonHttpClient = new ApiClient().getHttpClient();
   }
 
@@ -63,10 +66,10 @@ public class DatarepoService {
     return DatasetAccessLevel.NO_ACCESS;
   }
 
-  public Map<String, DatasetAccessLevel> getSnapshotIdsAndRoles(AuthenticatedUserRequest user) {
+  public Map<String, DatasetAccessLevel> getSnapshotIdsAndRoles() {
     try {
       Map<String, List<String>> response =
-          snapshotsApi(user)
+          snapshotsApi()
               .enumerateSnapshots(null, MAX_DATASETS, null, null, null, null, null)
               .getRoleMap();
       return response.entrySet().stream()
@@ -78,29 +81,28 @@ public class DatarepoService {
     }
   }
 
-  public SnapshotModel getPreviewTables(AuthenticatedUserRequest user, String snapshotId) {
+  public SnapshotModel getPreviewTables(String snapshotId) {
     try {
       UUID id = UUID.fromString(snapshotId);
-      return snapshotsApi(user).retrieveSnapshot(id, List.of(SnapshotRetrieveIncludeModel.TABLES));
+      return snapshotsApi().retrieveSnapshot(id, List.of(SnapshotRetrieveIncludeModel.TABLES));
     } catch (ApiException e) {
       throw new DatarepoException(e);
     }
   }
 
-  public SnapshotPreviewModel getPreviewTable(
-      AuthenticatedUserRequest user, String snapshotId, String tableName) {
+  public SnapshotPreviewModel getPreviewTable(String snapshotId, String tableName) {
     try {
       UUID id = UUID.fromString(snapshotId);
-      return snapshotsApi(user).lookupSnapshotPreviewById(id, tableName, null, null, null, null);
+      return snapshotsApi().lookupSnapshotPreviewById(id, tableName, null, null, null, null);
     } catch (ApiException e) {
       throw new DatarepoException(e);
     }
   }
 
-  public DatasetAccessLevel getRole(AuthenticatedUserRequest user, String snapshotId) {
+  public DatasetAccessLevel getRole(String snapshotId) {
     try {
       UUID id = UUID.fromString(snapshotId);
-      List<String> roles = snapshotsApi(user).retrieveUserSnapshotRoles(id);
+      List<String> roles = snapshotsApi().retrieveUserSnapshotRoles(id);
       return getHighestAccessFromRoleList(roles);
     } catch (ApiException e) {
       throw new DatarepoException("Get snapshot roles failed", e);
@@ -108,24 +110,22 @@ public class DatarepoService {
   }
 
   @VisibleForTesting
-  SnapshotsApi snapshotsApi(AuthenticatedUserRequest user) {
-    return new SnapshotsApi(getApiClient(user));
+  SnapshotsApi snapshotsApi() {
+    return new SnapshotsApi(getApiClient(userFactory.getUser().getToken()));
   }
 
-  private ApiClient getApiClient(AuthenticatedUserRequest user) {
-    ApiClient apiClient = getApiClient();
-    apiClient.setAccessToken(user.getToken());
+  private ApiClient getApiClient(String token) {
+    var apiClient =
+        new ApiClient().setHttpClient(commonHttpClient).setBasePath(datarepoConfig.basePath());
+    if (token != null) {
+      apiClient.setAccessToken(token);
+    }
     return apiClient;
-  }
-
-  private ApiClient getApiClient() {
-    // Share one api client across requests.
-    return new ApiClient().setHttpClient(commonHttpClient).setBasePath(datarepoConfig.basePath());
   }
 
   @VisibleForTesting
   UnauthenticatedApi unauthenticatedApi() {
-    return new UnauthenticatedApi(getApiClient());
+    return new UnauthenticatedApi(getApiClient(null));
   }
 
   public SystemStatusSystems status() {

@@ -7,11 +7,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import bio.terra.catalog.config.RawlsConfiguration;
+import bio.terra.catalog.iam.SamAuthenticatedUserRequestFactory;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
-import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.rawls.api.StatusApi;
 import bio.terra.rawls.api.WorkspacesApi;
 import bio.terra.rawls.client.ApiException;
@@ -25,21 +27,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-@ConfigurationPropertiesScan("bio.terra.catalog")
-@ContextConfiguration(classes = {RawlsService.class})
+@ExtendWith(MockitoExtension.class)
 class RawlsServiceTest {
-  @Autowired private RawlsService rawlsServiceReal;
-
-  @Mock private AuthenticatedUserRequest user;
-
   @Mock private StatusApi statusApi;
 
   @Mock private WorkspacesApi workspacesApi;
@@ -48,19 +39,30 @@ class RawlsServiceTest {
 
   @BeforeEach
   void beforeEach() {
-    rawlsService = spy(rawlsServiceReal);
-    doReturn(workspacesApi).when(rawlsService).workspacesApi(user);
+    rawlsService =
+        spy(
+            new RawlsService(
+                new RawlsConfiguration(""), mock(SamAuthenticatedUserRequestFactory.class)));
+  }
+
+  private void mockWorkspacesApi() {
+    doReturn(workspacesApi).when(rawlsService).workspacesApi();
+  }
+
+  private void mockStatusApi() {
     doReturn(statusApi).when(rawlsService).statusApi();
   }
 
   @Test
-  void status() throws Exception {
+  void status() {
+    mockStatusApi();
     var rawlsStatus = rawlsService.status();
     assertTrue(rawlsStatus.isOk());
   }
 
   @Test
   void statusException() throws Exception {
+    mockStatusApi();
     doThrow(new ApiException()).when(statusApi).systemStatus();
     var rawlsStatus = rawlsService.status();
     assertFalse(rawlsStatus.isOk());
@@ -68,6 +70,7 @@ class RawlsServiceTest {
 
   @Test
   void getWorkspaces() throws Exception {
+    mockWorkspacesApi();
     var items = Map.of("id", DatasetAccessLevel.OWNER);
     var workspaceResponses =
         List.of(
@@ -76,37 +79,41 @@ class RawlsServiceTest {
                 .accessLevel(WorkspaceAccessLevel.OWNER));
     when(workspacesApi.listWorkspaces(RawlsService.ACCESS_LEVEL_AND_ID))
         .thenReturn(workspaceResponses);
-    assertThat(rawlsService.getWorkspaceIdsAndRoles(user), is(items));
+    assertThat(rawlsService.getWorkspaceIdsAndRoles(), is(items));
   }
 
   @Test
-  void getSnapshotsException() throws Exception {
+  void getWorkspacesException() throws Exception {
+    mockWorkspacesApi();
     when(workspacesApi.listWorkspaces(RawlsService.ACCESS_LEVEL_AND_ID))
         .thenThrow(new ApiException());
-    assertThrows(RawlsException.class, () -> rawlsService.getWorkspaceIdsAndRoles(user));
+    assertThrows(RawlsException.class, () -> rawlsService.getWorkspaceIdsAndRoles());
   }
 
   @Test
   void getRoleReader() throws Exception {
+    mockWorkspacesApi();
     String id = "abc";
     when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL))
         .thenReturn(new WorkspaceResponse().accessLevel(WorkspaceAccessLevel.READER));
-    assertThat(rawlsService.getRole(user, id), is(DatasetAccessLevel.READER));
+    assertThat(rawlsService.getRole(id), is(DatasetAccessLevel.READER));
   }
 
   @Test
   void getRoleOwner() throws Exception {
+    mockWorkspacesApi();
     String id = "abc";
     when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL))
         .thenReturn(new WorkspaceResponse().accessLevel(WorkspaceAccessLevel.OWNER));
-    assertThat(rawlsService.getRole(user, id), is(DatasetAccessLevel.OWNER));
+    assertThat(rawlsService.getRole(id), is(DatasetAccessLevel.OWNER));
   }
 
   @Test
   void userHasActionException() throws Exception {
+    mockWorkspacesApi();
     String id = "abc";
     when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL))
         .thenThrow(new ApiException());
-    assertThrows(RawlsException.class, () -> rawlsService.getRole(user, id));
+    assertThrows(RawlsException.class, () -> rawlsService.getRole(id));
   }
 }
