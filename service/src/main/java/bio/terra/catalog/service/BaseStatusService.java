@@ -3,7 +3,6 @@ package bio.terra.catalog.service;
 import bio.terra.catalog.config.StatusCheckConfiguration;
 import bio.terra.catalog.model.SystemStatus;
 import bio.terra.catalog.model.SystemStatusSystems;
-import com.google.common.annotations.VisibleForTesting;
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -53,7 +52,6 @@ public class BaseStatusService {
     statusCheckMap.put(name, checkFn);
   }
 
-  @VisibleForTesting
   void checkStatus() {
     if (configuration.enabled()) {
       var newStatus = new SystemStatus();

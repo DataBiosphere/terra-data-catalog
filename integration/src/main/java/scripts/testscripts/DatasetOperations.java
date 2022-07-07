@@ -4,6 +4,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -11,13 +12,12 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import bio.terra.catalog.api.DatasetsApi;
 import bio.terra.catalog.client.ApiException;
+import bio.terra.catalog.model.ColumnModel;
 import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.StorageSystem;
-import bio.terra.datarepo.api.JobsApi;
-import bio.terra.datarepo.api.SnapshotsApi;
-import bio.terra.datarepo.model.JobModel;
-import bio.terra.datarepo.model.SnapshotRequestContentsModel;
-import bio.terra.datarepo.model.SnapshotRequestModel;
+import bio.terra.catalog.model.TableMetadata;
+import bio.terra.datarepo.model.DatasetModel;
+import bio.terra.rawls.model.WorkspaceDetails;
 import bio.terra.testrunner.runner.TestScript;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
 import com.google.api.client.http.HttpStatusCodes;
@@ -26,8 +26,10 @@ import java.util.Map;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scripts.api.SnapshotsApi;
 import scripts.client.CatalogClient;
 import scripts.client.DatarepoClient;
+import scripts.client.RawlsClient;
 
 /**
  * A test for dataset operations using the catalog service endpoints, with TDR snapshots as the
@@ -35,14 +37,18 @@ import scripts.client.DatarepoClient;
  *
  * <p>Create, Read, Update, Delete are tested.
  */
-public class SnapshotDatasetOperations extends TestScript {
+public class DatasetOperations extends TestScript {
 
-  private static final Logger log = LoggerFactory.getLogger(SnapshotDatasetOperations.class);
+  private static final Logger log = LoggerFactory.getLogger(DatasetOperations.class);
   private static final String TEST_DATASET_NAME = "CatalogTestDataset";
 
   // TDR APIs
   private SnapshotsApi snapshotsApi;
   private UUID snapshotId;
+
+  // Rawls APIs
+  private RawlsClient rawlsClient;
+  private WorkspaceDetails workspaceDetails;
 
   // Catalog APis
   private UUID datasetId;
@@ -50,39 +56,21 @@ public class SnapshotDatasetOperations extends TestScript {
 
   @Override
   public void setup(List<TestUserSpecification> testUsers) throws Exception {
-    DatarepoClient datarepoClient = new DatarepoClient(server, testUsers.get(0));
-    var datasetsApi = new bio.terra.datarepo.api.DatasetsApi(datarepoClient);
-    var dataset =
-        datasetsApi
-            .enumerateDatasets(null, null, null, null, TEST_DATASET_NAME, null)
-            .getItems()
-            .get(0);
+    var user = testUsers.get(0);
+    setupSnapshot(user);
+    setupWorkspace(user);
+  }
 
+  private void setupWorkspace(TestUserSpecification user) throws Exception {
+    rawlsClient = new RawlsClient(server, user);
+    workspaceDetails = rawlsClient.createTestWorkspace();
+  }
+
+  private void setupSnapshot(TestUserSpecification user) throws Exception {
+    DatarepoClient datarepoClient = new DatarepoClient(server, user);
+    DatasetModel tdrDataset = datarepoClient.datasetsApi().getTestDataset();
     snapshotsApi = new SnapshotsApi(datarepoClient);
-    var request =
-        new SnapshotRequestModel()
-            .name("catalog_integration_test_" + System.currentTimeMillis())
-            .description("catalog test snapshot")
-            .profileId(dataset.getDefaultProfileId())
-            .addContentsItem(
-                new SnapshotRequestContentsModel()
-                    .datasetName(TEST_DATASET_NAME)
-                    .mode(SnapshotRequestContentsModel.ModeEnum.BYFULLVIEW));
-    var createJobId = snapshotsApi.createSnapshot(request).getId();
-
-    var jobApi = new JobsApi(datarepoClient);
-    JobModel job;
-    do {
-      job = jobApi.retrieveJob(createJobId);
-    } while (job.getJobStatus() == JobModel.JobStatusEnum.RUNNING);
-
-    if (job.getJobStatus() != JobModel.JobStatusEnum.SUCCEEDED) {
-      throw new RuntimeException("Create snapshot failed: " + job);
-    }
-    @SuppressWarnings("unchecked")
-    Map<Object, Object> result = (Map<Object, Object>) jobApi.retrieveJobResult(createJobId);
-    snapshotId = UUID.fromString((String) result.get("id"));
-    log.info("created snapshot " + snapshotId);
+    snapshotId = snapshotsApi.createTestSnapshot(tdrDataset);
   }
 
   private static final String METADATA_1 = """
@@ -96,12 +84,57 @@ public class SnapshotDatasetOperations extends TestScript {
     var client = new CatalogClient(server, testUser);
     datasetsApi = new DatasetsApi(client);
 
+    crudUserJourney(client, StorageSystem.TDR, snapshotId.toString());
+    crudUserJourney(client, StorageSystem.WKS, workspaceDetails.getWorkspaceId());
+
+    previewUserJourney(StorageSystem.TDR, snapshotId.toString());
+  }
+
+  private void previewUserJourney(StorageSystem storageSystem, String sourceId)
+      throws ApiException {
     // Given a snapshot, create a catalog entry.
     var request =
         new CreateDatasetRequest()
             .catalogEntry(METADATA_1)
-            .storageSourceId(snapshotId.toString())
-            .storageSystem(StorageSystem.TDR);
+            .storageSourceId(sourceId)
+            .storageSystem(storageSystem);
+    datasetId = datasetsApi.createDataset(request).getId();
+    log.info("created dataset " + datasetId);
+
+    var previewTables = datasetsApi.listDatasetPreviewTables(datasetId);
+    assertThat(
+        previewTables.getTables(),
+        containsInAnyOrder(
+            new TableMetadata().name("sample").hasData(true),
+            new TableMetadata().name("participant").hasData(true)));
+    var sampleTable = datasetsApi.getDatasetPreviewTable(datasetId, "sample");
+    assertThat(
+        sampleTable.getColumns(),
+        containsInAnyOrder(
+            new ColumnModel().name("sample_id").arrayOf(false),
+            new ColumnModel().name("participant_id").arrayOf(false),
+            new ColumnModel().name("files").arrayOf(true),
+            new ColumnModel().name("type").arrayOf(false)));
+
+    assertThat(sampleTable.getRows(), hasSize(15));
+    @SuppressWarnings("unchecked")
+    Map<String, String> row = (Map<String, String>) sampleTable.getRows().get(0);
+
+    assertThat(row, hasEntry(is("sample_id"), notNullValue()));
+
+    // Delete the entry
+    datasetsApi.deleteDataset(datasetId);
+    datasetId = null;
+  }
+
+  private void crudUserJourney(CatalogClient client, StorageSystem storageSystem, String sourceId)
+      throws ApiException {
+    // Given a snapshot, create a catalog entry.
+    var request =
+        new CreateDatasetRequest()
+            .catalogEntry(METADATA_1)
+            .storageSourceId(sourceId)
+            .storageSystem(storageSystem);
     datasetId = datasetsApi.createDataset(request).getId();
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
     assertThat(datasetId, notNullValue());
@@ -142,9 +175,7 @@ public class SnapshotDatasetOperations extends TestScript {
       if (dataset.get("id").equals(datasetId.toString())) {
         assertThat(dataset, hasEntry(is("name"), is("test")));
         assertThat(dataset, hasEntry(is("id"), is(datasetId.toString())));
-        @SuppressWarnings("unchecked")
-        List<Object> roles = (List<Object>) dataset.get("roles");
-        assertThat(roles, containsInAnyOrder("steward", "admin"));
+        assertThat(dataset, hasEntry(is("accessLevel"), is("owner")));
         return;
       }
     }
@@ -153,13 +184,16 @@ public class SnapshotDatasetOperations extends TestScript {
 
   @Override
   public void cleanup(List<TestUserSpecification> testUsers) throws Exception {
-    if (snapshotId != null) {
-      snapshotsApi.deleteSnapshot(snapshotId);
-      log.info("deleted snapshot " + snapshotId);
-    }
     if (datasetId != null) {
       datasetsApi.deleteDataset(datasetId);
       log.info("deleted dataset " + datasetId);
+    }
+    if (snapshotId != null) {
+      snapshotsApi.delete(snapshotId);
+      log.info("deleted snapshot " + snapshotId);
+    }
+    if (workspaceDetails != null) {
+      rawlsClient.deleteWorkspace(workspaceDetails);
     }
   }
 }

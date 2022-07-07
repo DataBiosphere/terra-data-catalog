@@ -26,9 +26,15 @@ permission error, it is likely because you are missing appropriate access.
 the channel header, and select `Join DataBiosphere`.  Once you've been granted
 access to DataBiosphere, ask a team member to add your GitHub user to the
 [jadeteam](https://github.com/orgs/DataBiosphere/teams/jadeteam) group. This
-will give you access to our repositories.
+will give you access to our repositories. You should also be a member of
+[broadwrite](https://github.com/orgs/DataBiosphere/teams/broadwrite); this should be done
+automatically when you're added to the DataBiosphere organization.
 - Google Groups: Ask a team member for access to Google Groups including
-`jade-internal` and `dsde-engineering`.
+`jade-internal` and `jade-data-explorer`, and check that you're a member of
+`dsde-engineering` and `dsp-engineering`. These google groups are used for scheduling, email and
+google drive document sharing, and are also used to control membership in GitHub teams
+in the broadinstitute organization, such as
+[jade-internal](https://github.com/orgs/broadinstitute/teams/jade-internal).
 
 ## 3. Connect accounts
 

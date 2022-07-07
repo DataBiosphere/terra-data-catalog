@@ -1,12 +1,12 @@
 {
-  "name": "SnapshotDatasetOperations",
-  "description": "Snapshot Dataset Operations",
+  "name": "DatasetOperations",
+  "description": "Dataset Operations",
   "serverSpecificationFile": "catalog-perf.json",
   "kubernetes": {},
   "application": {},
   "testScripts": [
     {
-      "name": "SnapshotDatasetOperations",
+      "name": "DatasetOperations",
       "numberOfUserJourneyThreadsToRun": 1,
       "userJourneyThreadPoolSize": 2,
       "expectedTimeForEach": 5,

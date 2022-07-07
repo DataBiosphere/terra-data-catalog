@@ -1,18 +1,18 @@
 {
-  "name": "catalog-perf",
-  "description": "Catalog Performance Testing Environment",
+  "name": "catalog-staging",
+  "description": "Catalog Staging Testing Environment",
 
-  "catalogUri": "https://catalog.dsde-perf.broadinstitute.org/",
-  "datarepoUri": "https://jade.datarepo-dev.broadinstitute.org/",
-  "rawlsUri": "https://rawls.dsde-perf.broadinstitute.org/",
+  "catalogUri": "https://catalog.dsde-staging.broadinstitute.org/",
+  "datarepoUri": "https://data.staging.envs-terra.bio/",
+  "rawlsUri": "https://rawls.dsde-staging.broadinstitute.org/",
 
   "cluster": {
-    "clusterName": "terra-perf",
-    "clusterShortName": "terra-perf",
+    "clusterName": "terra-staging",
+    "clusterShortName": "terra-staging",
     "region": "us-central1",
     "zone": "us-central1-a",
-    "project": "broad-dsde-perf",
-    "namespace": "terra-perf",
+    "project": "broad-dsde-staging",
+    "namespace": "terra-staging",
     "containerName": "catalog",
     "apiComponentLabel":  "catalog"
   },
@@ -29,7 +29,7 @@
       "parametersMap": {
         "app-name": "catalog",
         "base-file-path": "src/main/resources/rendered/dev.yaml",
-        "override-file-path": "src/main/resources/rendered/perf.yaml"
+        "override-file-path": "src/main/resources/rendered/staging.yaml"
       }
     },
     {

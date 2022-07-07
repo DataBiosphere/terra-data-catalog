@@ -9,7 +9,9 @@ import bio.terra.catalog.model.DatasetPreviewTable;
 import bio.terra.catalog.model.DatasetPreviewTablesResponse;
 import bio.terra.catalog.model.DatasetsListResponse;
 import bio.terra.catalog.model.TableMetadata;
+import bio.terra.catalog.rawls.RawlsService;
 import bio.terra.catalog.service.dataset.Dataset;
+import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.common.exception.NotFoundException;
@@ -18,16 +20,17 @@ import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.model.TableModel;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class DatasetService {
   private final DatarepoService datarepoService;
+  private final RawlsService rawlsService;
   private final SamService samService;
   private final DatasetDao datasetDao;
   private final ObjectMapper objectMapper;
@@ -35,10 +38,12 @@ public class DatasetService {
   @Autowired
   public DatasetService(
       DatarepoService datarepoService,
+      RawlsService rawlsService,
       SamService samService,
       DatasetDao datasetDao,
       ObjectMapper objectMapper) {
     this.datarepoService = datarepoService;
+    this.rawlsService = rawlsService;
     this.samService = samService;
     this.datasetDao = datasetDao;
     this.objectMapper = objectMapper;
@@ -60,40 +65,52 @@ public class DatasetService {
     }
   }
 
-  private void collectDatarepoDatasets(
-      AuthenticatedUserRequest user, DatasetsListResponse response) {
+  private List<ObjectNode> convertSourceObjectsToDatasetResponses(
+      Map<String, DatasetAccessLevel> roleMap, StorageSystem storageSystem) {
+    List<Dataset> datasets = datasetDao.find(storageSystem, roleMap.keySet());
+    return datasets.stream()
+        .map(dataset -> sourceAndDatasetToObjectNode(roleMap, dataset))
+        .toList();
+  }
+
+  private ObjectNode sourceAndDatasetToObjectNode(
+      Map<String, DatasetAccessLevel> roleMap, Dataset dataset) {
+    ObjectNode node = toJsonNode(dataset.metadata());
+    node.set(
+        "accessLevel", TextNode.valueOf(String.valueOf(roleMap.get(dataset.storageSourceId()))));
+    node.set("id", TextNode.valueOf(dataset.id().toValue()));
+    return node;
+  }
+
+  private List<ObjectNode> collectDatarepoDatasets(AuthenticatedUserRequest user) {
     // For this storage system, get the collection of visible datasets and the user's roles for
     // each dataset.
     var roleMap = datarepoService.getSnapshotIdsAndRoles(user);
+    return convertSourceObjectsToDatasetResponses(roleMap, StorageSystem.TERRA_DATA_REPO);
+  }
 
-    // Using the storage system's source IDs, look up the metadata for each of these datasets.
-    List<Dataset> datasets = datasetDao.find(StorageSystem.TERRA_DATA_REPO, roleMap.keySet());
-
-    // Merge the permission (role) data into the metadata results.
-    for (Dataset dataset : datasets) {
-      ArrayNode roles = objectMapper.createArrayNode();
-      for (String role : roleMap.get(dataset.storageSourceId())) {
-        roles.add(TextNode.valueOf(role));
-      }
-      ObjectNode node = toJsonNode(dataset.metadata());
-      node.set("roles", roles);
-      node.set("id", TextNode.valueOf(dataset.id().toValue()));
-      response.addResultItem(node);
-    }
+  private List<ObjectNode> collectWorkspaceDatasets(AuthenticatedUserRequest user) {
+    var roleMap = rawlsService.getWorkspaceIdsAndRoles(user);
+    return convertSourceObjectsToDatasetResponses(roleMap, StorageSystem.TERRA_WORKSPACE);
   }
 
   public DatasetsListResponse listDatasets(AuthenticatedUserRequest user) {
     var response = new DatasetsListResponse();
-    collectDatarepoDatasets(user, response);
+    response.getResult().addAll(collectWorkspaceDatasets(user));
+    response.getResult().addAll(collectDatarepoDatasets(user));
     return response;
   }
 
   private boolean checkStoragePermission(
       AuthenticatedUserRequest user, Dataset dataset, SamAction action) {
     return switch (dataset.storageSystem()) {
-      case TERRA_DATA_REPO -> datarepoService.userHasAction(
-          user, dataset.storageSourceId(), action);
-      case TERRA_WORKSPACE, EXTERNAL -> false;
+      case TERRA_DATA_REPO -> datarepoService
+          .getRole(user, dataset.storageSourceId())
+          .hasAction(action);
+      case TERRA_WORKSPACE -> rawlsService
+          .getRole(user, dataset.storageSourceId())
+          .hasAction(action);
+      case EXTERNAL -> false;
     };
   }
 
@@ -142,8 +159,8 @@ public class DatasetService {
     // can either have permission granted by the storage system that owns the dataset, or if
     // they're a catalog admin user who has permission to perform any operation on any
     // catalog entry.
-    if (!checkStoragePermission(user, dataset, action)
-        && !samService.hasGlobalAction(user, action)) {
+    if (!samService.hasGlobalAction(user, action)
+        && !checkStoragePermission(user, dataset, action)) {
       throw new UnauthorizedException(
           String.format("User %s does not have permission to %s", user.getEmail(), action));
     }
