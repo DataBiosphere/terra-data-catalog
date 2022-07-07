@@ -139,7 +139,7 @@ jobs:
           channel: 'W016GLU78GM'
           status: 'failure'
           fields: eventName,ref
-          text: ${{ format('{0} test run, status {1}', needs.test-env.outputs.test-env, 'failure') }}
+          text: ${{ format('{0} test run - status {1}', needs.test-env.outputs.test-env, 'failure') }}
           username: 'Data Explorer Tests'
 
   notify-qa-slack:
@@ -152,10 +152,11 @@ jobs:
         uses: broadinstitute/action-slack@v3.8.0
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          STATUS: ${{ needs.build.success && needs.jib.success && needs.test-env.success && needs.test-runner.success && 'success' || 'failure' }}
         with:
           author_name: ${{ github.event_name }}
           channel: 'W016GLU78GM'
-          status: ${{ github.action_status }}
+          status: ${{ env.STATUS }}
           fields: eventName,ref
-          text: ${{ format('{0} test run, status {1}', needs.test-env.outputs.test-env, github.action_status) }}
+          text: ${{ format('{0} test run - status {1}', needs.test-env.outputs.test-env, env.STATUS) }}
           username: 'Data Explorer Tests'
