@@ -155,7 +155,7 @@ jobs:
         with:
           author_name: ${{ github.event_name }}
           channel: 'W016GLU78GM'
-          status: ${{ success() && 'success' || 'failure' }}
+          status: ${{ github.action_status }}
           fields: eventName,ref
           text: ${{ format('{0} test run, status {1}', needs.test-env.outputs.test-env, github.action_status) }}
           username: 'Data Explorer Tests'
