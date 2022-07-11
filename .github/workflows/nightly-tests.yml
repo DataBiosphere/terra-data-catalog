@@ -67,16 +67,23 @@ jobs:
         with:
           image: ${{ steps.image-name.outputs.name }}
 
+  test-env:
+    runs-on: ubuntu-latest
+    outputs:
+      test-env: ${{ steps.test-env.outputs.test-env }}
+
+    steps:
+      - name: Set default test env
+        id: test-env
+        run: |
+          echo ::set-output name=test-env::${{ env.TEST_ENV || env.TEST_DEFAULT }}
+
   test-runner:
-    needs: [ build ]
+    needs: [ build, test-env ]
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
-
-      - name: Set default test env
-        run: |
-          echo "TEST_ENV=${{ env.TEST_ENV || env.TEST_DEFAULT }}" >> $GITHUB_ENV
 
       - name: Get the helm chart versions for the perf env
         run: |
@@ -86,8 +93,8 @@ jobs:
             --create-dirs -o "integration/src/main/resources/rendered/dev.yaml"
           curl -H 'Authorization: token ${{ secrets.BROADBOT_TOKEN }}' \
             -H 'Accept: application/vnd.github.v3.raw' \
-            -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/environments/live/$TEST_ENV.yaml \
-            --create-dirs -o "integration/src/main/resources/rendered/$TEST_ENV.yaml"
+            -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/environments/live/${{ needs.test-env.outputs.test-env }}.yaml \
+            --create-dirs -o "integration/src/main/resources/rendered/${{ needs.test-env.outputs.test-env }}.yaml"
 
       - name: Set up JDK
         uses: actions/setup-java@v2
@@ -104,9 +111,13 @@ jobs:
       - name: Run perf test suite
         run: |
           ./gradlew --build-cache runTest --args="suites/$TEST_ENV/FullIntegration.json build/reports"
+
+      - name: Upload Test Reports for QA
+        if: always()
+        run: |
           ./gradlew --build-cache uploadResults --args="CompressDirectoryToTerraKernelK8S.json build/reports"
 
-      - name: Upload Test Reports
+      - name: Upload Test Reports for GitHub
         if: always()
         uses: actions/upload-artifact@v1
         with:
@@ -114,7 +125,7 @@ jobs:
           path: integration/build/reports
 
   notify-de-slack:
-    needs: [ build, jib, test-runner ]
+    needs: [ build, jib, test-env, test-runner ]
     runs-on: ubuntu-latest
     if: failure()
 
@@ -123,16 +134,20 @@ jobs:
         uses: broadinstitute/action-slack@v3.8.0
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          STATUS: failure
         with:
           channel: '#jade-data-explorer'
-          status: ${{ needs.test-runner.result }}
-          author_name: Nightly test
-          fields: workflow,message
-          text: 'Nightly test failed :sadpanda:'
-          username: 'Data Explorer GitHub Action'
+          author_name: ${{ github.actor }}
+          status: ${{ env.STATUS }}
+          fields: workflow,ref
+          text: >
+            ${{ format('Catalog test *{0}* in *{1}* {2}',
+            env.STATUS, needs.test-env.outputs.test-env,
+            env.STATUS == 'success' && ':check_green:' || ':sadpanda:') }}
+          username: 'Data Explorer Tests'
 
   notify-qa-slack:
-    needs: [ build, jib, test-runner ]
+    needs: [ build, jib, test-env, test-runner ]
     runs-on: ubuntu-latest
     if: always()
 
@@ -141,10 +156,18 @@ jobs:
         uses: broadinstitute/action-slack@v3.8.0
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          STATUS: >-
+            ${{ needs.build.result == 'success'
+            && needs.jib.result == 'success'
+            && needs.test-runner.result == 'success'
+            && 'success' || 'failure' }}
         with:
           channel: '#dsde-qa'
-          status: ${{ needs.test-runner.result }}
-          author_name: Nightly test
-          fields: workflow,message
-          text: 'Nightly performance test results'
-          username: 'Data Explorer GitHub Action'
+          author_name: ${{ github.actor }}
+          status: ${{ env.STATUS }}
+          fields: workflow,ref
+          text: >
+            ${{ format('Catalog test *{0}* in *{1}* {2}',
+            env.STATUS, needs.test-env.outputs.test-env,
+            env.STATUS == 'success' && ':check_green:' || ':sadpanda:') }}
+          username: 'Data Explorer Tests'
