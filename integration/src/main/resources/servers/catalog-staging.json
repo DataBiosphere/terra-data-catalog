@@ -6,16 +6,6 @@
   "datarepoUri": "https://data.staging.envs-terra.bio/",
   "rawlsUri": "https://rawls.dsde-staging.broadinstitute.org/",
 
-  "cluster": {
-    "clusterName": "terra-staging",
-    "clusterShortName": "terra-staging",
-    "region": "us-central1",
-    "zone": "us-central1-a",
-    "project": "broad-dsde-staging",
-    "namespace": "terra-staging",
-    "containerName": "catalog",
-    "apiComponentLabel":  "catalog"
-  },
   "deploymentScript": {},
   "testRunnerServiceAccountFile": "testrunner-perf.json",
 
