@@ -3,15 +3,31 @@ package scripts.client;
 import bio.terra.rawls.api.BillingV2Api;
 import bio.terra.rawls.api.WorkspacesApi;
 import bio.terra.rawls.client.ApiClient;
+<<<<<<< Updated upstream
 import bio.terra.rawls.client.ApiException;
 import bio.terra.rawls.model.CreateRawlsV2BillingProjectFullRequest;
 import bio.terra.rawls.model.WorkspaceDetails;
 import bio.terra.rawls.model.WorkspaceRequest;
+=======
+<<<<<<< Updated upstream
+=======
+import bio.terra.rawls.client.ApiException;
+import bio.terra.rawls.model.CreateRawlsV2BillingProjectFullRequest;
+import bio.terra.rawls.model.WorkspaceACLUpdate;
+import bio.terra.rawls.model.WorkspaceDetails;
+import bio.terra.rawls.model.WorkspaceRequest;
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 import bio.terra.testrunner.common.utils.AuthenticationUtils;
 import bio.terra.testrunner.runner.config.ServerSpecification;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
 import com.google.auth.oauth2.GoogleCredentials;
 import java.io.IOException;
+<<<<<<< Updated upstream
+=======
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -20,7 +36,11 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+<<<<<<< Updated upstream
 public class RawlsClient {
+=======
+public class RawlsClient extends ApiClient {
+>>>>>>> Stashed changes
   private static final Logger log = LoggerFactory.getLogger(RawlsClient.class);
 
   private static final String BILLING_ACCOUNT = "billingAccounts/00708C-45D19D-27AAFA";
@@ -72,6 +92,10 @@ public class RawlsClient {
     billingApiClient.setAccessToken(testRunnerAccessToken);
     return new BillingV2Api(billingApiClient);
   }
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 
   /**
    * Build the API client object for the given test user and catalog server. The test user's token
@@ -119,5 +143,16 @@ public class RawlsClient {
     billingApi.deleteBillingProjectV2(workspaceDetails.getNamespace());
     log.info("deleted workspace {}", workspaceDetails.getWorkspaceId());
     log.info("deleted billing project {}", workspaceDetails.getNamespace());
+  }
+
+  public void updateWorkspaceAcl(
+      List<WorkspaceACLUpdate> updates, WorkspaceDetails workspaceDetails) throws ApiException {
+    try {
+      deleteWorkspaceWorkaround = true;
+      workspacesApi.updateACL(
+          updates, false, workspaceDetails.getNamespace(), workspaceDetails.getName());
+    } finally {
+      deleteWorkspaceWorkaround = false;
+    }
   }
 }

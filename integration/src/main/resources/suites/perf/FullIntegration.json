@@ -6,6 +6,15 @@
     "perf/GetStatus.json",
     "perf/GetVersion.json",
     "perf/DatasetPermissionOperations.json",
+<<<<<<< Updated upstream
     "perf/DatasetOperations.json"
+=======
+<<<<<<< Updated upstream
+    "perf/SnapshotDatasetOperations.json"
+=======
+    "perf/DatasetOperations.json",
+    "perf/WorkspacePermissionOperations.json"
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
   ]
 }

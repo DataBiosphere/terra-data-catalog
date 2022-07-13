@@ -6,6 +6,15 @@
     "integration/GetStatus.json",
     "integration/GetVersion.json",
     "integration/DatasetPermissionOperations.json",
+<<<<<<< Updated upstream
     "integration/DatasetOperations.json"
+=======
+<<<<<<< Updated upstream
+    "integration/SnapshotDatasetOperations.json"
+=======
+    "integration/DatasetOperations.json",
+    "integration/WorkspacePermissionOperations.json"
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
   ]
 }
