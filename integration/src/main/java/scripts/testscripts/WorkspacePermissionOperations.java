@@ -128,7 +128,7 @@ public class WorkspacePermissionOperations extends TestScript {
     adminRawlsClient.updateWorkspaceAcl(
         List.of(
             new WorkspaceACLUpdate()
-                .accessLevel(WorkspaceAccessLevel.NO_ACCESS.getValue())
+                .accessLevel(WorkspaceAccessLevel.READER.getValue())
                 .email(regularUser.userEmail)),
         adminTestWorkspace);
   }
