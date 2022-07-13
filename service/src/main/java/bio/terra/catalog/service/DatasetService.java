@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -96,8 +97,17 @@ public class DatasetService {
 
   public DatasetsListResponse listDatasets(AuthenticatedUserRequest user) {
     var response = new DatasetsListResponse();
+
     response.getResult().addAll(collectWorkspaceDatasets(user));
     response.getResult().addAll(collectDatarepoDatasets(user));
+    if (samService.hasGlobalAction(user, SamAction.READ_ANY_METADATA)) {
+      List<Dataset> datasetsList = datasetDao.listAllDatasets();
+      Map<String, DatasetAccessLevel> roleMap = datasetsList.stream().collect(Collectors.toMap(Dataset::storageSourceId, dataset2 -> DatasetAccessLevel.READER));
+      response.getResult().addAll(datasetsList.stream()
+          .map(dataset -> sourceAndDatasetToObjectNode(roleMap, dataset))
+          .toList());
+      return response;
+    }
     return response;
   }
 

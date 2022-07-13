@@ -132,4 +132,9 @@ public class DatasetDao {
     var params = Map.of("storageSystem", String.valueOf(storageSystem), "ids", ids);
     return jdbcTemplate.query(sql, params, new DatasetMapper());
   }
+
+  @ReadTransaction
+  public List<Dataset> listAllDatasets() {
+    return jdbcTemplate.query("SELECT * FROM dataset", new DatasetMapper());
+  }
 }
