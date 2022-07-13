@@ -110,7 +110,7 @@ jobs:
 
       - name: Run perf test suite
         run: |
-          ./gradlew --build-cache runTest --args="suites/$TEST_ENV/FullIntegration.json build/reports"
+          ./gradlew --build-cache runTest --args="suites/${{ needs.test-env.outputs.test-env }}/FullIntegration.json build/reports"
 
       - name: Upload Test Reports for QA
         if: always()
