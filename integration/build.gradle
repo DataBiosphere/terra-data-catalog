@@ -18,6 +18,9 @@ dependencies {
     implementation 'org.junit.jupiter:junit-jupiter-api'
     implementation 'org.hamcrest:hamcrest'
 
+    implementation 'org.glassfish.jersey.core:jersey-client'
+    implementation 'org.glassfish.jersey.connectors:jersey-jdk-connector'
+
     // Google Dependencies
     implementation 'com.google.auth:google-auth-library-oauth2-http:1.4.0'
 

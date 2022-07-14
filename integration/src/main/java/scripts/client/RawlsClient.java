@@ -18,6 +18,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Stream;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jdk.connector.JdkConnectorProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,5 +128,11 @@ public class RawlsClient extends ApiClient {
       List<WorkspaceACLUpdate> updates, WorkspaceDetails workspaceDetails) throws ApiException {
     workspacesApi.updateACL(
         updates, false, workspaceDetails.getNamespace(), workspaceDetails.getName());
+  }
+
+  @Override
+  protected void performAdditionalClientConfiguration(ClientConfig clientConfig) {
+    super.performAdditionalClientConfiguration(clientConfig);
+    clientConfig.connectorProvider(new JdkConnectorProvider());
   }
 }
