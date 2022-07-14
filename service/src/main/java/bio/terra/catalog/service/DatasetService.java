@@ -22,9 +22,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -56,6 +56,27 @@ public class DatasetService {
     }
   }
 
+  private class DatasetWithAccessLevel {
+    private final Dataset dataset;
+    private final DatasetAccessLevel accessLevel;
+
+    public DatasetWithAccessLevel(Dataset dataset, DatasetAccessLevel accessLevel) {
+      this.dataset = dataset;
+      this.accessLevel = accessLevel;
+    }
+
+    public Dataset getDataset() {
+      return dataset;
+    }
+
+    public Object convertToObject() {
+      ObjectNode node = toJsonNode(dataset.metadata());
+      node.set("accessLevel", TextNode.valueOf(String.valueOf(accessLevel)));
+      node.set("id", TextNode.valueOf(dataset.id().toValue()));
+      return node;
+    }
+  }
+
   private ObjectNode toJsonNode(String json) {
     try {
       return objectMapper.readValue(json, ObjectNode.class);
@@ -66,48 +87,45 @@ public class DatasetService {
     }
   }
 
-  private List<ObjectNode> convertSourceObjectsToDatasetResponses(
+  private List<DatasetWithAccessLevel> convertSourceObjectsToDatasetsWithAccessLevel(
       Map<String, DatasetAccessLevel> roleMap, StorageSystem storageSystem) {
     List<Dataset> datasets = datasetDao.find(storageSystem, roleMap.keySet());
     return datasets.stream()
-        .map(dataset -> sourceAndDatasetToObjectNode(roleMap, dataset))
+        .map(dataset -> new DatasetWithAccessLevel(dataset, roleMap.get(dataset.storageSourceId())))
         .toList();
   }
 
-  private ObjectNode sourceAndDatasetToObjectNode(
-      Map<String, DatasetAccessLevel> roleMap, Dataset dataset) {
-    ObjectNode node = toJsonNode(dataset.metadata());
-    node.set(
-        "accessLevel", TextNode.valueOf(String.valueOf(roleMap.get(dataset.storageSourceId()))));
-    node.set("id", TextNode.valueOf(dataset.id().toValue()));
-    return node;
-  }
-
-  private List<ObjectNode> collectDatarepoDatasets(AuthenticatedUserRequest user) {
+  private List<DatasetWithAccessLevel> collectDatarepoDatasets(AuthenticatedUserRequest user) {
     // For this storage system, get the collection of visible datasets and the user's roles for
     // each dataset.
     var roleMap = datarepoService.getSnapshotIdsAndRoles(user);
-    return convertSourceObjectsToDatasetResponses(roleMap, StorageSystem.TERRA_DATA_REPO);
+    return convertSourceObjectsToDatasetsWithAccessLevel(roleMap, StorageSystem.TERRA_DATA_REPO);
   }
 
-  private List<ObjectNode> collectWorkspaceDatasets(AuthenticatedUserRequest user) {
+  private List<DatasetWithAccessLevel> collectWorkspaceDatasets(AuthenticatedUserRequest user) {
     var roleMap = rawlsService.getWorkspaceIdsAndRoles(user);
-    return convertSourceObjectsToDatasetResponses(roleMap, StorageSystem.TERRA_WORKSPACE);
+    return convertSourceObjectsToDatasetsWithAccessLevel(roleMap, StorageSystem.TERRA_WORKSPACE);
   }
 
   public DatasetsListResponse listDatasets(AuthenticatedUserRequest user) {
+    List<DatasetWithAccessLevel> datasets = new ArrayList<>();
+    datasets.addAll(collectWorkspaceDatasets(user));
+    datasets.addAll(collectDatarepoDatasets(user));
+    if (samService.hasGlobalAction(user, SamAction.READ_ANY_METADATA)) {
+      datasets.addAll(
+          datasetDao.listAllDatasets().stream()
+              .map(dataset -> new DatasetWithAccessLevel(dataset, DatasetAccessLevel.READER))
+              .filter(
+                  datasetWithAccessLevel ->
+                      !datasets.stream()
+                          .map(datasetInList -> datasetInList.getDataset().id())
+                          .toList()
+                          .contains(datasetWithAccessLevel.getDataset().id()))
+              .toList());
+    }
     var response = new DatasetsListResponse();
 
-    response.getResult().addAll(collectWorkspaceDatasets(user));
-    response.getResult().addAll(collectDatarepoDatasets(user));
-    if (samService.hasGlobalAction(user, SamAction.READ_ANY_METADATA)) {
-      List<Dataset> datasetsList = datasetDao.listAllDatasets();
-      Map<String, DatasetAccessLevel> roleMap = datasetsList.stream().collect(Collectors.toMap(Dataset::storageSourceId, dataset2 -> DatasetAccessLevel.READER));
-      response.getResult().addAll(datasetsList.stream()
-          .map(dataset -> sourceAndDatasetToObjectNode(roleMap, dataset))
-          .toList());
-      return response;
-    }
+    response.setResult(datasets.stream().map(DatasetWithAccessLevel::convertToObject).toList());
     return response;
   }
 
