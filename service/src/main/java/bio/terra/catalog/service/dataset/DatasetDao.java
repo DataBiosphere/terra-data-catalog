@@ -37,14 +37,6 @@ public class DatasetDao {
   }
 
   @ReadTransaction
-  public List<Dataset> enumerate() {
-    String sql =
-        "SELECT id, storage_source_id, storage_system, metadata, created_date FROM dataset";
-    MapSqlParameterSource params = new MapSqlParameterSource();
-    return jdbcTemplate.query(sql, params, new DatasetMapper());
-  }
-
-  @ReadTransaction
   public Dataset retrieve(DatasetId id) {
     String sql =
         "SELECT id, storage_source_id, storage_system, metadata, created_date FROM dataset WHERE id = :id";
