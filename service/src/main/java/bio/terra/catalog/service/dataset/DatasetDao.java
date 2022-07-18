@@ -127,6 +127,7 @@ public class DatasetDao {
 
   @ReadTransaction
   public List<Dataset> listAllDatasets() {
-    return jdbcTemplate.query("SELECT * FROM dataset", new DatasetMapper());
+    String sql = "SELECT * FROM dataset";
+    return jdbcTemplate.query(sql, new DatasetMapper());
   }
 }
