@@ -75,15 +75,15 @@ public class DatasetService {
       node.set("id", TextNode.valueOf(dataset.id().toValue()));
       return node;
     }
-  }
 
-  private ObjectNode toJsonNode(String json) {
-    try {
-      return objectMapper.readValue(json, ObjectNode.class);
-    } catch (JsonProcessingException e) {
-      // This shouldn't occur, as the data stored in postgres must be valid JSON, because it's
-      // stored as JSONB.
-      throw new IllegalMetadataException(e);
+    private ObjectNode toJsonNode(String json) {
+      try {
+        return objectMapper.readValue(json, ObjectNode.class);
+      } catch (JsonProcessingException e) {
+        // This shouldn't occur, as the data stored in postgres must be valid JSON, because it's
+        // stored as JSONB.
+        throw new IllegalMetadataException(e);
+      }
     }
   }
 
