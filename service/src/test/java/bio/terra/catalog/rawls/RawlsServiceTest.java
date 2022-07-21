@@ -5,9 +5,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
@@ -25,42 +23,40 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-@ConfigurationPropertiesScan("bio.terra.catalog")
-@ContextConfiguration(classes = {RawlsService.class})
+@ExtendWith(MockitoExtension.class)
 class RawlsServiceTest {
-  @Autowired private RawlsService rawlsServiceReal;
-
-  @Mock private AuthenticatedUserRequest user;
-
-  @Mock private StatusApi statusApi;
-
-  @Mock private WorkspacesApi workspacesApi;
-
   private RawlsService rawlsService;
+
+  @Mock private RawlsClient rawlsClient;
+  @Mock private AuthenticatedUserRequest user;
+  @Mock private StatusApi statusApi;
+  @Mock private WorkspacesApi workspacesApi;
 
   @BeforeEach
   void beforeEach() {
-    rawlsService = spy(rawlsServiceReal);
-    doReturn(workspacesApi).when(rawlsService).workspacesApi(user);
-    doReturn(statusApi).when(rawlsService).statusApi();
+    rawlsService = new RawlsService(rawlsClient);
+  }
+
+  private void mockWorkspaces() {
+    when(rawlsClient.workspacesApi(user)).thenReturn(workspacesApi);
+  }
+
+  private void mockStatus() {
+    when(rawlsClient.statusApi()).thenReturn(statusApi);
   }
 
   @Test
-  void status() throws Exception {
+  void status() {
+    mockStatus();
     var rawlsStatus = rawlsService.status();
     assertTrue(rawlsStatus.isOk());
   }
 
   @Test
   void statusException() throws Exception {
+    mockStatus();
     doThrow(new ApiException()).when(statusApi).systemStatus();
     var rawlsStatus = rawlsService.status();
     assertFalse(rawlsStatus.isOk());
@@ -68,6 +64,7 @@ class RawlsServiceTest {
 
   @Test
   void getWorkspaces() throws Exception {
+    mockWorkspaces();
     var items = Map.of("id", DatasetAccessLevel.OWNER);
     var workspaceResponses =
         List.of(
@@ -80,7 +77,8 @@ class RawlsServiceTest {
   }
 
   @Test
-  void getSnapshotsException() throws Exception {
+  void getWorkspacesException() throws Exception {
+    mockWorkspaces();
     when(workspacesApi.listWorkspaces(RawlsService.ACCESS_LEVEL_AND_ID))
         .thenThrow(new ApiException());
     assertThrows(RawlsException.class, () -> rawlsService.getWorkspaceIdsAndRoles(user));
@@ -88,6 +86,7 @@ class RawlsServiceTest {
 
   @Test
   void getRoleReader() throws Exception {
+    mockWorkspaces();
     String id = "abc";
     when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL))
         .thenReturn(new WorkspaceResponse().accessLevel(WorkspaceAccessLevel.READER));
@@ -96,6 +95,7 @@ class RawlsServiceTest {
 
   @Test
   void getRoleOwner() throws Exception {
+    mockWorkspaces();
     String id = "abc";
     when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL))
         .thenReturn(new WorkspaceResponse().accessLevel(WorkspaceAccessLevel.OWNER));
@@ -104,6 +104,7 @@ class RawlsServiceTest {
 
   @Test
   void userHasActionException() throws Exception {
+    mockWorkspaces();
     String id = "abc";
     when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL))
         .thenThrow(new ApiException());

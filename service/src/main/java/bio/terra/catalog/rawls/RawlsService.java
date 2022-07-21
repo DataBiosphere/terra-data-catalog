@@ -1,22 +1,17 @@
 package bio.terra.catalog.rawls;
 
-import bio.terra.catalog.config.RawlsConfiguration;
 import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.rawls.api.StatusApi;
 import bio.terra.rawls.api.WorkspacesApi;
-import bio.terra.rawls.client.ApiClient;
 import bio.terra.rawls.client.ApiException;
 import bio.terra.rawls.model.WorkspaceAccessLevel;
-import com.google.common.annotations.VisibleForTesting;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.ws.rs.client.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -26,8 +21,7 @@ public class RawlsService {
   public static final List<String> ACCESS_LEVEL_AND_ID =
       List.of("accessLevel", "workspace.workspaceId");
 
-  private final RawlsConfiguration rawlsConfig;
-  private final Client commonHttpClient;
+  private final RawlsClient rawlsClient;
 
   private static final Map<WorkspaceAccessLevel, DatasetAccessLevel> ROLE_TO_DATASET_ACCESS =
       Map.of(
@@ -37,21 +31,8 @@ public class RawlsService {
           WorkspaceAccessLevel.READER, DatasetAccessLevel.READER,
           WorkspaceAccessLevel.NO_ACCESS, DatasetAccessLevel.DISCOVERER);
 
-  @Autowired
-  public RawlsService(RawlsConfiguration rawlsConfig) {
-    this.rawlsConfig = rawlsConfig;
-    this.commonHttpClient = new ApiClient().getHttpClient();
-  }
-
-  private ApiClient getApiClient(AuthenticatedUserRequest user) {
-    ApiClient apiClient = getApiClient();
-    apiClient.setAccessToken(user.getToken());
-    return apiClient;
-  }
-
-  private ApiClient getApiClient() {
-    // Share one api client across requests.
-    return new ApiClient().setHttpClient(commonHttpClient).setBasePath(rawlsConfig.basePath());
+  public RawlsService(RawlsClient rawlsClient) {
+    this.rawlsClient = rawlsClient;
   }
 
   public Map<String, DatasetAccessLevel> getWorkspaceIdsAndRoles(AuthenticatedUserRequest user) {
@@ -77,13 +58,12 @@ public class RawlsService {
     }
   }
 
-  WorkspacesApi workspacesApi(AuthenticatedUserRequest user) {
-    return new WorkspacesApi(getApiClient(user));
+  private WorkspacesApi workspacesApi(AuthenticatedUserRequest user) {
+    return rawlsClient.workspacesApi(user);
   }
 
-  @VisibleForTesting
-  StatusApi statusApi() {
-    return new StatusApi(getApiClient());
+  private StatusApi statusApi() {
+    return rawlsClient.statusApi();
   }
 
   public SystemStatusSystems status() {
