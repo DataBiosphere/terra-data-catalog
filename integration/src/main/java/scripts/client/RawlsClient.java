@@ -23,7 +23,7 @@ import org.glassfish.jersey.jdk.connector.JdkConnectorProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RawlsClient extends ApiClient {
+public class RawlsClient {
   private static final Logger log = LoggerFactory.getLogger(RawlsClient.class);
 
   private static final String BILLING_ACCOUNT = "billingAccounts/00708C-45D19D-27AAFA";
@@ -42,6 +42,12 @@ public class RawlsClient extends ApiClient {
       throws IOException {
     var workspaceApiClient =
         new ApiClient() {
+          @Override
+          protected void performAdditionalClientConfiguration(ClientConfig clientConfig) {
+            super.performAdditionalClientConfiguration(clientConfig);
+            clientConfig.connectorProvider(new JdkConnectorProvider());
+          }
+
           @Override
           public String selectHeaderAccept(String[] accepts) {
             // This workaround is necessary because the rawls openAPI spec doesn't match the
@@ -128,11 +134,5 @@ public class RawlsClient extends ApiClient {
       List<WorkspaceACLUpdate> updates, WorkspaceDetails workspaceDetails) throws ApiException {
     workspacesApi.updateACL(
         updates, false, workspaceDetails.getNamespace(), workspaceDetails.getName());
-  }
-
-  @Override
-  protected void performAdditionalClientConfiguration(ClientConfig clientConfig) {
-    super.performAdditionalClientConfiguration(clientConfig);
-    clientConfig.connectorProvider(new JdkConnectorProvider());
   }
 }

@@ -9,7 +9,6 @@ import bio.terra.catalog.api.DatasetsApi;
 import bio.terra.catalog.client.ApiException;
 import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.StorageSystem;
-import bio.terra.rawls.api.WorkspacesApi;
 import bio.terra.rawls.model.WorkspaceACLUpdate;
 import bio.terra.rawls.model.WorkspaceAccessLevel;
 import bio.terra.rawls.model.WorkspaceDetails;
@@ -34,9 +33,7 @@ public class WorkspacePermissionOperations extends TestScript {
   private TestUserSpecification regularUser;
 
   private RawlsClient adminRawlsClient;
-  private WorkspacesApi adminWorkspacesApi;
   private RawlsClient userRawlsClient;
-  private WorkspacesApi userWorkspacesApi;
   private WorkspaceDetails adminTestWorkspace;
   private WorkspaceDetails userTestWorkspace;
 
@@ -60,9 +57,7 @@ public class WorkspacePermissionOperations extends TestScript {
     assertNotNull(regularUser);
 
     adminRawlsClient = new RawlsClient(server, adminUser);
-    adminWorkspacesApi = new WorkspacesApi(adminRawlsClient);
     userRawlsClient = new RawlsClient(server, regularUser);
-    userWorkspacesApi = new WorkspacesApi(userRawlsClient);
     adminDatasetsApi = new DatasetsApi(new CatalogClient(server, adminUser));
     userDatasetsApi = new DatasetsApi(new CatalogClient(server, regularUser));
     adminTestWorkspace = adminRawlsClient.createTestWorkspace();
@@ -79,13 +74,7 @@ public class WorkspacePermissionOperations extends TestScript {
   }
 
   private void testReaderPermissions() throws Exception {
-    clearTestWorkspacePermissions();
-    //    adminRawlsClient.updateWorkspaceAcl(
-    //        List.of(
-    //            new WorkspaceACLUpdate()
-    //                .email(regularUser.userEmail)
-    //                .accessLevel(WorkspaceAccessLevel.READER.getValue())),
-    //        adminTestWorkspace);
+    setTestWorkspacePermissionForRegularUser(WorkspaceAccessLevel.READER.getValue());
     // User cannot create a catalog entry on snapshot when user only has reader access on snapshot
     CreateDatasetRequest request = datasetRequestForWorkspace(adminTestWorkspace.getWorkspaceId());
     // note if this assertion fails we'll leave behind a stray dataset in the db
@@ -104,20 +93,36 @@ public class WorkspacePermissionOperations extends TestScript {
     // verify the user cannot access dataset without any permissions
     assertThrows(ApiException.class, () -> userDatasetsApi.getDataset(adminTestDatasetId));
     assertThat(
-        userDatasetsApi.getApiClient().getStatusCode(),
-        is(HttpStatusCodes.STATUS_CODE_UNAUTHORIZED));
+        userDatasetsApi.getApiClient().getStatusCode(), is(HttpStatusCodes.STATUS_CODE_NOT_FOUND));
   }
+  // TODO (DC-446): Fix with https://broadworkbench.atlassian.net/browse/DC-446
+  //  private void testNoAccessPermissions() throws Exception {
+  //    setTestWorkspacePermissionForRegularUser(WorkspaceAccessLevel.NO_ACCESS.getValue());
+  //    // User cannot create a catalog entry on Workspace when user has "No Access" on a workspace
+  //    CreateDatasetRequest request =
+  // datasetRequestForWorkspace(adminTestWorkspace.getWorkspaceId());
+  //    // note if this assertion fails we'll leave behind a stray dataset in the db
+  //    assertThrows(ApiException.class, () -> userDatasetsApi.createDataset(request));
+  //    assertThat(
+  //        userDatasetsApi.getApiClient().getStatusCode(),
+  // is(HttpStatusCodes.STATUS_CODE_NOT_FOUND));
+  //    // but the user can get datasets
+  //    userDatasetsApi.getDataset(adminTestDatasetId);
+  //    assertThat(userDatasetsApi.getApiClient().getStatusCode(),
+  // is(HttpStatusCodes.STATUS_CODE_OK));
+  //  }
 
   private void testAdminPermissionsOnUserSnapshot() throws Exception {
     // Verify admin can create a dataset on the user snapshot
-    CreateDatasetRequest request = datasetRequestForWorkspace(adminTestWorkspace.getWorkspaceId());
-    var datasetId = adminCreateDataset(request);
+    CreateDatasetRequest request = datasetRequestForWorkspace(userTestWorkspace.getWorkspaceId());
+    adminCreateDataset(request);
+  }
 
-    // But admin cannot access the underlying preview data
-    assertThrows(Exception.class, () -> adminDatasetsApi.listDatasetPreviewTables(datasetId));
-    assertThat(
-        adminDatasetsApi.getApiClient().getStatusCode(),
-        is(HttpStatusCodes.STATUS_CODE_UNAUTHORIZED));
+  private void setTestWorkspacePermissionForRegularUser(String policy) throws Exception {
+    // first clear the shared snapshot of policy state caused by previous tests
+    adminRawlsClient.updateWorkspaceAcl(
+        List.of(new WorkspaceACLUpdate().email(regularUser.userEmail).accessLevel(policy)),
+        adminTestWorkspace);
   }
 
   private void clearTestWorkspacePermissions() throws Exception {
@@ -125,12 +130,7 @@ public class WorkspacePermissionOperations extends TestScript {
         "Clearing acl permissions for {}/{}",
         adminTestWorkspace.getNamespace(),
         adminTestWorkspace.getName());
-    adminRawlsClient.updateWorkspaceAcl(
-        List.of(
-            new WorkspaceACLUpdate()
-                .accessLevel(WorkspaceAccessLevel.READER.getValue())
-                .email(regularUser.userEmail)),
-        adminTestWorkspace);
+    setTestWorkspacePermissionForRegularUser(WorkspaceAccessLevel.NO_ACCESS.getValue());
   }
 
   private CreateDatasetRequest datasetRequestForWorkspace(String workspaceId) {
