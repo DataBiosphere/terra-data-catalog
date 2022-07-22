@@ -95,22 +95,6 @@ public class WorkspacePermissionOperations extends TestScript {
     assertThat(
         userDatasetsApi.getApiClient().getStatusCode(), is(HttpStatusCodes.STATUS_CODE_NOT_FOUND));
   }
-  // TODO (DC-446): Fix with https://broadworkbench.atlassian.net/browse/DC-446
-  //  private void testNoAccessPermissions() throws Exception {
-  //    setTestWorkspacePermissionForRegularUser(WorkspaceAccessLevel.NO_ACCESS.getValue());
-  //    // User cannot create a catalog entry on Workspace when user has "No Access" on a workspace
-  //    CreateDatasetRequest request =
-  // datasetRequestForWorkspace(adminTestWorkspace.getWorkspaceId());
-  //    // note if this assertion fails we'll leave behind a stray dataset in the db
-  //    assertThrows(ApiException.class, () -> userDatasetsApi.createDataset(request));
-  //    assertThat(
-  //        userDatasetsApi.getApiClient().getStatusCode(),
-  // is(HttpStatusCodes.STATUS_CODE_NOT_FOUND));
-  //    // but the user can get datasets
-  //    userDatasetsApi.getDataset(adminTestDatasetId);
-  //    assertThat(userDatasetsApi.getApiClient().getStatusCode(),
-  // is(HttpStatusCodes.STATUS_CODE_OK));
-  //  }
 
   private void testAdminPermissionsOnUserSnapshot() throws Exception {
     // Verify admin can create a dataset on the user snapshot
@@ -126,10 +110,6 @@ public class WorkspacePermissionOperations extends TestScript {
   }
 
   private void clearTestWorkspacePermissions() throws Exception {
-    log.info(
-        "Clearing acl permissions for {}/{}",
-        adminTestWorkspace.getNamespace(),
-        adminTestWorkspace.getName());
     setTestWorkspacePermissionForRegularUser(WorkspaceAccessLevel.NO_ACCESS.getValue());
   }
 
@@ -156,17 +136,9 @@ public class WorkspacePermissionOperations extends TestScript {
       log.info("deleted dataset {}", datasetId);
     }
     if (adminTestWorkspace != null) {
-      log.info(
-          "deleting workspace {}/{}",
-          adminTestWorkspace.getNamespace(),
-          adminTestWorkspace.getName());
       adminRawlsClient.deleteWorkspace(adminTestWorkspace);
     }
     if (userTestWorkspace != null) {
-      log.info(
-          "deleting workspace {}/{}",
-          userTestWorkspace.getNamespace(),
-          userTestWorkspace.getName());
       userRawlsClient.deleteWorkspace(userTestWorkspace);
     }
   }
