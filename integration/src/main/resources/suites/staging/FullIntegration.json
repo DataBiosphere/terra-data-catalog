@@ -6,7 +6,6 @@
     "integration/GetStatus.json",
     "integration/GetVersion.json",
     "integration/DatasetPermissionOperations.json",
-    "integration/DatasetOperations.json",
-    "integration/WorkspacePermissionOperations.json"
+    "integration/DatasetOperations.json"
   ]
 }
