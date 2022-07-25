@@ -6,6 +6,7 @@ import bio.terra.rawls.client.ApiClient;
 import bio.terra.rawls.client.ApiException;
 import bio.terra.rawls.model.CreateRawlsV2BillingProjectFullRequest;
 import bio.terra.rawls.model.WorkspaceACLUpdate;
+import bio.terra.rawls.model.WorkspaceAccessLevel;
 import bio.terra.rawls.model.WorkspaceDetails;
 import bio.terra.rawls.model.WorkspaceRequest;
 import bio.terra.testrunner.common.utils.AuthenticationUtils;
@@ -130,9 +131,13 @@ public class RawlsClient {
     log.info("deleted billing project {}", workspaceDetails.getNamespace());
   }
 
-  public void updateWorkspaceAcl(
-      List<WorkspaceACLUpdate> updates, WorkspaceDetails workspaceDetails) throws ApiException {
+  public void updateWorkspacePermissionForUser(
+      String email, WorkspaceAccessLevel accessLevel, WorkspaceDetails workspaceDetails)
+      throws ApiException {
     workspacesApi.updateACL(
-        updates, false, workspaceDetails.getNamespace(), workspaceDetails.getName());
+        List.of(new WorkspaceACLUpdate().email(email).accessLevel(accessLevel.getValue())),
+        false,
+        workspaceDetails.getNamespace(),
+        workspaceDetails.getName());
   }
 }

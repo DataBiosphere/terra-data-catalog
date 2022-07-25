@@ -10,7 +10,6 @@ import bio.terra.catalog.client.ApiException;
 import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.StorageSystem;
 import bio.terra.datarepo.model.DatasetModel;
-import bio.terra.rawls.model.WorkspaceACLUpdate;
 import bio.terra.rawls.model.WorkspaceAccessLevel;
 import bio.terra.rawls.model.WorkspaceDetails;
 import bio.terra.testrunner.runner.TestScript;
@@ -118,7 +117,7 @@ public class DatasetPermissionOperations extends TestScript {
   }
 
   private void testReaderPermissionsForWorkspaceDataset() throws Exception {
-    setTestWorkspacePermissionForRegularUser(WorkspaceAccessLevel.READER.getValue());
+    setTestWorkspacePermissionForRegularUser(WorkspaceAccessLevel.READER);
     // User cannot create a catalog entry on snapshot when user only has reader access on snapshot
     CreateDatasetRequest request =
         datasetRequest(adminTestWorkspace.getWorkspaceId(), StorageSystem.WKS);
@@ -134,7 +133,7 @@ public class DatasetPermissionOperations extends TestScript {
   }
 
   private void testNoPermissionsForWorkspaceDataset() throws Exception {
-    setTestWorkspacePermissionForRegularUser(WorkspaceAccessLevel.NO_ACCESS.getValue());
+    setTestWorkspacePermissionForRegularUser(WorkspaceAccessLevel.NO_ACCESS);
     // verify the user cannot access dataset without any permissions
     assertThrows(ApiException.class, () -> userDatasetsApi.getDataset(adminTestWorkspaceDatasetId));
     assertThat(
@@ -221,11 +220,11 @@ public class DatasetPermissionOperations extends TestScript {
     return datasetId;
   }
 
-  private void setTestWorkspacePermissionForRegularUser(String policy) throws Exception {
+  private void setTestWorkspacePermissionForRegularUser(WorkspaceAccessLevel accessLevel)
+      throws Exception {
     // first clear the shared snapshot of policy state caused by previous tests
-    adminRawlsClient.updateWorkspaceAcl(
-        List.of(new WorkspaceACLUpdate().email(regularUser.userEmail).accessLevel(policy)),
-        adminTestWorkspace);
+    adminRawlsClient.updateWorkspacePermissionForUser(
+        regularUser.userEmail, accessLevel, adminTestWorkspace);
   }
 
   @Override
