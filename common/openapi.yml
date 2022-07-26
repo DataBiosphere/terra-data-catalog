@@ -378,6 +378,7 @@ components:
       enum: ['tdr', 'wks', 'ext']
 
     WorkspaceId:
+      description: The workspace UUID
       type: object
       required: [ id ]
       properties:
@@ -389,9 +390,9 @@ components:
       description: |
         The request to export the data of a dataset into a workspace
       type: object
-      required: [ workspaceUuid ]
+      required: [ id ]
       properties:
-        workspaceUuid:
+        id:
           $ref: '#/components/schemas/WorkspaceId'
 
   securitySchemes:
