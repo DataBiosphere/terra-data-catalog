@@ -145,6 +145,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorReport'
+  /api/v1/datasets/{id}/export:
+    post:
+      summary: Export the dataset data into a workspace
+      tags: [ datasets ]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      operationId: exportDataset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExportRequest'
+        required: true
+      responses:
+        '204':
+          description: The data was successfully exported into a workspace
+          content: { }
+        '404':
+          description: Unable to export data into a workspace
   /api/v1/datasets/{id}/tables:
     get:
       summary: Given a dataset ID, return its preview metadata
@@ -357,6 +376,23 @@ components:
       type: string
       description: The storage system for this dataset
       enum: ['tdr', 'wks', 'ext']
+
+    WorkspaceId:
+      type: object
+      required: [ id ]
+      properties:
+        id:
+          type: string
+          format: uuid
+
+    CreateExportRequest:
+      description: |
+        The request to export the data of a dataset into a workspace
+      type: object
+      required: [ workspaceUuid ]
+      properties:
+        workspaceUuid:
+          $ref: '#/components/schemas/WorkspaceId'
 
   securitySchemes:
     authorization:
