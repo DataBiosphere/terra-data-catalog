@@ -103,24 +103,21 @@ public class DatasetPermissionOperations extends TestScript {
   private void testReaderPermissionsForSnapshotDataset() throws Exception {
     setTestSnapshotPermissionForRegularUser("reader");
     // User cannot create a catalog entry on snapshot when user only has reader access on snapshot
-    CreateDatasetRequest request =
-        datasetRequest(adminTestSnapshotId.toString(), StorageSystem.TDR);
-    // note if this assertion fails we'll leave behind a stray dataset in the db
-    assertThrows(ApiException.class, () -> userDatasetsApi.createDataset(request));
-    assertThat(
-        userDatasetsApi.getApiClient().getStatusCode(),
-        is(HttpStatusCodes.STATUS_CODE_UNAUTHORIZED));
-
-    // verify the user can still access data though
-    userDatasetsApi.getDataset(adminTestSnapshotDatasetId);
-    assertThat(userDatasetsApi.getApiClient().getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
+    testDatasetReaderPermissions(
+        adminTestSnapshotId.toString(), StorageSystem.TDR, adminTestSnapshotDatasetId);
   }
 
   private void testReaderPermissionsForWorkspaceDataset() throws Exception {
     setTestWorkspacePermissionForRegularUser(WorkspaceAccessLevel.READER);
-    // User cannot create a catalog entry on snapshot when user only has reader access on snapshot
-    CreateDatasetRequest request =
-        datasetRequest(adminTestWorkspace.getWorkspaceId(), StorageSystem.WKS);
+    // User cannot create a catalog entry on workspace when user only has reader access on workspace
+    testDatasetReaderPermissions(
+        adminTestWorkspace.getWorkspaceId(), StorageSystem.WKS, adminTestWorkspaceDatasetId);
+  }
+
+  private void testDatasetReaderPermissions(
+      String storageSourceId, StorageSystem storageSystem, UUID adminDatasetId)
+      throws ApiException {
+    CreateDatasetRequest request = datasetRequest(storageSourceId, storageSystem);
     // note if this assertion fails we'll leave behind a stray dataset in the db
     assertThrows(ApiException.class, () -> userDatasetsApi.createDataset(request));
     assertThat(
@@ -128,16 +125,20 @@ public class DatasetPermissionOperations extends TestScript {
         is(HttpStatusCodes.STATUS_CODE_UNAUTHORIZED));
 
     // verify the user can still access data though
-    userDatasetsApi.getDataset(adminTestWorkspaceDatasetId);
+    userDatasetsApi.getDataset(adminDatasetId);
     assertThat(userDatasetsApi.getApiClient().getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
   }
 
   private void testNoPermissionsForWorkspaceDataset() throws Exception {
     setTestWorkspacePermissionForRegularUser(WorkspaceAccessLevel.NO_ACCESS);
     // verify the user cannot access dataset without any permissions
-    assertThrows(ApiException.class, () -> userDatasetsApi.getDataset(adminTestWorkspaceDatasetId));
-    assertThat(
-        userDatasetsApi.getApiClient().getStatusCode(), is(HttpStatusCodes.STATUS_CODE_NOT_FOUND));
+    assertNoPermissionsOnDataset(
+        adminTestWorkspaceDatasetId, HttpStatusCodes.STATUS_CODE_NOT_FOUND);
+  }
+
+  private void assertNoPermissionsOnDataset(UUID adminDatasetId, int expectedStatusCode) {
+    assertThrows(ApiException.class, () -> userDatasetsApi.getDataset(adminDatasetId));
+    assertThat(userDatasetsApi.getApiClient().getStatusCode(), is(expectedStatusCode));
   }
 
   private void testAdminPermissionsOnUserWorkspace() throws Exception {
@@ -174,10 +175,8 @@ public class DatasetPermissionOperations extends TestScript {
   private void testNoPermissionsForSnapshotDataset() throws Exception {
     clearTestSnapshotPermissions();
     // verify the user cannot access dataset without any permissions
-    assertThrows(ApiException.class, () -> userDatasetsApi.getDataset(adminTestSnapshotDatasetId));
-    assertThat(
-        userDatasetsApi.getApiClient().getStatusCode(),
-        is(HttpStatusCodes.STATUS_CODE_UNAUTHORIZED));
+    assertNoPermissionsOnDataset(
+        adminTestSnapshotDatasetId, HttpStatusCodes.STATUS_CODE_UNAUTHORIZED);
   }
 
   private void testAdminPermissionsOnUserSnapshot() throws Exception {
