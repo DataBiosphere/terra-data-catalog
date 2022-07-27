@@ -145,7 +145,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorReport'
-  /api/v1/datasets/{id}/export:
+  /api/v1/datasets/{id}/export/{workspaceId}:
     post:
       summary: Export the dataset data into a workspace
       tags: [ datasets ]
@@ -213,7 +213,7 @@ components:
         type: string
         format: uuid
     WorkspaceId:
-      name: id
+      name: workspaceId
       in: path
       description: A UUID to used to identify a workspace object
       required: true
