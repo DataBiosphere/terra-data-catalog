@@ -151,13 +151,8 @@ paths:
       tags: [ datasets ]
       parameters:
         - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/WorkspaceId'
       operationId: exportDataset
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateExportRequest'
-        required: true
       responses:
         '204':
           description: The data was successfully exported into a workspace
@@ -213,6 +208,14 @@ components:
       name: id
       in: path
       description: A UUID to used to identify an object in the catalog
+      required: true
+      schema:
+        type: string
+        format: uuid
+    WorkspaceId:
+      name: id
+      in: path
+      description: A UUID to used to identify a workspace object
       required: true
       schema:
         type: string
@@ -376,24 +379,6 @@ components:
       type: string
       description: The storage system for this dataset
       enum: ['tdr', 'wks', 'ext']
-
-    WorkspaceId:
-      description: The workspace UUID
-      type: object
-      required: [ id ]
-      properties:
-        id:
-          type: string
-          format: uuid
-
-    CreateExportRequest:
-      description: |
-        The request to export the data of a dataset into a workspace
-      type: object
-      required: [ id ]
-      properties:
-        id:
-          $ref: '#/components/schemas/WorkspaceId'
 
   securitySchemes:
     authorization:
