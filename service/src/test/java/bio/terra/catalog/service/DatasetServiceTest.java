@@ -28,7 +28,6 @@ import bio.terra.datarepo.model.SnapshotModel;
 import bio.terra.datarepo.model.SnapshotPreviewModel;
 import bio.terra.datarepo.model.TableDataType;
 import bio.terra.datarepo.model.TableModel;
-import bio.terra.rawls.model.WorkspaceAccessLevel;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.time.Instant;
@@ -92,7 +91,6 @@ class DatasetServiceTest {
 
   @Test
   void listDatasets() {
-    var workspaceRole = WorkspaceAccessLevel.OWNER;
     var workspaces = Map.of(workspaceSourceId, DatasetAccessLevel.OWNER);
     var idToRole = Map.of(sourceId, DatasetAccessLevel.OWNER);
     when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(idToRole);
@@ -110,6 +108,28 @@ class DatasetServiceTest {
     assertThat(tdrJson.get("name").asText(), is("name"));
     assertThat(tdrJson.get("id").asText(), is(tdrDataset.id().toValue()));
     assertThat(tdrJson.get("accessLevel").asText(), is(String.valueOf(DatasetAccessLevel.OWNER)));
+  }
+
+  @Test
+  void listDatasetsUsingAdminPermissions() {
+    Map<String, DatasetAccessLevel> workspaces = Map.of();
+    var datasets = Map.of(sourceId, DatasetAccessLevel.OWNER);
+    when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(datasets);
+    when(rawlsService.getWorkspaceIdsAndRoles(user)).thenReturn(workspaces);
+    when(samService.hasGlobalAction(user, SamAction.READ_ANY_METADATA)).thenReturn(true);
+    when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, workspaces.keySet())).thenReturn(List.of());
+    when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, datasets.keySet()))
+        .thenReturn(List.of(tdrDataset));
+    when(datasetDao.listAllDatasets()).thenReturn(List.of(workspaceDataset, tdrDataset));
+    ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets(user).getResult().get(0);
+    ObjectNode workspaceJson = (ObjectNode) datasetService.listDatasets(user).getResult().get(1);
+    assertThat(tdrJson.get("name").asText(), is("name"));
+    assertThat(tdrJson.get("id").asText(), is(tdrDataset.id().toValue()));
+    assertThat(tdrJson.get("accessLevel").asText(), is(String.valueOf(DatasetAccessLevel.OWNER)));
+    assertThat(workspaceJson.get("name").asText(), is("name"));
+    assertThat(workspaceJson.get("id").asText(), is(workspaceDataset.id().toValue()));
+    assertThat(
+        workspaceJson.get("accessLevel").asText(), is(String.valueOf(DatasetAccessLevel.READER)));
   }
 
   @Test
