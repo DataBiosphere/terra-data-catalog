@@ -9,7 +9,7 @@
       "name": "DatasetPermissionOperations",
       "numberOfUserJourneyThreadsToRun": 1,
       "userJourneyThreadPoolSize": 2,
-      "expectedTimeForEach": 5,
+      "expectedTimeForEach": 20,
       "expectedTimeForEachUnit": "SECONDS"
     }
   ],
