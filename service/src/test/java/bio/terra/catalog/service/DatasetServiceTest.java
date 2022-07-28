@@ -1,8 +1,12 @@
 package bio.terra.catalog.service;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isA;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
@@ -277,5 +281,33 @@ class DatasetServiceTest {
     assertThat(
         datasetPreviewTable.getColumns().get(0),
         is(new bio.terra.catalog.model.ColumnModel().name("column a").arrayOf(false)));
+  }
+
+  @Test
+  void testExportDatarepoDataset() {
+    reset(datasetDao);
+    when(datasetDao.retrieve(datasetId)).thenReturn(tdrDataset);
+    when(datarepoService.getRole(user, sourceId)).thenReturn(DatasetAccessLevel.READER);
+    String workspaceId = String.valueOf(UUID.randomUUID());
+    datasetService.exportDataset(user, datasetId, workspaceId);
+
+    DatasetService mockDatasetService = mock(DatasetService.class);
+    doNothing().when(mockDatasetService).exportDataset(user, datasetId, workspaceId);
+    mockDatasetService.exportDataset(user, datasetId, workspaceId);
+    verify(mockDatasetService).exportDataset(user, datasetId, workspaceId);
+  }
+
+  @Test
+  void testExportWorkspaceDataset() {
+    reset(datasetDao);
+    when(datasetDao.retrieve(datasetId)).thenReturn(workspaceDataset);
+    when(rawlsService.getRole(user, workspaceSourceId)).thenReturn(DatasetAccessLevel.READER);
+    String workspaceId = String.valueOf(UUID.randomUUID());
+    datasetService.exportDataset(user, datasetId, workspaceId);
+
+    DatasetService mockDatasetService = mock(DatasetService.class);
+    doNothing().when(mockDatasetService).exportDataset(user, datasetId, workspaceId);
+    mockDatasetService.exportDataset(user, datasetId, workspaceId);
+    verify(mockDatasetService).exportDataset(user, datasetId, workspaceId);
   }
 }
