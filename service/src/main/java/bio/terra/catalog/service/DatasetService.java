@@ -254,10 +254,14 @@ public class DatasetService {
   }
 
   public void exportDatarepoDataset(
-      AuthenticatedUserRequest user, Dataset dataset, String workspaceId) {}
+      AuthenticatedUserRequest user, Dataset dataset, String workspaceId) {
+    // todo
+  }
 
   public void exportWorkspaceDataset(
-      AuthenticatedUserRequest user, Dataset dataset, String workspaceId) {}
+      AuthenticatedUserRequest user, Dataset dataset, String workspaceId) {
+    // todo
+  }
 
   public void exportDataset(
       AuthenticatedUserRequest user, DatasetId datasetId, String workspaceId) {
@@ -266,7 +270,9 @@ public class DatasetService {
     switch (dataset.storageSystem()) {
       case TERRA_DATA_REPO -> exportDatarepoDataset(user, dataset, workspaceId);
       case TERRA_WORKSPACE -> exportWorkspaceDataset(user, dataset, workspaceId);
-      case EXTERNAL -> {}
+      case EXTERNAL -> {
+        // todo
+      }
     }
   }
 }
