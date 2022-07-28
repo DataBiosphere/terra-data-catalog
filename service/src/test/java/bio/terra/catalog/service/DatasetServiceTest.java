@@ -278,4 +278,22 @@ class DatasetServiceTest {
         datasetPreviewTable.getColumns().get(0),
         is(new bio.terra.catalog.model.ColumnModel().name("column a").arrayOf(false)));
   }
+
+  @Test
+  void testExportTdrDataset() {
+    reset(datasetDao);
+    when(datasetDao.retrieve(datasetId)).thenReturn(tdrDataset);
+    when(datarepoService.getRole(user, sourceId)).thenReturn(DatasetAccessLevel.READER);
+    String workspaceId = String.valueOf(UUID.randomUUID());
+    datasetService.exportDataset(user, datasetId, workspaceId);
+  }
+
+  @Test
+  void testExportWksDataset() {
+    reset(datasetDao);
+    when(datasetDao.retrieve(datasetId)).thenReturn(workspaceDataset);
+    when(rawlsService.getRole(user, workspaceSourceId)).thenReturn(DatasetAccessLevel.READER);
+    String workspaceId = String.valueOf(UUID.randomUUID());
+    datasetService.exportDataset(user, datasetId, workspaceId);
+  }
 }

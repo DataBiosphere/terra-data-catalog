@@ -252,4 +252,21 @@ public class DatasetService {
     var dataset = datasetDao.retrieve(datasetId);
     return generateDatasetTablePreview(user, dataset, tableName);
   }
+
+  public void exportDatarepoDataset(
+      AuthenticatedUserRequest user, Dataset dataset, String workspaceId) {}
+
+  public void exportWorkspaceDataset(
+      AuthenticatedUserRequest user, Dataset dataset, String workspaceId) {}
+
+  public void exportDataset(
+      AuthenticatedUserRequest user, DatasetId datasetId, String workspaceId) {
+    var dataset = datasetDao.retrieve(datasetId);
+    ensureActionPermission(user, dataset, SamAction.READ_ANY_METADATA);
+    switch (dataset.storageSystem()) {
+      case TERRA_DATA_REPO -> exportDatarepoDataset(user, dataset, workspaceId);
+      case TERRA_WORKSPACE -> exportWorkspaceDataset(user, dataset, workspaceId);
+      case EXTERNAL -> {}
+    }
+  }
 }
