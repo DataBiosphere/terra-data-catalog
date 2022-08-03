@@ -14,7 +14,6 @@ import bio.terra.catalog.service.dataset.Dataset;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
-import bio.terra.catalog.service.dataset.exception.InvalidDatasetException;
 import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.exception.NotFoundException;
 import bio.terra.common.exception.UnauthorizedException;
@@ -246,6 +245,7 @@ public class DatasetService {
     if (node.getNodeType() != JsonNodeType.OBJECT) {
       throw new BadRequestException("catalogEntry/metadata must be a json object");
     }
+  }
 
   private static List<TableMetadata> convertDatarepoTablesToCatalogTables(
       List<TableModel> datarepoTables) {

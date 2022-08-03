@@ -199,7 +199,17 @@ class DatasetServiceTest {
   @Test
   void testUpdateMetadata() {
     mockDataset();
-    String metadata = "test metadata";
+    String metadata = """
+        {"test": "metadata"}""";
+    when(samService.hasGlobalAction(user, SamAction.UPDATE_ANY_METADATA)).thenReturn(true);
+    datasetService.updateMetadata(user, datasetId, metadata);
+    verify(datasetDao).update(dataset.withMetadata(metadata));
+  }
+
+  @Test(expected = BadRequestException.class)
+  void testUpdateMetadataInvalidInput() {
+    mockDataset();
+    String metadata = "metadata must be json object";
     when(samService.hasGlobalAction(user, SamAction.UPDATE_ANY_METADATA)).thenReturn(true);
     datasetService.updateMetadata(user, datasetId, metadata);
     verify(datasetDao).update(dataset.withMetadata(metadata));
@@ -215,7 +225,8 @@ class DatasetServiceTest {
 
   @Test
   void testCreateDataset() {
-    String metadata = "test metadata";
+    String metadata = """
+        {"test": "metadata"}""";
     String storageSourceId = "testSource";
     Dataset testDataset = new Dataset(storageSourceId, StorageSystem.TERRA_DATA_REPO, metadata);
     Dataset testDatasetWithCreationInfo =
@@ -229,6 +240,17 @@ class DatasetServiceTest {
             user, StorageSystem.TERRA_DATA_REPO, storageSourceId, metadata);
     assertThat(id, is(datasetId));
   }
+
+  @Test(expected = BadRequestException.class)
+  void testCreateDatasetInvalidMetadata() {
+    String metadata = "1234";
+    String storageSourceId = "testSource";
+    Dataset testDataset = new Dataset(storageSourceId, StorageSystem.TERRA_DATA_REPO, metadata);
+    when(samService.hasGlobalAction(user, SamAction.CREATE_METADATA)).thenReturn(true);
+    DatasetId id =
+        datasetService.createDataset(
+            user, StorageSystem.TERRA_DATA_REPO, storageSourceId, metadata);
+
 
   @Test
   void getDatasetPreviewTables() {
