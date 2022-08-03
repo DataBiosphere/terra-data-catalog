@@ -118,7 +118,7 @@ public class RawlsService {
     try {
       // build source name
       WorkspaceDetails workspaceDetailsSource =
-          workspacesApi(user).getWorkspaceById(workspaceIdSource, ACCESS_LEVEL).getWorkspace();
+          workspacesApi(user).getWorkspaceById(workspaceIdSource, List.of()).getWorkspace();
       WorkspaceName workspaceNameSource =
           new WorkspaceName()
               .namespace(workspaceDetailsSource.getNamespace())
@@ -126,7 +126,7 @@ public class RawlsService {
 
       // build destination name
       WorkspaceDetails workspaceDetailsDest =
-          workspacesApi(user).getWorkspaceById(workspaceIdDest, ACCESS_LEVEL).getWorkspace();
+          workspacesApi(user).getWorkspaceById(workspaceIdDest, List.of()).getWorkspace();
       WorkspaceName workspaceNameDest =
           new WorkspaceName()
               .namespace(workspaceDetailsDest.getNamespace())
@@ -141,7 +141,7 @@ public class RawlsService {
               .entityNames(List.of());
       entitiesApi(user).copyEntities(body, false);
     } catch (ApiException e) {
-      // todo
+      throw new RawlsException("Unable to export to workspace", e);
     }
   }
 }
