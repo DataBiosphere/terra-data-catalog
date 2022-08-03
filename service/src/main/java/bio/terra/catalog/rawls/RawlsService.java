@@ -4,11 +4,15 @@ import bio.terra.catalog.config.RawlsConfiguration;
 import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.common.iam.AuthenticatedUserRequest;
+import bio.terra.rawls.api.EntitiesApi;
 import bio.terra.rawls.api.StatusApi;
 import bio.terra.rawls.api.WorkspacesApi;
 import bio.terra.rawls.client.ApiClient;
 import bio.terra.rawls.client.ApiException;
+import bio.terra.rawls.model.EntityCopyDefinition;
 import bio.terra.rawls.model.WorkspaceAccessLevel;
+import bio.terra.rawls.model.WorkspaceDetails;
+import bio.terra.rawls.model.WorkspaceName;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.List;
 import java.util.Map;
@@ -98,5 +102,46 @@ public class RawlsService {
       result.ok(false).addMessagesItem(errorMsg);
     }
     return result;
+  }
+
+  EntitiesApi entitiesApi(AuthenticatedUserRequest user) {
+    return new EntitiesApi(getApiClient(user));
+  }
+
+  public void exportDataRepoDataset(
+      AuthenticatedUserRequest user, String snapshotId, String workspaceId) {
+    // todo
+  }
+
+  public void exportWorkspaceDataset(
+      AuthenticatedUserRequest user, String workspaceIdSource, String workspaceId) {
+    try {
+      // build source name
+      WorkspaceDetails workspaceDetailsSource =
+          workspacesApi(user).getWorkspaceById(workspaceIdSource, ACCESS_LEVEL).getWorkspace();
+      WorkspaceName workspaceNameSource =
+          new WorkspaceName()
+              .namespace(workspaceDetailsSource.getNamespace())
+              .name(workspaceDetailsSource.getName());
+
+      // build destination name
+      WorkspaceDetails workspaceDetailsDest =
+          workspacesApi(user).getWorkspaceById(workspaceId, ACCESS_LEVEL).getWorkspace();
+      WorkspaceName workspaceNameDest =
+          new WorkspaceName()
+              .namespace(workspaceDetailsDest.getNamespace())
+              .name(workspaceDetailsDest.getName());
+
+      // possible bug: empty entityType and entityNames copies all entities
+      EntityCopyDefinition body =
+          new EntityCopyDefinition()
+              .sourceWorkspace(workspaceNameSource)
+              .destinationWorkspace(workspaceNameDest)
+              .entityType("")
+              .entityNames(List.of());
+      entitiesApi(user).copyEntities(body, false);
+    } catch (ApiException e) {
+      // todo
+    }
   }
 }
