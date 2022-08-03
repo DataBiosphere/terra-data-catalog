@@ -4,11 +4,15 @@ import bio.terra.catalog.config.RawlsConfiguration;
 import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.common.iam.AuthenticatedUserRequest;
+import bio.terra.rawls.api.EntitiesApi;
 import bio.terra.rawls.api.StatusApi;
 import bio.terra.rawls.api.WorkspacesApi;
 import bio.terra.rawls.client.ApiClient;
 import bio.terra.rawls.client.ApiException;
+import bio.terra.rawls.model.EntityQueryResponse;
+import bio.terra.rawls.model.EntityTypeMetadata;
 import bio.terra.rawls.model.WorkspaceAccessLevel;
+import bio.terra.rawls.model.WorkspaceResponse;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.List;
 import java.util.Map;
@@ -79,6 +83,64 @@ public class RawlsService {
 
   WorkspacesApi workspacesApi(AuthenticatedUserRequest user) {
     return new WorkspacesApi(getApiClient(user));
+  }
+
+  //  public List<Entity> entityList(AuthenticatedUserRequest user, String storageSourceId)  {
+  //    WorkspaceResponse response = null;
+  //    try {
+  //      response = workspacesApi(user).getWorkspaceById(storageSourceId, List.of());
+  //      var entities = entitiesApi(user).listEntities(response.getWorkspace().getNamespace(),
+  // response.getWorkspace().getName(), Sample);
+  //      return entities;
+  //    } catch (ApiException e) {
+  //      throw new RuntimeException(e);
+  //    }
+  //  }
+
+  public EntityQueryResponse entityQuery(
+      AuthenticatedUserRequest user, String storageSourceId, String tableName) {
+    WorkspaceResponse response;
+    try {
+      response = workspacesApi(user).getWorkspaceById(storageSourceId, List.of());
+      return entitiesApi(user)
+          .entityQuery(
+              response.getWorkspace().getNamespace(),
+              response.getWorkspace().getName(),
+              tableName,
+              null,
+              null,
+              null,
+              null,
+              null,
+              List.of(),
+              null,
+              null);
+    } catch (ApiException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public Map<String, EntityTypeMetadata> entityMetadata(
+      AuthenticatedUserRequest user, String storageSourceId) {
+    WorkspaceResponse response;
+    try {
+      response = workspacesApi(user).getWorkspaceById(storageSourceId, List.of());
+      var entities =
+          entitiesApi(user)
+              .entityTypeMetadata(
+                  response.getWorkspace().getNamespace(),
+                  response.getWorkspace().getName(),
+                  true,
+                  null);
+      //noinspection unchecked
+      return (Map<String, EntityTypeMetadata>) entities;
+    } catch (ApiException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  EntitiesApi entitiesApi(AuthenticatedUserRequest user) {
+    return new EntitiesApi(getApiClient(user));
   }
 
   @VisibleForTesting

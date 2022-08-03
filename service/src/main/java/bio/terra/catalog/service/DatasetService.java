@@ -18,11 +18,14 @@ import bio.terra.common.exception.NotFoundException;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.model.TableModel;
+import bio.terra.rawls.model.Entity;
+import bio.terra.rawls.model.EntityTypeMetadata;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -147,7 +150,9 @@ public class DatasetService {
     return switch (dataset.storageSystem()) {
       case TERRA_DATA_REPO -> convertDatarepoTablesToCatalogTables(
           datarepoService.getPreviewTables(user, dataset.storageSourceId()).getTables());
-      case TERRA_WORKSPACE, EXTERNAL -> List.of();
+      case TERRA_WORKSPACE -> convertRawlsTablesToCatalogTables(
+          rawlsService.entityMetadata(user, dataset.storageSourceId()));
+      case EXTERNAL -> List.of();
     };
   }
 
@@ -155,7 +160,8 @@ public class DatasetService {
       AuthenticatedUserRequest user, Dataset dataset, String tableName) {
     return switch (dataset.storageSystem()) {
       case TERRA_DATA_REPO -> generateDatarepoTable(user, dataset, tableName);
-      case TERRA_WORKSPACE, EXTERNAL -> new DatasetPreviewTable();
+      case TERRA_WORKSPACE -> generateRawlsTable(user, dataset, tableName);
+      case EXTERNAL -> new DatasetPreviewTable();
     };
   }
 
@@ -179,6 +185,40 @@ public class DatasetService {
             datarepoService
                 .getPreviewTable(user, dataset.storageSourceId(), tableName)
                 .getResult());
+  }
+
+  private DatasetPreviewTable generateRawlsTable(
+      AuthenticatedUserRequest user, Dataset dataset, String tableName) {
+    @SuppressWarnings("unchecked")
+    Map<String, Object> obj =
+        (Map<String, Object>)
+            rawlsService.entityMetadata(user, dataset.storageSourceId()).get(tableName);
+    return new DatasetPreviewTable()
+        .columns(convertEntityToColumn(obj))
+        .rows(
+            rawlsService
+                .entityQuery(user, dataset.storageSourceId(), tableName)
+                .getResults()
+                .stream()
+                .map(Entity -> convertEntityToRow(Entity, (String) obj.get("idName")))
+                .toList());
+  }
+
+  private Object convertEntityToRow(Entity entity, String idName) {
+    @SuppressWarnings("unchecked")
+    Map<String, String> att = (Map<String, String>) entity.getAttributes();
+    Map<String, String> rows = new HashMap<>(att);
+    rows.put(idName, entity.getName());
+    return rows;
+  }
+
+  private static List<ColumnModel> convertEntityToColumn(Map<String, Object> entity) {
+    List<ColumnModel> model = new ArrayList<>();
+    model.add(new ColumnModel().name((String) entity.get("idName")));
+    //noinspection unchecked
+    ((List<String>) entity.get("attributeNames"))
+        .stream().map(name -> new ColumnModel().name(name)).forEach(model::add);
+    return model;
   }
 
   private void ensureActionPermission(
@@ -237,6 +277,13 @@ public class DatasetService {
                 new TableMetadata()
                     .name(tableModel.getName())
                     .hasData(tableModel.getRowCount() > 0))
+        .toList();
+  }
+
+  private static List<TableMetadata> convertRawlsTablesToCatalogTables(
+      Map<String, EntityTypeMetadata> entityTables) {
+    return entityTables.keySet().stream()
+        .map(entityTypeMetadata -> new TableMetadata().name(entityTypeMetadata).hasData(true))
         .toList();
   }
 
