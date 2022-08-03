@@ -109,12 +109,12 @@ public class RawlsService {
   }
 
   public void exportDataRepoDataset(
-      AuthenticatedUserRequest user, String snapshotId, String workspaceId) {
+      AuthenticatedUserRequest user, String snapshotIdSource, String workspaceIdDest) {
     // todo
   }
 
   public void exportWorkspaceDataset(
-      AuthenticatedUserRequest user, String workspaceIdSource, String workspaceId) {
+      AuthenticatedUserRequest user, String workspaceIdSource, String workspaceIdDest) {
     try {
       // build source name
       WorkspaceDetails workspaceDetailsSource =
@@ -126,7 +126,7 @@ public class RawlsService {
 
       // build destination name
       WorkspaceDetails workspaceDetailsDest =
-          workspacesApi(user).getWorkspaceById(workspaceId, ACCESS_LEVEL).getWorkspace();
+          workspacesApi(user).getWorkspaceById(workspaceIdDest, ACCESS_LEVEL).getWorkspace();
       WorkspaceName workspaceNameDest =
           new WorkspaceName()
               .namespace(workspaceDetailsDest.getNamespace())
