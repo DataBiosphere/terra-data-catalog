@@ -250,7 +250,7 @@ class DatasetServiceTest {
     DatasetId id =
         datasetService.createDataset(
             user, StorageSystem.TERRA_DATA_REPO, storageSourceId, metadata);
-
+  }
 
   @Test
   void getDatasetPreviewTables() {
