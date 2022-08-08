@@ -10,6 +10,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import bio.terra.catalog.common.StorageSystem;
@@ -199,20 +200,18 @@ class DatasetServiceTest {
   @Test
   void testUpdateMetadata() {
     mockDataset();
-    String metadata = """
-        {"test": "metadata"}""";
     when(samService.hasGlobalAction(user, SamAction.UPDATE_ANY_METADATA)).thenReturn(true);
     datasetService.updateMetadata(user, datasetId, metadata);
     verify(datasetDao).update(dataset.withMetadata(metadata));
   }
 
-  @Test(expected = BadRequestException.class)
+  @Test
   void testUpdateMetadataInvalidInput() {
-    mockDataset();
     String metadata = "metadata must be json object";
-    when(samService.hasGlobalAction(user, SamAction.UPDATE_ANY_METADATA)).thenReturn(true);
-    datasetService.updateMetadata(user, datasetId, metadata);
-    verify(datasetDao).update(dataset.withMetadata(metadata));
+    assertThrows(
+        BadRequestException.class, () -> datasetService.updateMetadata(user, datasetId, metadata));
+    verifyNoInteractions(samService);
+    verifyNoInteractions(datasetDao);
   }
 
   @Test
@@ -225,8 +224,6 @@ class DatasetServiceTest {
 
   @Test
   void testCreateDataset() {
-    String metadata = """
-        {"test": "metadata"}""";
     String storageSourceId = "testSource";
     Dataset testDataset = new Dataset(storageSourceId, StorageSystem.TERRA_DATA_REPO, metadata);
     Dataset testDatasetWithCreationInfo =
@@ -241,15 +238,16 @@ class DatasetServiceTest {
     assertThat(id, is(datasetId));
   }
 
-  @Test(expected = BadRequestException.class)
+  @Test
   void testCreateDatasetInvalidMetadata() {
-    String metadata = "1234";
+    String invalidMetadata = "metadata must be json object";
     String storageSourceId = "testSource";
-    Dataset testDataset = new Dataset(storageSourceId, StorageSystem.TERRA_DATA_REPO, metadata);
-    when(samService.hasGlobalAction(user, SamAction.CREATE_METADATA)).thenReturn(true);
-    DatasetId id =
-        datasetService.createDataset(
-            user, StorageSystem.TERRA_DATA_REPO, storageSourceId, metadata);
+    assertThrows(
+        BadRequestException.class,
+        () ->
+            datasetService.createDataset(
+                user, StorageSystem.TERRA_DATA_REPO, storageSourceId, invalidMetadata));
+    verifyNoInteractions(samService);
   }
 
   @Test

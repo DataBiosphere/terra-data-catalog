@@ -211,7 +211,7 @@ public class DatasetService {
   }
 
   public void updateMetadata(AuthenticatedUserRequest user, DatasetId datasetId, String metadata) {
-    validateSchema(metadata);
+    validateMetadata(metadata);
     var dataset = datasetDao.retrieve(datasetId);
     ensureActionPermission(user, dataset, SamAction.UPDATE_ANY_METADATA);
     datasetDao.update(dataset.withMetadata(metadata));
@@ -222,7 +222,7 @@ public class DatasetService {
       StorageSystem storageSystem,
       String storageSourceId,
       String metadata) {
-    validateSchema(metadata);
+    validateMetadata(metadata);
     var dataset = new Dataset(storageSourceId, storageSystem, metadata);
     ensureActionPermission(user, dataset, SamAction.CREATE_METADATA);
     return datasetDao.create(dataset).id();
@@ -235,15 +235,13 @@ public class DatasetService {
     return new DatasetPreviewTablesResponse().tables(tableMetadataList);
   }
 
-  private void validateSchema(String metaData) {
-    JsonNode node;
+  private void validateMetadata(String metadata) {
     try {
-      node = objectMapper.readValue(metaData, JsonNode.class);
+      if (objectMapper.readValue(metadata, JsonNode.class).getNodeType() != JsonNodeType.OBJECT) {
+        throw new BadRequestException("catalogEntry/metadata must be a json object");
+      }
     } catch (JsonProcessingException e) {
-      throw new IllegalMetadataException(e);
-    }
-    if (node.getNodeType() != JsonNodeType.OBJECT) {
-      throw new BadRequestException("catalogEntry/metadata must be a json object");
+      throw new BadRequestException("error processing json input", e);
     }
   }
 
