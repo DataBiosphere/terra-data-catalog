@@ -262,9 +262,7 @@ public class DatasetService {
           user, dataset.storageSourceId(), workspaceId);
       case TERRA_WORKSPACE -> rawlsService.exportWorkspaceDataset(
           user, dataset.storageSourceId(), workspaceId);
-      case EXTERNAL -> {
-        // todo
-      }
+      case EXTERNAL -> {}
     }
   }
 }

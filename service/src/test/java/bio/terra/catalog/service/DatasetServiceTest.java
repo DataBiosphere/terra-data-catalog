@@ -7,6 +7,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isA;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
@@ -25,6 +26,7 @@ import bio.terra.catalog.service.dataset.Dataset;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
+import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.model.ColumnModel;
@@ -63,6 +65,8 @@ class DatasetServiceTest {
   private final AuthenticatedUserRequest user = mock(AuthenticatedUserRequest.class);
   private final DatasetId datasetId = new DatasetId(UUID.randomUUID());
   private final String sourceId = "sourceId";
+
+  private final String externalSourceId = "phs000000.v11.p8";
   private final String workspaceSourceId = "abc-def-workspace-id";
   private final String metadata = """
         {"name":"name"}""";
@@ -75,6 +79,15 @@ class DatasetServiceTest {
           StorageSystem.TERRA_DATA_REPO,
           metadata,
           null);
+
+  private final Dataset externalDataset =
+      new Dataset(
+          new DatasetId(UUID.randomUUID()),
+          externalSourceId,
+          StorageSystem.EXTERNAL,
+          metadata,
+          null);
+
   private final Dataset workspaceDataset =
       new Dataset(
           new DatasetId(UUID.randomUUID()),
@@ -284,17 +297,27 @@ class DatasetServiceTest {
   }
 
   @Test
-  void testExportDatarepoDataset() {
+  void testExportDataRepoDataset() {
     reset(datasetDao);
     when(datasetDao.retrieve(datasetId)).thenReturn(tdrDataset);
     when(datarepoService.getRole(user, sourceId)).thenReturn(DatasetAccessLevel.READER);
     String workspaceId = String.valueOf(UUID.randomUUID());
-    datasetService.exportDataset(user, datasetId, workspaceId);
+    doThrow(new BadRequestException("error"))
+        .when(rawlsService)
+        .exportDataRepoDataset(user, sourceId, workspaceId);
+    assertThrows(
+        BadRequestException.class,
+        () -> datasetService.exportDataset(user, datasetId, workspaceId));
+  }
 
-    DatasetService mockDatasetService = mock(DatasetService.class);
-    doNothing().when(mockDatasetService).exportDataset(user, datasetId, workspaceId);
-    mockDatasetService.exportDataset(user, datasetId, workspaceId);
-    verify(mockDatasetService).exportDataset(user, datasetId, workspaceId);
+  @Test
+  void testExportExternalDataset() {
+    reset(datasetDao);
+    when(datasetDao.retrieve(datasetId)).thenReturn(externalDataset);
+    String workspaceId = String.valueOf(UUID.randomUUID());
+    assertThrows(
+        UnauthorizedException.class,
+        () -> datasetService.exportDataset(user, datasetId, workspaceId));
   }
 
   @Test
