@@ -5,8 +5,10 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -17,6 +19,7 @@ import bio.terra.rawls.api.EntitiesApi;
 import bio.terra.rawls.api.StatusApi;
 import bio.terra.rawls.api.WorkspacesApi;
 import bio.terra.rawls.client.ApiException;
+import bio.terra.rawls.model.EntityCopyResponse;
 import bio.terra.rawls.model.WorkspaceAccessLevel;
 import bio.terra.rawls.model.WorkspaceDetails;
 import bio.terra.rawls.model.WorkspaceListResponse;
@@ -122,5 +125,39 @@ class RawlsServiceTest {
     assertThrows(
         BadRequestException.class,
         () -> rawlsService.exportDataRepoDataset(user, snapshotId, workspaceId));
+  }
+
+  @Test
+  void getExportWorkspace() throws ApiException {
+    String workspaceIdSource = "workspaceSource";
+    String workspaceIdDest = "workspaceDest";
+
+    var workspaceResponseSource = mock(WorkspaceResponse.class);
+    when(workspacesApi.getWorkspaceById(workspaceIdSource, List.of()))
+        .thenReturn(workspaceResponseSource);
+    when(workspaceResponseSource.getWorkspace())
+        .thenReturn(new WorkspaceDetails().namespace("namespaceSource").name("nameSource"));
+
+    var workspaceResponseDest = mock(WorkspaceResponse.class);
+    when(workspacesApi.getWorkspaceById(workspaceIdDest, List.of()))
+        .thenReturn(workspaceResponseDest);
+    when(workspaceResponseDest.getWorkspace())
+        .thenReturn(new WorkspaceDetails().namespace("namespaceDest").name("nameDest"));
+
+    var entityCopyResponse = mock(EntityCopyResponse.class);
+    when(entitiesApi.copyEntities(any(), any())).thenReturn(entityCopyResponse);
+
+    rawlsService.exportWorkspaceDataset(user, workspaceIdSource, workspaceIdDest);
+  }
+
+  @Test
+  void getExportWorkspaceException() throws ApiException {
+    String workspaceIdSource = "workspaceSource";
+    String workspaceIdDest = "workspaceDest";
+    when(workspacesApi.getWorkspaceById(workspaceIdSource, List.of()))
+        .thenThrow(new ApiException());
+    assertThrows(
+        RawlsException.class,
+        () -> rawlsService.exportWorkspaceDataset(user, workspaceIdSource, workspaceIdDest));
   }
 }
