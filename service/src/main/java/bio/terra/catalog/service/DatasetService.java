@@ -237,7 +237,7 @@ public class DatasetService {
 
   private void validateMetadata(String metadata) {
     try {
-      if (objectMapper.readValue(metadata, JsonNode.class).getNodeType() != JsonNodeType.OBJECT) {
+      if (metadata == null || objectMapper.readValue(metadata, JsonNode.class).getNodeType() != JsonNodeType.OBJECT) {
         throw new BadRequestException("catalogEntry/metadata must be a json object");
       }
     } catch (JsonProcessingException e) {

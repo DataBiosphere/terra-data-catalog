@@ -194,7 +194,7 @@ class DatasetServiceTest {
   void testUpdateMetadataWithInvalidUser() {
     mockDataset();
     assertThrows(
-        UnauthorizedException.class, () -> datasetService.updateMetadata(user, datasetId, "test"));
+        UnauthorizedException.class, () -> datasetService.updateMetadata(user, datasetId, metadata));
   }
 
   @Test
@@ -219,7 +219,7 @@ class DatasetServiceTest {
     when(datarepoService.getRole(user, null)).thenReturn(DatasetAccessLevel.DISCOVERER);
     assertThrows(
         UnauthorizedException.class,
-        () -> datasetService.createDataset(user, StorageSystem.TERRA_DATA_REPO, null, null));
+        () -> datasetService.createDataset(user, StorageSystem.TERRA_DATA_REPO, null, metadata));
   }
 
   @Test
