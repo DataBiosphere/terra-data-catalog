@@ -3,7 +3,6 @@ package bio.terra.catalog.rawls;
 import bio.terra.catalog.config.RawlsConfiguration;
 import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
-import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.rawls.api.EntitiesApi;
 import bio.terra.rawls.api.StatusApi;
@@ -107,11 +106,6 @@ public class RawlsService {
 
   EntitiesApi entitiesApi(AuthenticatedUserRequest user) {
     return new EntitiesApi(getApiClient(user));
-  }
-
-  public void exportDatarepoDataset(
-      AuthenticatedUserRequest user, String snapshotIdSource, String workspaceIdDest) {
-    throw new BadRequestException("Exporting Data Repo datasets is not supported in the service");
   }
 
   public void exportWorkspaceDataset(

@@ -13,7 +13,6 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
-import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.rawls.api.EntitiesApi;
 import bio.terra.rawls.api.StatusApi;
@@ -116,15 +115,6 @@ class RawlsServiceTest {
     when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL))
         .thenThrow(new ApiException());
     assertThrows(RawlsException.class, () -> rawlsService.getRole(user, id));
-  }
-
-  @Test
-  void getExportDataRepoException() {
-    String snapshotId = "snapshotId";
-    String workspaceId = "workspaceId";
-    assertThrows(
-        BadRequestException.class,
-        () -> rawlsService.exportDatarepoDataset(user, snapshotId, workspaceId));
   }
 
   @Test

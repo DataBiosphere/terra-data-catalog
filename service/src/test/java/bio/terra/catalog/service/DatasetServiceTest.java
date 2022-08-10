@@ -303,7 +303,7 @@ class DatasetServiceTest {
     when(datarepoService.getRole(user, sourceId)).thenReturn(DatasetAccessLevel.READER);
     String workspaceId = String.valueOf(UUID.randomUUID());
     doThrow(new BadRequestException("error"))
-        .when(rawlsService)
+        .when(datarepoService)
         .exportDatarepoDataset(user, sourceId, workspaceId);
     assertThrows(
         BadRequestException.class,
