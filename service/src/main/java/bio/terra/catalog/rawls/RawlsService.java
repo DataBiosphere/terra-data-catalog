@@ -108,24 +108,24 @@ public class RawlsService {
     return new EntitiesApi(getApiClient(user));
   }
 
+  public static WorkspaceName getWorkspaceName(WorkspaceDetails workspaceDetails) {
+    return new WorkspaceName()
+        .namespace(workspaceDetails.getNamespace())
+        .name(workspaceDetails.getName());
+  }
+
   public void exportWorkspaceDataset(
       AuthenticatedUserRequest user, String workspaceIdSource, String workspaceIdDest) {
     try {
       // build source name
       WorkspaceDetails workspaceDetailsSource =
           workspacesApi(user).getWorkspaceById(workspaceIdSource, List.of()).getWorkspace();
-      WorkspaceName workspaceNameSource =
-          new WorkspaceName()
-              .namespace(workspaceDetailsSource.getNamespace())
-              .name(workspaceDetailsSource.getName());
+      WorkspaceName workspaceNameSource = getWorkspaceName(workspaceDetailsSource);
 
       // build destination name
       WorkspaceDetails workspaceDetailsDest =
           workspacesApi(user).getWorkspaceById(workspaceIdDest, List.of()).getWorkspace();
-      WorkspaceName workspaceNameDest =
-          new WorkspaceName()
-              .namespace(workspaceDetailsDest.getNamespace())
-              .name(workspaceDetailsDest.getName());
+      WorkspaceName workspaceNameDest = getWorkspaceName(workspaceDetailsDest);
 
       // possible bug: empty entityType and entityNames copies all entities
       EntityCopyDefinition body =

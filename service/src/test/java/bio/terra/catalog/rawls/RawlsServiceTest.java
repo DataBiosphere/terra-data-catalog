@@ -22,6 +22,7 @@ import bio.terra.rawls.model.EntityCopyResponse;
 import bio.terra.rawls.model.WorkspaceAccessLevel;
 import bio.terra.rawls.model.WorkspaceDetails;
 import bio.terra.rawls.model.WorkspaceListResponse;
+import bio.terra.rawls.model.WorkspaceName;
 import bio.terra.rawls.model.WorkspaceResponse;
 import java.util.List;
 import java.util.Map;
@@ -115,6 +116,16 @@ class RawlsServiceTest {
     when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL))
         .thenThrow(new ApiException());
     assertThrows(RawlsException.class, () -> rawlsService.getRole(user, id));
+  }
+
+  @Test
+  void getWorkspaceName() {
+    String namespace = "hello";
+    String name = "world";
+    WorkspaceDetails workspaceDetails = new WorkspaceDetails().namespace(namespace).name(name);
+    WorkspaceName workspaceName = RawlsService.getWorkspaceName(workspaceDetails);
+    assertThat(workspaceDetails.getNamespace(), is(namespace));
+    assertThat(workspaceName.getName(), is(name));
   }
 
   @Test
