@@ -304,7 +304,7 @@ class DatasetServiceTest {
     String workspaceId = String.valueOf(UUID.randomUUID());
     doThrow(new BadRequestException("error"))
         .when(rawlsService)
-        .exportDataRepoDataset(user, sourceId, workspaceId);
+        .exportDatarepoDataset(user, sourceId, workspaceId);
     assertThrows(
         BadRequestException.class,
         () -> datasetService.exportDataset(user, datasetId, workspaceId));

@@ -109,7 +109,7 @@ public class RawlsService {
     return new EntitiesApi(getApiClient(user));
   }
 
-  public void exportDataRepoDataset(
+  public void exportDatarepoDataset(
       AuthenticatedUserRequest user, String snapshotIdSource, String workspaceIdDest) {
     throw new BadRequestException("Exporting Data Repo datasets is not supported in the service");
   }
@@ -142,7 +142,11 @@ public class RawlsService {
               .entityNames(List.of());
       entitiesApi(user).copyEntities(body, false);
     } catch (ApiException e) {
-      throw new RawlsException("Unable to export to workspace", e);
+      String errorMsg =
+          String.format(
+              "Unable to export from workspace %s to workspace %s",
+              workspaceIdSource, workspaceIdDest);
+      throw new RawlsException(errorMsg, e);
     }
   }
 }

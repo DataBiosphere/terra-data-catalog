@@ -124,7 +124,7 @@ class RawlsServiceTest {
     String workspaceId = "workspaceId";
     assertThrows(
         BadRequestException.class,
-        () -> rawlsService.exportDataRepoDataset(user, snapshotId, workspaceId));
+        () -> rawlsService.exportDatarepoDataset(user, snapshotId, workspaceId));
   }
 
   @Test
