@@ -298,7 +298,6 @@ class DatasetServiceTest {
 
   @Test
   void testExportSnapshot() {
-    reset(datasetDao);
     when(datasetDao.retrieve(datasetId)).thenReturn(tdrDataset);
     when(datarepoService.getRole(user, sourceId)).thenReturn(DatasetAccessLevel.READER);
     UUID workspaceId = UUID.randomUUID();
@@ -312,7 +311,6 @@ class DatasetServiceTest {
 
   @Test
   void testExportExternalDataset() {
-    reset(datasetDao);
     when(datasetDao.retrieve(datasetId)).thenReturn(externalDataset);
     UUID workspaceId = UUID.randomUUID();
     assertThrows(
@@ -322,7 +320,6 @@ class DatasetServiceTest {
 
   @Test
   void testExportWorkspaceDataset() {
-    reset(datasetDao);
     when(datasetDao.retrieve(datasetId)).thenReturn(workspaceDataset);
     when(rawlsService.getRole(user, workspaceSourceId)).thenReturn(DatasetAccessLevel.READER);
     UUID workspaceId = UUID.randomUUID();
