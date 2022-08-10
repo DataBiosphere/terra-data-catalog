@@ -168,7 +168,7 @@ class DatarepoServiceTest {
   }
 
   @Test
-  void getExportDataRepoException() {
+  void getExportDatarepoException() {
     String snapshotId = "snapshotId";
     String workspaceId = "workspaceId";
     assertThrows(

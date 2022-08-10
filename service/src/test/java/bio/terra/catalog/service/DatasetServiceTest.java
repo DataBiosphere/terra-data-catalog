@@ -297,7 +297,7 @@ class DatasetServiceTest {
   }
 
   @Test
-  void testExportDataRepoDataset() {
+  void testExportDatarepoDataset() {
     reset(datasetDao);
     when(datasetDao.retrieve(datasetId)).thenReturn(tdrDataset);
     when(datarepoService.getRole(user, sourceId)).thenReturn(DatasetAccessLevel.READER);
