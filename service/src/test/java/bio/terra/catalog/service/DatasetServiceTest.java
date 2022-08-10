@@ -65,8 +65,6 @@ class DatasetServiceTest {
   private final AuthenticatedUserRequest user = mock(AuthenticatedUserRequest.class);
   private final DatasetId datasetId = new DatasetId(UUID.randomUUID());
   private final String sourceId = "sourceId";
-
-  private final String externalSourceId = "phs000000.v11.p8";
   private final String workspaceSourceId = "abc-def-workspace-id";
   private final String metadata = """
         {"name":"name"}""";
@@ -77,14 +75,6 @@ class DatasetServiceTest {
           new DatasetId(UUID.randomUUID()),
           sourceId,
           StorageSystem.TERRA_DATA_REPO,
-          metadata,
-          null);
-
-  private final Dataset externalDataset =
-      new Dataset(
-          new DatasetId(UUID.randomUUID()),
-          externalSourceId,
-          StorageSystem.EXTERNAL,
           metadata,
           null);
 
@@ -299,7 +289,6 @@ class DatasetServiceTest {
   @Test
   void testExportSnapshot() {
     when(datasetDao.retrieve(datasetId)).thenReturn(tdrDataset);
-    when(datarepoService.getRole(user, sourceId)).thenReturn(DatasetAccessLevel.READER);
     UUID workspaceId = UUID.randomUUID();
     doThrow(new BadRequestException("error"))
         .when(datarepoService)
@@ -310,18 +299,8 @@ class DatasetServiceTest {
   }
 
   @Test
-  void testExportExternalDataset() {
-    when(datasetDao.retrieve(datasetId)).thenReturn(externalDataset);
-    UUID workspaceId = UUID.randomUUID();
-    assertThrows(
-        UnauthorizedException.class,
-        () -> datasetService.exportDataset(user, datasetId, workspaceId));
-  }
-
-  @Test
   void testExportWorkspaceDataset() {
     when(datasetDao.retrieve(datasetId)).thenReturn(workspaceDataset);
-    when(rawlsService.getRole(user, workspaceSourceId)).thenReturn(DatasetAccessLevel.READER);
     UUID workspaceId = UUID.randomUUID();
     datasetService.exportDataset(user, datasetId, workspaceId);
 

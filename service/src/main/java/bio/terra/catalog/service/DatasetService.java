@@ -256,7 +256,6 @@ public class DatasetService {
 
   public void exportDataset(AuthenticatedUserRequest user, DatasetId datasetId, UUID workspaceId) {
     var dataset = datasetDao.retrieve(datasetId);
-    ensureActionPermission(user, dataset, SamAction.READ_ANY_METADATA);
     switch (dataset.storageSystem()) {
       case TERRA_DATA_REPO -> datarepoService.exportSnapshot(
           user, dataset.storageSourceId(), workspaceId.toString());
