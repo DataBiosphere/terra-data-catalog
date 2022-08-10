@@ -116,7 +116,7 @@ public class RawlsService {
               null,
               null);
     } catch (ApiException e) {
-      throw new RuntimeException(e);
+      throw new RawlsException("Entity Query Failed", e);
     }
   }
 
@@ -133,9 +133,21 @@ public class RawlsService {
                   true,
                   null);
       //noinspection unchecked
-      return (Map<String, EntityTypeMetadata>) entities;
+      return ((Map<String, Map<String, Object>>) entities)
+          .entrySet().stream()
+              .collect(
+                  Collectors.toMap(
+                      Map.Entry::getKey,
+                      entry -> {
+                        Map<String, Object> value = entry.getValue();
+                        //noinspection unchecked
+                        return new EntityTypeMetadata()
+                            .idName((String) value.get("idName"))
+                            .count((Integer) value.get("count"))
+                            .attributeNames((List<String>) value.get("attributeNames"));
+                      }));
     } catch (ApiException e) {
-      throw new RuntimeException(e);
+      throw new RawlsException("Entity Metadata failed", e);
     }
   }
 

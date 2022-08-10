@@ -2,6 +2,7 @@ package bio.terra.catalog.service;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -28,9 +29,12 @@ import bio.terra.datarepo.model.SnapshotModel;
 import bio.terra.datarepo.model.SnapshotPreviewModel;
 import bio.terra.datarepo.model.TableDataType;
 import bio.terra.datarepo.model.TableModel;
+import bio.terra.rawls.model.EntityQueryResponse;
+import bio.terra.rawls.model.EntityTypeMetadata;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -225,7 +229,7 @@ class DatasetServiceTest {
   }
 
   @Test
-  void getDatasetPreviewTables() {
+  void getDatasetPreviewTablesRepo() {
     var tdrDataset =
         new Dataset(dataset.id(), sourceId, StorageSystem.TERRA_DATA_REPO, metadata, null);
     when(datasetDao.retrieve(datasetId)).thenReturn(tdrDataset);
@@ -250,7 +254,23 @@ class DatasetServiceTest {
   }
 
   @Test
-  void getDatasetPreviewTable() {
+  void getDatasetPreviewTablesWorkspace() {
+    var tdrDataset =
+        new Dataset(dataset.id(), sourceId, StorageSystem.TERRA_WORKSPACE, metadata, null);
+    Map<String, EntityTypeMetadata> map = new HashMap<>();
+    map.put("str", new EntityTypeMetadata());
+    when(datasetDao.retrieve(tdrDataset.id())).thenReturn(tdrDataset);
+    when(rawlsService.entityMetadata(user, tdrDataset.storageSourceId())).thenReturn(map);
+    DatasetPreviewTablesResponse results =
+        datasetService.listDatasetPreviewTables(user, tdrDataset.id());
+    assertThat(results, isA(DatasetPreviewTablesResponse.class));
+    assertThat(results.getTables().size(), is(1));
+    assertThat(results.getTables().get(0), isA(TableMetadata.class));
+    assertThat(results.getTables().get(0).isHasData(), is(true));
+  }
+
+  @Test
+  void getDatasetPreviewTableRepo() {
     var tdrDataset =
         new Dataset(dataset.id(), sourceId, StorageSystem.TERRA_DATA_REPO, metadata, null);
     var tableName = "table";
@@ -277,5 +297,28 @@ class DatasetServiceTest {
     assertThat(
         datasetPreviewTable.getColumns().get(0),
         is(new bio.terra.catalog.model.ColumnModel().name("column a").arrayOf(false)));
+  }
+
+  @Test
+  void getDatasetPreviewTableWorkspace() {
+    var tdrDataset =
+        new Dataset(dataset.id(), sourceId, StorageSystem.TERRA_WORKSPACE, metadata, null);
+    var tableName = "sample";
+    List<String> att = List.of("a", "b", "c");
+    EntityTypeMetadata ent = new EntityTypeMetadata().idName("idName").attributeNames(att);
+    Map<String, EntityTypeMetadata> map = new HashMap<>();
+    map.put("str", new EntityTypeMetadata());
+    map.put(tableName, ent);
+    when(datasetDao.retrieve(datasetId)).thenReturn(tdrDataset);
+    when(rawlsService.entityMetadata(user, tdrDataset.storageSourceId())).thenReturn(map);
+    when(rawlsService.entityQuery(user, tdrDataset.storageSourceId(), tableName))
+        .thenReturn(new EntityQueryResponse().results(List.of()));
+    DatasetPreviewTable datasetPreviewTable =
+        datasetService.getDatasetPreview(user, tdrDataset.id(), tableName);
+    assertThat(datasetPreviewTable.getRows(), empty());
+    assertThat(datasetPreviewTable.getColumns(), hasSize(4));
+    assertThat(
+        datasetPreviewTable.getColumns().get(0),
+        is(new bio.terra.catalog.model.ColumnModel().name("idName")));
   }
 }

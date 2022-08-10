@@ -189,10 +189,9 @@ public class DatasetService {
 
   private DatasetPreviewTable generateRawlsTable(
       AuthenticatedUserRequest user, Dataset dataset, String tableName) {
-    @SuppressWarnings("unchecked")
-    Map<String, Object> obj =
-        (Map<String, Object>)
-            rawlsService.entityMetadata(user, dataset.storageSourceId()).get(tableName);
+    Map<String, EntityTypeMetadata> ent =
+        rawlsService.entityMetadata(user, dataset.storageSourceId());
+    EntityTypeMetadata obj = ent.get(tableName);
     return new DatasetPreviewTable()
         .columns(convertEntityToColumn(obj))
         .rows(
@@ -200,7 +199,7 @@ public class DatasetService {
                 .entityQuery(user, dataset.storageSourceId(), tableName)
                 .getResults()
                 .stream()
-                .map(Entity -> convertEntityToRow(Entity, (String) obj.get("idName")))
+                .map(Entity -> convertEntityToRow(Entity, obj.getIdName()))
                 .toList());
   }
 
@@ -212,12 +211,12 @@ public class DatasetService {
     return rows;
   }
 
-  private static List<ColumnModel> convertEntityToColumn(Map<String, Object> entity) {
+  private static List<ColumnModel> convertEntityToColumn(EntityTypeMetadata entity) {
     List<ColumnModel> model = new ArrayList<>();
-    model.add(new ColumnModel().name((String) entity.get("idName")));
-    //noinspection unchecked
-    ((List<String>) entity.get("attributeNames"))
-        .stream().map(name -> new ColumnModel().name(name)).forEach(model::add);
+    model.add(new ColumnModel().name(entity.getIdName()));
+    entity.getAttributeNames().stream()
+        .map(name -> new ColumnModel().name(name))
+        .forEach(model::add);
     return model;
   }
 
