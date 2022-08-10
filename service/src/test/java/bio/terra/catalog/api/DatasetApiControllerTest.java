@@ -196,7 +196,7 @@ class DatasetApiControllerTest {
   void exportMetadata() throws Exception {
     var datasetId = new DatasetId(UUID.randomUUID());
     var workspaceId = UUID.randomUUID();
-    doNothing().when(datasetService).exportDataset(user, datasetId, String.valueOf(workspaceId));
+    doNothing().when(datasetService).exportDataset(user, datasetId, workspaceId);
     mockMvc
         .perform(post(EXPORT_TABLES_API, datasetId.uuid(), workspaceId))
         .andExpect(status().is2xxSuccessful());

@@ -301,10 +301,10 @@ class DatasetServiceTest {
     reset(datasetDao);
     when(datasetDao.retrieve(datasetId)).thenReturn(tdrDataset);
     when(datarepoService.getRole(user, sourceId)).thenReturn(DatasetAccessLevel.READER);
-    String workspaceId = String.valueOf(UUID.randomUUID());
+    UUID workspaceId = UUID.randomUUID();
     doThrow(new BadRequestException("error"))
         .when(datarepoService)
-        .exportDatarepoDataset(user, sourceId, workspaceId);
+        .exportDatarepoDataset(user, sourceId, workspaceId.toString());
     assertThrows(
         BadRequestException.class,
         () -> datasetService.exportDataset(user, datasetId, workspaceId));
@@ -314,7 +314,7 @@ class DatasetServiceTest {
   void testExportExternalDataset() {
     reset(datasetDao);
     when(datasetDao.retrieve(datasetId)).thenReturn(externalDataset);
-    String workspaceId = String.valueOf(UUID.randomUUID());
+    UUID workspaceId = UUID.randomUUID();
     assertThrows(
         UnauthorizedException.class,
         () -> datasetService.exportDataset(user, datasetId, workspaceId));
@@ -325,7 +325,7 @@ class DatasetServiceTest {
     reset(datasetDao);
     when(datasetDao.retrieve(datasetId)).thenReturn(workspaceDataset);
     when(rawlsService.getRole(user, workspaceSourceId)).thenReturn(DatasetAccessLevel.READER);
-    String workspaceId = String.valueOf(UUID.randomUUID());
+    UUID workspaceId = UUID.randomUUID();
     datasetService.exportDataset(user, datasetId, workspaceId);
 
     DatasetService mockDatasetService = mock(DatasetService.class);
