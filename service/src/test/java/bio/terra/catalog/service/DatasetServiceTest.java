@@ -297,14 +297,14 @@ class DatasetServiceTest {
   }
 
   @Test
-  void testExportDatarepoDataset() {
+  void testExportSnapshot() {
     reset(datasetDao);
     when(datasetDao.retrieve(datasetId)).thenReturn(tdrDataset);
     when(datarepoService.getRole(user, sourceId)).thenReturn(DatasetAccessLevel.READER);
     UUID workspaceId = UUID.randomUUID();
     doThrow(new BadRequestException("error"))
         .when(datarepoService)
-        .exportDatarepoDataset(user, sourceId, workspaceId.toString());
+        .exportSnapshot(user, sourceId, workspaceId.toString());
     assertThrows(
         BadRequestException.class,
         () -> datasetService.exportDataset(user, datasetId, workspaceId));

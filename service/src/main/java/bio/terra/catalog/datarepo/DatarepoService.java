@@ -149,7 +149,7 @@ public class DatarepoService {
     return result;
   }
 
-  public void exportDatarepoDataset(
+  public void exportSnapshot(
       AuthenticatedUserRequest user, String snapshotIdSource, String workspaceIdDest) {
     throw new BadRequestException("Exporting Data Repo datasets is not supported in the service");
   }

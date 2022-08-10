@@ -258,7 +258,7 @@ public class DatasetService {
     var dataset = datasetDao.retrieve(datasetId);
     ensureActionPermission(user, dataset, SamAction.READ_ANY_METADATA);
     switch (dataset.storageSystem()) {
-      case TERRA_DATA_REPO -> datarepoService.exportDatarepoDataset(
+      case TERRA_DATA_REPO -> datarepoService.exportSnapshot(
           user, dataset.storageSourceId(), workspaceId.toString());
       case TERRA_WORKSPACE -> rawlsService.exportWorkspaceDataset(
           user, dataset.storageSourceId(), workspaceId.toString());

@@ -168,11 +168,11 @@ class DatarepoServiceTest {
   }
 
   @Test
-  void getExportDatarepoException() {
+  void getExportSnapshotException() {
     String snapshotId = "snapshotId";
     String workspaceId = "workspaceId";
     assertThrows(
         BadRequestException.class,
-        () -> datarepoService.exportDatarepoDataset(user, snapshotId, workspaceId));
+        () -> datarepoService.exportSnapshot(user, snapshotId, workspaceId));
   }
 }
