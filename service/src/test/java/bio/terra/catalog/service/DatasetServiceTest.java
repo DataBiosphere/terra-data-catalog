@@ -1,8 +1,12 @@
 package bio.terra.catalog.service;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isA;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
@@ -21,6 +25,7 @@ import bio.terra.catalog.service.dataset.Dataset;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
+import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.model.ColumnModel;
@@ -54,24 +59,25 @@ class DatasetServiceTest {
 
   @Mock private SamService samService;
 
-  private final ObjectMapper objectMapper = new BeanConfig().objectMapper();
+  private static final ObjectMapper objectMapper = new BeanConfig().objectMapper();
 
-  private final AuthenticatedUserRequest user = mock(AuthenticatedUserRequest.class);
-  private final DatasetId datasetId = new DatasetId(UUID.randomUUID());
-  private final String sourceId = "sourceId";
-  private final String workspaceSourceId = "abc-def-workspace-id";
-  private final String metadata = """
+  private static final AuthenticatedUserRequest user = mock(AuthenticatedUserRequest.class);
+  private static final DatasetId datasetId = new DatasetId(UUID.randomUUID());
+  private static final String sourceId = "sourceId";
+  private static final String workspaceSourceId = "abc-def-workspace-id";
+  private static final String metadata = """
         {"name":"name"}""";
-  private final Dataset dataset =
+  private static final Dataset dataset =
       new Dataset(datasetId, sourceId, StorageSystem.EXTERNAL, metadata, null);
-  private final Dataset tdrDataset =
+  private static final Dataset tdrDataset =
       new Dataset(
           new DatasetId(UUID.randomUUID()),
           sourceId,
           StorageSystem.TERRA_DATA_REPO,
           metadata,
           null);
-  private final Dataset workspaceDataset =
+
+  private static final Dataset workspaceDataset =
       new Dataset(
           new DatasetId(UUID.randomUUID()),
           workspaceSourceId,
@@ -277,5 +283,26 @@ class DatasetServiceTest {
     assertThat(
         datasetPreviewTable.getColumns().get(0),
         is(new bio.terra.catalog.model.ColumnModel().name("column a").arrayOf(false)));
+  }
+
+  @Test
+  void testExportSnapshot() {
+    when(datasetDao.retrieve(datasetId)).thenReturn(tdrDataset);
+    UUID workspaceId = UUID.randomUUID();
+    doThrow(new BadRequestException("error"))
+        .when(datarepoService)
+        .exportSnapshot(user, sourceId, workspaceId.toString());
+    assertThrows(
+        BadRequestException.class,
+        () -> datasetService.exportDataset(user, datasetId, workspaceId));
+  }
+
+  @Test
+  void testExportWorkspaceDataset() {
+    when(datasetDao.retrieve(datasetId)).thenReturn(workspaceDataset);
+    UUID workspaceId = UUID.randomUUID();
+    datasetService.exportDataset(user, datasetId, workspaceId);
+    verify(rawlsService)
+        .exportWorkspaceDataset(user, workspaceDataset.storageSourceId(), workspaceId.toString());
   }
 }

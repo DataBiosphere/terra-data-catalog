@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -251,5 +252,18 @@ public class DatasetService {
       AuthenticatedUserRequest user, DatasetId datasetId, String tableName) {
     var dataset = datasetDao.retrieve(datasetId);
     return generateDatasetTablePreview(user, dataset, tableName);
+  }
+
+  public void exportDataset(AuthenticatedUserRequest user, DatasetId datasetId, UUID workspaceId) {
+    var dataset = datasetDao.retrieve(datasetId);
+    switch (dataset.storageSystem()) {
+      case TERRA_DATA_REPO -> datarepoService.exportSnapshot(
+          user, dataset.storageSourceId(), workspaceId.toString());
+      case TERRA_WORKSPACE -> rawlsService.exportWorkspaceDataset(
+          user, dataset.storageSourceId(), workspaceId.toString());
+      case EXTERNAL -> {
+        /* NYI */
+      }
+    }
   }
 }

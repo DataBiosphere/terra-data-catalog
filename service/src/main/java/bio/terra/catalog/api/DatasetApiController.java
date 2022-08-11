@@ -88,4 +88,10 @@ public class DatasetApiController implements DatasetsApi {
         .cacheControl(CacheControl.noStore())
         .body(datasetService.getDatasetPreview(getUser(), new DatasetId(id), tableName));
   }
+
+  @Override
+  public ResponseEntity<Void> exportDataset(UUID datasetId, UUID workspaceId) {
+    datasetService.exportDataset(getUser(), new DatasetId(datasetId), workspaceId);
+    return ResponseEntity.noContent().build();
+  }
 }
