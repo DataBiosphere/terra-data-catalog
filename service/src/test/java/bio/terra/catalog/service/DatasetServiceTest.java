@@ -6,7 +6,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isA;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -303,10 +302,7 @@ class DatasetServiceTest {
     when(datasetDao.retrieve(datasetId)).thenReturn(workspaceDataset);
     UUID workspaceId = UUID.randomUUID();
     datasetService.exportDataset(user, datasetId, workspaceId);
-
-    DatasetService mockDatasetService = mock(DatasetService.class);
-    doNothing().when(mockDatasetService).exportDataset(user, datasetId, workspaceId);
-    mockDatasetService.exportDataset(user, datasetId, workspaceId);
-    verify(mockDatasetService).exportDataset(user, datasetId, workspaceId);
+    verify(rawlsService)
+        .exportWorkspaceDataset(user, workspaceDataset.storageSourceId(), workspaceId.toString());
   }
 }
