@@ -261,7 +261,9 @@ public class DatasetService {
           user, dataset.storageSourceId(), workspaceId.toString());
       case TERRA_WORKSPACE -> rawlsService.exportWorkspaceDataset(
           user, dataset.storageSourceId(), workspaceId.toString());
-      case EXTERNAL -> {}
+      case EXTERNAL -> {
+        /* NYI */
+      }
     }
   }
 }
