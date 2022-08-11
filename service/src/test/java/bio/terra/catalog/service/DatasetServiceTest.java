@@ -60,17 +60,17 @@ class DatasetServiceTest {
 
   @Mock private SamService samService;
 
-  private final ObjectMapper objectMapper = new BeanConfig().objectMapper();
+  private static final ObjectMapper objectMapper = new BeanConfig().objectMapper();
 
-  private final AuthenticatedUserRequest user = mock(AuthenticatedUserRequest.class);
-  private final DatasetId datasetId = new DatasetId(UUID.randomUUID());
-  private final String sourceId = "sourceId";
-  private final String workspaceSourceId = "abc-def-workspace-id";
-  private final String metadata = """
+  private static final AuthenticatedUserRequest user = mock(AuthenticatedUserRequest.class);
+  private static final DatasetId datasetId = new DatasetId(UUID.randomUUID());
+  private static final String sourceId = "sourceId";
+  private static final String workspaceSourceId = "abc-def-workspace-id";
+  private static final String metadata = """
         {"name":"name"}""";
-  private final Dataset dataset =
+  private static final Dataset dataset =
       new Dataset(datasetId, sourceId, StorageSystem.EXTERNAL, metadata, null);
-  private final Dataset tdrDataset =
+  private static final Dataset tdrDataset =
       new Dataset(
           new DatasetId(UUID.randomUUID()),
           sourceId,
@@ -78,7 +78,7 @@ class DatasetServiceTest {
           metadata,
           null);
 
-  private final Dataset workspaceDataset =
+  private static final Dataset workspaceDataset =
       new Dataset(
           new DatasetId(UUID.randomUUID()),
           workspaceSourceId,
