@@ -194,7 +194,8 @@ class DatasetServiceTest {
   void testUpdateMetadataWithInvalidUser() {
     mockDataset();
     assertThrows(
-        UnauthorizedException.class, () -> datasetService.updateMetadata(user, datasetId, metadata));
+        UnauthorizedException.class,
+        () -> datasetService.updateMetadata(user, datasetId, metadata));
   }
 
   @Test
