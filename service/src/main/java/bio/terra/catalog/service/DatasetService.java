@@ -20,9 +20,7 @@ import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.model.TableModel;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import java.util.ArrayList;
@@ -79,15 +77,15 @@ public class DatasetService {
       node.set("id", TextNode.valueOf(dataset.id().toValue()));
       return node;
     }
+  }
 
-    private ObjectNode toJsonNode(String json) {
-      try {
-        return objectMapper.readValue(json, ObjectNode.class);
-      } catch (JsonProcessingException e) {
-        // This shouldn't occur, as the data stored in postgres must be valid JSON, because it's
-        // stored as JSONB.
-        throw new IllegalMetadataException(e);
-      }
+  private ObjectNode toJsonNode(String json) {
+    try {
+      return objectMapper.readValue(json, ObjectNode.class);
+    } catch (JsonProcessingException e) {
+      // This shouldn't occur on retrieve, as the data stored in postgres must be valid JSON,
+      // because it's stored as JSONB.
+      throw new BadRequestException("catalogEntry/metadata must be a valid json object", e);
     }
   }
 
@@ -236,15 +234,7 @@ public class DatasetService {
   }
 
   private void validateMetadata(String metadata) {
-    try {
-      if (metadata == null
-          || objectMapper.readValue(metadata, JsonNode.class).getNodeType()
-              != JsonNodeType.OBJECT) {
-        throw new BadRequestException("catalogEntry/metadata must be a json object");
-      }
-    } catch (JsonProcessingException e) {
-      throw new BadRequestException("error processing json input", e);
-    }
+    toJsonNode(metadata);
   }
 
   private static List<TableMetadata> convertDatarepoTablesToCatalogTables(

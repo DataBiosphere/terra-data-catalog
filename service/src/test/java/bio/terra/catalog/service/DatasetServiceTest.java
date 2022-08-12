@@ -7,10 +7,11 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isA;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import bio.terra.catalog.common.StorageSystem;
@@ -211,8 +212,7 @@ class DatasetServiceTest {
     String metadata = "metadata must be json object";
     assertThrows(
         BadRequestException.class, () -> datasetService.updateMetadata(user, datasetId, metadata));
-    verifyNoInteractions(samService);
-    verifyNoInteractions(datasetDao);
+    verify(datasetDao, never()).update(any());
   }
 
   @Test
@@ -248,7 +248,7 @@ class DatasetServiceTest {
         () ->
             datasetService.createDataset(
                 user, StorageSystem.TERRA_DATA_REPO, storageSourceId, invalidMetadata));
-    verifyNoInteractions(samService);
+    verify(datasetDao, never()).create(any());
   }
 
   @Test
