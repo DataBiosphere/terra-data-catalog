@@ -140,20 +140,6 @@ class DatasetServiceTest {
         workspaceJson.get("accessLevel").asText(), is(String.valueOf(DatasetAccessLevel.READER)));
   }
 
-  @Test
-  void listDatasetsIllegalMetadata() {
-    var badDataset =
-        new Dataset(dataset.id(), sourceId, StorageSystem.TERRA_DATA_REPO, "invalid", null);
-    var idToRole = Map.of(sourceId, DatasetAccessLevel.DISCOVERER);
-    when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(idToRole);
-    when(rawlsService.getWorkspaceIdsAndRoles(user)).thenReturn(Map.of());
-    when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, Set.of())).thenReturn(List.of());
-    when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
-        .thenReturn(List.of(badDataset));
-    assertThrows(
-        DatasetService.IllegalMetadataException.class, () -> datasetService.listDatasets(user));
-  }
-
   @Test()
   void testDeleteMetadataWithInvalidUser() {
     mockDataset();
