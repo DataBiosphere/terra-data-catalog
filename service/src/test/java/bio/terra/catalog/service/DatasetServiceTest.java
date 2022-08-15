@@ -270,12 +270,11 @@ class DatasetServiceTest {
     var tdrDataset =
         new Dataset(dataset.id(), sourceId, StorageSystem.TERRA_WORKSPACE, metadata, null);
     Map<String, EntityTypeMetadata> map = new HashMap<>();
-    map.put("str", new EntityTypeMetadata());
+    map.put("str", new EntityTypeMetadata().count(3));
     when(datasetDao.retrieve(tdrDataset.id())).thenReturn(tdrDataset);
     when(rawlsService.entityMetadata(user, tdrDataset.storageSourceId())).thenReturn(map);
     DatasetPreviewTablesResponse results =
         datasetService.listDatasetPreviewTables(user, tdrDataset.id());
-    assertThat(results, isA(DatasetPreviewTablesResponse.class));
     assertThat(results.getTables().size(), is(1));
     assertThat(results.getTables().get(0), isA(TableMetadata.class));
     assertThat(results.getTables().get(0).isHasData(), is(true));

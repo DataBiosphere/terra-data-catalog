@@ -9,9 +9,9 @@ import bio.terra.rawls.api.StatusApi;
 import bio.terra.rawls.api.WorkspacesApi;
 import bio.terra.rawls.client.ApiClient;
 import bio.terra.rawls.client.ApiException;
+import bio.terra.rawls.model.EntityCopyDefinition;
 import bio.terra.rawls.model.EntityQueryResponse;
 import bio.terra.rawls.model.EntityTypeMetadata;
-import bio.terra.rawls.model.EntityCopyDefinition;
 import bio.terra.rawls.model.WorkspaceAccessLevel;
 import bio.terra.rawls.model.WorkspaceDetails;
 import bio.terra.rawls.model.WorkspaceName;
@@ -138,10 +138,6 @@ public class RawlsService {
     } catch (ApiException e) {
       throw new RawlsException("Entity Metadata failed for workspace %s".formatted(workspaceId), e);
     }
-  }
-
-  EntitiesApi entitiesApi(AuthenticatedUserRequest user) {
-    return new EntitiesApi(getApiClient(user));
   }
 
   @VisibleForTesting

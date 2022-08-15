@@ -19,9 +19,9 @@ import bio.terra.rawls.api.EntitiesApi;
 import bio.terra.rawls.api.StatusApi;
 import bio.terra.rawls.api.WorkspacesApi;
 import bio.terra.rawls.client.ApiException;
+import bio.terra.rawls.model.EntityCopyResponse;
 import bio.terra.rawls.model.EntityQueryResponse;
 import bio.terra.rawls.model.EntityTypeMetadata;
-import bio.terra.rawls.model.EntityCopyResponse;
 import bio.terra.rawls.model.WorkspaceAccessLevel;
 import bio.terra.rawls.model.WorkspaceDetails;
 import bio.terra.rawls.model.WorkspaceListResponse;
@@ -55,8 +55,6 @@ class RawlsServiceTest {
 
   @Mock private WorkspacesApi workspacesApi;
 
-  @Mock private EntitiesApi entitiesApi;
-
   private RawlsService rawlsService;
 
   @BeforeEach
@@ -65,7 +63,6 @@ class RawlsServiceTest {
     doReturn(entitiesApi).when(rawlsService).entitiesApi(user);
     doReturn(workspacesApi).when(rawlsService).workspacesApi(user);
     doReturn(statusApi).when(rawlsService).statusApi();
-    doReturn(entitiesApi).when(rawlsService).entitiesApi(user);
   }
 
   @Test
