@@ -5,6 +5,8 @@ import bio.terra.rawls.api.WorkspacesApi;
 import bio.terra.rawls.client.ApiClient;
 import bio.terra.rawls.client.ApiException;
 import bio.terra.rawls.model.CreateRawlsV2BillingProjectFullRequest;
+import bio.terra.rawls.model.WorkspaceACLUpdate;
+import bio.terra.rawls.model.WorkspaceAccessLevel;
 import bio.terra.rawls.model.WorkspaceDetails;
 import bio.terra.rawls.model.WorkspaceRequest;
 import bio.terra.testrunner.common.utils.AuthenticationUtils;
@@ -17,6 +19,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Stream;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jdk.connector.JdkConnectorProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +43,12 @@ public class RawlsClient {
       throws IOException {
     var workspaceApiClient =
         new ApiClient() {
+          @Override
+          protected void performAdditionalClientConfiguration(ClientConfig clientConfig) {
+            super.performAdditionalClientConfiguration(clientConfig);
+            clientConfig.connectorProvider(new JdkConnectorProvider());
+          }
+
           @Override
           public String selectHeaderAccept(String[] accepts) {
             // This workaround is necessary because the rawls openAPI spec doesn't match the
@@ -119,5 +129,15 @@ public class RawlsClient {
     billingApi.deleteBillingProjectV2(workspaceDetails.getNamespace());
     log.info("deleted workspace {}", workspaceDetails.getWorkspaceId());
     log.info("deleted billing project {}", workspaceDetails.getNamespace());
+  }
+
+  public void updateWorkspacePermissionForUser(
+      String email, WorkspaceAccessLevel accessLevel, WorkspaceDetails workspaceDetails)
+      throws ApiException {
+    workspacesApi.updateACL(
+        List.of(new WorkspaceACLUpdate().email(email).accessLevel(accessLevel.getValue())),
+        false,
+        workspaceDetails.getNamespace(),
+        workspaceDetails.getName());
   }
 }

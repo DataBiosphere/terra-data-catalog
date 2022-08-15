@@ -6,7 +6,10 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isA;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -24,6 +27,7 @@ import bio.terra.catalog.service.dataset.Dataset;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
+import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.model.ColumnModel;
@@ -39,7 +43,6 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,24 +63,25 @@ class DatasetServiceTest {
 
   @Mock private SamService samService;
 
-  private final ObjectMapper objectMapper = new BeanConfig().objectMapper();
+  private static final ObjectMapper objectMapper = new BeanConfig().objectMapper();
 
-  private final AuthenticatedUserRequest user = mock(AuthenticatedUserRequest.class);
-  private final DatasetId datasetId = new DatasetId(UUID.randomUUID());
-  private final String sourceId = "sourceId";
-  private final String workspaceSourceId = "abc-def-workspace-id";
-  private final String metadata = """
+  private static final AuthenticatedUserRequest user = mock(AuthenticatedUserRequest.class);
+  private static final DatasetId datasetId = new DatasetId(UUID.randomUUID());
+  private static final String sourceId = "sourceId";
+  private static final String workspaceSourceId = "abc-def-workspace-id";
+  private static final String metadata = """
         {"name":"name"}""";
-  private final Dataset dataset =
+  private static final Dataset dataset =
       new Dataset(datasetId, sourceId, StorageSystem.EXTERNAL, metadata, null);
-  private final Dataset tdrDataset =
+  private static final Dataset tdrDataset =
       new Dataset(
           new DatasetId(UUID.randomUUID()),
           sourceId,
           StorageSystem.TERRA_DATA_REPO,
           metadata,
           null);
-  private final Dataset workspaceDataset =
+
+  private static final Dataset workspaceDataset =
       new Dataset(
           new DatasetId(UUID.randomUUID()),
           workspaceSourceId,
@@ -138,20 +142,6 @@ class DatasetServiceTest {
         workspaceJson.get("accessLevel").asText(), is(String.valueOf(DatasetAccessLevel.READER)));
   }
 
-  @Test
-  void listDatasetsIllegalMetadata() {
-    var badDataset =
-        new Dataset(dataset.id(), sourceId, StorageSystem.TERRA_DATA_REPO, "invalid", null);
-    var idToRole = Map.of(sourceId, DatasetAccessLevel.DISCOVERER);
-    when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(idToRole);
-    when(rawlsService.getWorkspaceIdsAndRoles(user)).thenReturn(Map.of());
-    when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, Set.of())).thenReturn(List.of());
-    when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
-        .thenReturn(List.of(badDataset));
-    assertThrows(
-        DatasetService.IllegalMetadataException.class, () -> datasetService.listDatasets(user));
-  }
-
   @Test()
   void testDeleteMetadataWithInvalidUser() {
     mockDataset();
@@ -193,16 +183,25 @@ class DatasetServiceTest {
   void testUpdateMetadataWithInvalidUser() {
     mockDataset();
     assertThrows(
-        UnauthorizedException.class, () -> datasetService.updateMetadata(user, datasetId, "test"));
+        UnauthorizedException.class,
+        () -> datasetService.updateMetadata(user, datasetId, metadata));
   }
 
   @Test
   void testUpdateMetadata() {
     mockDataset();
-    String metadata = "test metadata";
     when(samService.hasGlobalAction(user, SamAction.UPDATE_ANY_METADATA)).thenReturn(true);
     datasetService.updateMetadata(user, datasetId, metadata);
     verify(datasetDao).update(dataset.withMetadata(metadata));
+  }
+
+  @Test
+  void testUpdateMetadataInvalidInput() {
+    String invalidMetadata = "metadata must be json object";
+    assertThrows(
+        BadRequestException.class,
+        () -> datasetService.updateMetadata(user, datasetId, invalidMetadata));
+    verify(datasetDao, never()).update(any());
   }
 
   @Test
@@ -210,12 +209,11 @@ class DatasetServiceTest {
     when(datarepoService.getRole(user, null)).thenReturn(DatasetAccessLevel.DISCOVERER);
     assertThrows(
         UnauthorizedException.class,
-        () -> datasetService.createDataset(user, StorageSystem.TERRA_DATA_REPO, null, null));
+        () -> datasetService.createDataset(user, StorageSystem.TERRA_DATA_REPO, null, metadata));
   }
 
   @Test
   void testCreateDataset() {
-    String metadata = "test metadata";
     String storageSourceId = "testSource";
     Dataset testDataset = new Dataset(storageSourceId, StorageSystem.TERRA_DATA_REPO, metadata);
     Dataset testDatasetWithCreationInfo =
@@ -228,6 +226,18 @@ class DatasetServiceTest {
         datasetService.createDataset(
             user, StorageSystem.TERRA_DATA_REPO, storageSourceId, metadata);
     assertThat(id, is(datasetId));
+  }
+
+  @Test
+  void testCreateDatasetInvalidMetadata() {
+    String invalidMetadata = "metadata must be json object";
+    String storageSourceId = "testSource";
+    assertThrows(
+        BadRequestException.class,
+        () ->
+            datasetService.createDataset(
+                user, StorageSystem.TERRA_DATA_REPO, storageSourceId, invalidMetadata));
+    verify(datasetDao, never()).create(any());
   }
 
   @Test
@@ -322,5 +332,26 @@ class DatasetServiceTest {
     assertThat(
         datasetPreviewTable.getColumns().get(0),
         is(new bio.terra.catalog.model.ColumnModel().name("idName")));
+  }
+
+  @Test
+  void testExportSnapshot() {
+    when(datasetDao.retrieve(datasetId)).thenReturn(tdrDataset);
+    UUID workspaceId = UUID.randomUUID();
+    doThrow(new BadRequestException("error"))
+        .when(datarepoService)
+        .exportSnapshot(user, sourceId, workspaceId.toString());
+    assertThrows(
+        BadRequestException.class,
+        () -> datasetService.exportDataset(user, datasetId, workspaceId));
+  }
+
+  @Test
+  void testExportWorkspaceDataset() {
+    when(datasetDao.retrieve(datasetId)).thenReturn(workspaceDataset);
+    UUID workspaceId = UUID.randomUUID();
+    datasetService.exportDataset(user, datasetId, workspaceId);
+    verify(rawlsService)
+        .exportWorkspaceDataset(user, workspaceDataset.storageSourceId(), workspaceId.toString());
   }
 }

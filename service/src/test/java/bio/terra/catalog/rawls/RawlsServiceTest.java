@@ -5,9 +5,12 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
@@ -18,9 +21,11 @@ import bio.terra.rawls.api.WorkspacesApi;
 import bio.terra.rawls.client.ApiException;
 import bio.terra.rawls.model.EntityQueryResponse;
 import bio.terra.rawls.model.EntityTypeMetadata;
+import bio.terra.rawls.model.EntityCopyResponse;
 import bio.terra.rawls.model.WorkspaceAccessLevel;
 import bio.terra.rawls.model.WorkspaceDetails;
 import bio.terra.rawls.model.WorkspaceListResponse;
+import bio.terra.rawls.model.WorkspaceName;
 import bio.terra.rawls.model.WorkspaceResponse;
 import java.util.HashMap;
 import java.util.List;
@@ -44,6 +49,8 @@ class RawlsServiceTest {
 
   @Mock private AuthenticatedUserRequest user;
 
+  @Mock private EntitiesApi entitiesApi;
+
   @Mock private StatusApi statusApi;
 
   @Mock private WorkspacesApi workspacesApi;
@@ -55,6 +62,7 @@ class RawlsServiceTest {
   @BeforeEach
   void beforeEach() {
     rawlsService = spy(rawlsServiceReal);
+    doReturn(entitiesApi).when(rawlsService).entitiesApi(user);
     doReturn(workspacesApi).when(rawlsService).workspacesApi(user);
     doReturn(statusApi).when(rawlsService).statusApi();
     doReturn(entitiesApi).when(rawlsService).entitiesApi(user);
@@ -171,5 +179,50 @@ class RawlsServiceTest {
     when(workspacesApi.getWorkspaceById(id, List.of())).thenReturn(response);
     when(entitiesApi.entityTypeMetadata(namespace, name, true, null)).thenThrow(new ApiException());
     assertThrows(RawlsException.class, () -> rawlsService.entityMetadata(user, id));
+  }
+
+  @Test
+  void getWorkspaceName() {
+    String namespace = "hello";
+    String name = "world";
+    WorkspaceDetails workspaceDetails = new WorkspaceDetails().namespace(namespace).name(name);
+    WorkspaceName workspaceName = RawlsService.getWorkspaceName(workspaceDetails);
+    assertThat(workspaceDetails.getNamespace(), is(namespace));
+    assertThat(workspaceName.getName(), is(name));
+  }
+
+  @Test
+  void getExportWorkspace() throws ApiException {
+    String workspaceIdSource = "workspaceSource";
+    String workspaceIdDest = "workspaceDest";
+
+    var workspaceResponseSource = mock(WorkspaceResponse.class);
+    when(workspacesApi.getWorkspaceById(workspaceIdSource, List.of()))
+        .thenReturn(workspaceResponseSource);
+    when(workspaceResponseSource.getWorkspace())
+        .thenReturn(new WorkspaceDetails().namespace("namespaceSource").name("nameSource"));
+
+    var workspaceResponseDest = mock(WorkspaceResponse.class);
+    when(workspacesApi.getWorkspaceById(workspaceIdDest, List.of()))
+        .thenReturn(workspaceResponseDest);
+    when(workspaceResponseDest.getWorkspace())
+        .thenReturn(new WorkspaceDetails().namespace("namespaceDest").name("nameDest"));
+
+    var entityCopyResponse = mock(EntityCopyResponse.class);
+    when(entitiesApi.copyEntities(any(), any())).thenReturn(entityCopyResponse);
+
+    rawlsService.exportWorkspaceDataset(user, workspaceIdSource, workspaceIdDest);
+    verify(entitiesApi).copyEntities(any(), any());
+  }
+
+  @Test
+  void getExportWorkspaceException() throws ApiException {
+    String workspaceIdSource = "workspaceSource";
+    String workspaceIdDest = "workspaceDest";
+    when(workspacesApi.getWorkspaceById(workspaceIdSource, List.of()))
+        .thenThrow(new ApiException());
+    assertThrows(
+        RawlsException.class,
+        () -> rawlsService.exportWorkspaceDataset(user, workspaceIdSource, workspaceIdDest));
   }
 }

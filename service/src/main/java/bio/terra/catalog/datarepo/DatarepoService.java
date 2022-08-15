@@ -3,6 +3,7 @@ package bio.terra.catalog.datarepo;
 import bio.terra.catalog.config.DatarepoConfiguration;
 import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
+import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.api.SnapshotsApi;
 import bio.terra.datarepo.api.UnauthenticatedApi;
@@ -146,5 +147,10 @@ public class DatarepoService {
       result.ok(false).addMessagesItem(errorMsg);
     }
     return result;
+  }
+
+  public void exportSnapshot(
+      AuthenticatedUserRequest user, String snapshotIdSource, String workspaceIdDest) {
+    throw new BadRequestException("Exporting Data Repo datasets is not supported in the service");
   }
 }

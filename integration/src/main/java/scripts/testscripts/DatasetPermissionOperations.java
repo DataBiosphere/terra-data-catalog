@@ -10,6 +10,8 @@ import bio.terra.catalog.client.ApiException;
 import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.StorageSystem;
 import bio.terra.datarepo.model.DatasetModel;
+import bio.terra.rawls.model.WorkspaceAccessLevel;
+import bio.terra.rawls.model.WorkspaceDetails;
 import bio.terra.testrunner.runner.TestScript;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
 import com.google.api.client.http.HttpStatusCodes;
@@ -22,6 +24,7 @@ import scripts.api.SnapshotsApi;
 import scripts.api.TdrDatasetsApi;
 import scripts.client.CatalogClient;
 import scripts.client.DatarepoClient;
+import scripts.client.RawlsClient;
 
 public class DatasetPermissionOperations extends TestScript {
 
@@ -36,13 +39,20 @@ public class DatasetPermissionOperations extends TestScript {
   private SnapshotsApi adminSnapshotsApi;
   private SnapshotsApi userSnapshotsApi;
   private UUID adminTestSnapshotId;
+  private UUID userTestSnapshotId;
+
+  // Rawls APIs
+  private RawlsClient adminRawlsClient;
+  private RawlsClient userRawlsClient;
+  private WorkspaceDetails adminTestWorkspace;
+  private WorkspaceDetails userTestWorkspace;
 
   // Catalog APis
   private final List<UUID> datasetIds = new ArrayList<>();
   private DatasetsApi adminDatasetsApi;
   private DatasetsApi userDatasetsApi;
-  private UUID adminTestDatasetId;
-  private UUID userTestSnapshotId;
+  private UUID adminTestSnapshotDatasetId;
+  private UUID adminTestWorkspaceDatasetId;
 
   @Override
   public void setup(List<TestUserSpecification> testUsers) throws Exception {
@@ -67,21 +77,47 @@ public class DatasetPermissionOperations extends TestScript {
     adminTestSnapshotId = adminSnapshotsApi.createTestSnapshot(tdrDataset);
     tdrDatasetsApi.addDatasetPolicyMember(tdrDataset.getId(), "custodian", regularUser.userEmail);
     userTestSnapshotId = userSnapshotsApi.createTestSnapshot(tdrDataset);
-    adminTestDatasetId = adminCreateDataset(datasetRequestForSnapshot(adminTestSnapshotId));
+    adminTestSnapshotDatasetId =
+        adminCreateDataset(datasetRequest(adminTestSnapshotId.toString(), StorageSystem.TDR));
+
+    adminRawlsClient = new RawlsClient(server, adminUser);
+    userRawlsClient = new RawlsClient(server, regularUser);
+    adminTestWorkspace = adminRawlsClient.createTestWorkspace();
+    userTestWorkspace = userRawlsClient.createTestWorkspace();
+    adminTestWorkspaceDatasetId =
+        adminCreateDataset(datasetRequest(adminTestWorkspace.getWorkspaceId(), StorageSystem.WKS));
   }
 
   @Override
   public void userJourney(TestUserSpecification testUser) throws Exception {
-    testReaderPermissions();
-    testDiscovererPermissions();
-    testNoPermissions();
+    testReaderPermissionsForSnapshotDataset();
+    testDiscovererPermissionsForSnapshotDataset();
+    testNoPermissionsForSnapshotDataset();
     testAdminPermissionsOnUserSnapshot();
+
+    testReaderPermissionsForWorkspaceDataset();
+    testNoPermissionsForWorkspaceDataset();
+    testAdminPermissionsOnUserWorkspace();
   }
 
-  private void testReaderPermissions() throws Exception {
+  private void testReaderPermissionsForSnapshotDataset() throws Exception {
     setTestSnapshotPermissionForRegularUser("reader");
     // User cannot create a catalog entry on snapshot when user only has reader access on snapshot
-    CreateDatasetRequest request = datasetRequestForSnapshot(adminTestSnapshotId);
+    testDatasetReaderPermissions(
+        adminTestSnapshotId.toString(), StorageSystem.TDR, adminTestSnapshotDatasetId);
+  }
+
+  private void testReaderPermissionsForWorkspaceDataset() throws Exception {
+    setTestWorkspacePermissionForRegularUser(WorkspaceAccessLevel.READER);
+    // User cannot create a catalog entry on workspace when user only has reader access on workspace
+    testDatasetReaderPermissions(
+        adminTestWorkspace.getWorkspaceId(), StorageSystem.WKS, adminTestWorkspaceDatasetId);
+  }
+
+  private void testDatasetReaderPermissions(
+      String storageSourceId, StorageSystem storageSystem, UUID adminDatasetId)
+      throws ApiException {
+    CreateDatasetRequest request = datasetRequest(storageSourceId, storageSystem);
     // note if this assertion fails we'll leave behind a stray dataset in the db
     assertThrows(ApiException.class, () -> userDatasetsApi.createDataset(request));
     assertThat(
@@ -89,15 +125,35 @@ public class DatasetPermissionOperations extends TestScript {
         is(HttpStatusCodes.STATUS_CODE_UNAUTHORIZED));
 
     // verify the user can still access data though
-    userDatasetsApi.getDataset(adminTestDatasetId);
+    userDatasetsApi.getDataset(adminDatasetId);
     assertThat(userDatasetsApi.getApiClient().getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
   }
 
-  private void testDiscovererPermissions() throws Exception {
+  private void testNoPermissionsForWorkspaceDataset() throws Exception {
+    setTestWorkspacePermissionForRegularUser(WorkspaceAccessLevel.NO_ACCESS);
+    // verify the user cannot access dataset without any permissions
+    assertNoPermissionsOnDataset(
+        adminTestWorkspaceDatasetId, HttpStatusCodes.STATUS_CODE_NOT_FOUND);
+  }
+
+  private void assertNoPermissionsOnDataset(UUID adminDatasetId, int expectedStatusCode) {
+    assertThrows(ApiException.class, () -> userDatasetsApi.getDataset(adminDatasetId));
+    assertThat(userDatasetsApi.getApiClient().getStatusCode(), is(expectedStatusCode));
+  }
+
+  private void testAdminPermissionsOnUserWorkspace() throws Exception {
+    // Verify admin can create a dataset on the user snapshot
+    CreateDatasetRequest request =
+        datasetRequest(userTestWorkspace.getWorkspaceId(), StorageSystem.WKS);
+    adminCreateDataset(request);
+  }
+
+  private void testDiscovererPermissionsForSnapshotDataset() throws Exception {
     setTestSnapshotPermissionForRegularUser("discoverer");
     // User cannot create a catalog entry on snapshot when user only has discoverer access on
     // snapshot
-    CreateDatasetRequest request = datasetRequestForSnapshot(adminTestSnapshotId);
+    CreateDatasetRequest request =
+        datasetRequest(adminTestSnapshotId.toString(), StorageSystem.TDR);
     // note if this assertion fails we'll leave behind a stray dataset in the db
     assertThrows(ApiException.class, () -> userDatasetsApi.createDataset(request));
     assertThat(
@@ -106,27 +162,26 @@ public class DatasetPermissionOperations extends TestScript {
 
     // verify the user cannot preview data either
     assertThrows(
-        ApiException.class, () -> userDatasetsApi.listDatasetPreviewTables(adminTestDatasetId));
+        ApiException.class,
+        () -> userDatasetsApi.listDatasetPreviewTables(adminTestSnapshotDatasetId));
     assertThat(
         userDatasetsApi.getApiClient().getStatusCode(),
         is(HttpStatusCodes.STATUS_CODE_UNAUTHORIZED));
     // but the user can get datasets
-    userDatasetsApi.getDataset(adminTestDatasetId);
+    userDatasetsApi.getDataset(adminTestSnapshotDatasetId);
     assertThat(userDatasetsApi.getApiClient().getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
   }
 
-  private void testNoPermissions() throws Exception {
+  private void testNoPermissionsForSnapshotDataset() throws Exception {
     clearTestSnapshotPermissions();
     // verify the user cannot access dataset without any permissions
-    assertThrows(ApiException.class, () -> userDatasetsApi.getDataset(adminTestDatasetId));
-    assertThat(
-        userDatasetsApi.getApiClient().getStatusCode(),
-        is(HttpStatusCodes.STATUS_CODE_UNAUTHORIZED));
+    assertNoPermissionsOnDataset(
+        adminTestSnapshotDatasetId, HttpStatusCodes.STATUS_CODE_UNAUTHORIZED);
   }
 
   private void testAdminPermissionsOnUserSnapshot() throws Exception {
     // Verify admin can create a dataset on the user snapshot
-    CreateDatasetRequest request = datasetRequestForSnapshot(userTestSnapshotId);
+    CreateDatasetRequest request = datasetRequest(userTestSnapshotId.toString(), StorageSystem.TDR);
     var datasetId = adminCreateDataset(request);
 
     // But admin cannot access the underlying preview data
@@ -148,13 +203,13 @@ public class DatasetPermissionOperations extends TestScript {
     }
   }
 
-  private CreateDatasetRequest datasetRequestForSnapshot(UUID snapshotId) {
+  private CreateDatasetRequest datasetRequest(String sourceId, StorageSystem storageSystem) {
     final String metadata = """
         {"name": "test"}""";
     return new CreateDatasetRequest()
         .catalogEntry(metadata)
-        .storageSourceId(snapshotId.toString())
-        .storageSystem(StorageSystem.TDR);
+        .storageSourceId(sourceId)
+        .storageSystem(storageSystem);
   }
 
   private UUID adminCreateDataset(CreateDatasetRequest request) throws Exception {
@@ -162,6 +217,13 @@ public class DatasetPermissionOperations extends TestScript {
     assertThat(adminDatasetsApi.getApiClient().getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
     datasetIds.add(datasetId);
     return datasetId;
+  }
+
+  private void setTestWorkspacePermissionForRegularUser(WorkspaceAccessLevel accessLevel)
+      throws Exception {
+    // first clear the shared snapshot of policy state caused by previous tests
+    adminRawlsClient.updateWorkspacePermissionForUser(
+        regularUser.userEmail, accessLevel, adminTestWorkspace);
   }
 
   @Override
@@ -175,6 +237,12 @@ public class DatasetPermissionOperations extends TestScript {
     }
     if (userTestSnapshotId != null) {
       userSnapshotsApi.delete(userTestSnapshotId);
+    }
+    if (adminTestWorkspace != null) {
+      adminRawlsClient.deleteWorkspace(adminTestWorkspace);
+    }
+    if (userTestWorkspace != null) {
+      userRawlsClient.deleteWorkspace(userTestWorkspace);
     }
   }
 }
