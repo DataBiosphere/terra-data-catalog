@@ -199,7 +199,7 @@ public class DatasetService {
                 .entityQuery(user, dataset.storageSourceId(), tableName)
                 .getResults()
                 .stream()
-                .map(Entity -> convertEntityToRow(Entity, obj.getIdName()))
+                .map(entity -> convertEntityToRow(entity, obj.getIdName()))
                 .toList());
   }
 
