@@ -194,9 +194,10 @@ class DatasetServiceTest {
 
   @Test
   void testUpdateMetadataInvalidInput() {
-    String metadata = "metadata must be json object";
+    String invalidMetadata = "metadata must be json object";
     assertThrows(
-        BadRequestException.class, () -> datasetService.updateMetadata(user, datasetId, metadata));
+        BadRequestException.class,
+        () -> datasetService.updateMetadata(user, datasetId, invalidMetadata));
     verify(datasetDao, never()).update(any());
   }
 
