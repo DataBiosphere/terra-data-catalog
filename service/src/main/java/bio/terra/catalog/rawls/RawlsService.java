@@ -85,23 +85,10 @@ public class RawlsService {
     return new WorkspacesApi(getApiClient(user));
   }
 
-  //  public List<Entity> entityList(AuthenticatedUserRequest user, String storageSourceId)  {
-  //    WorkspaceResponse response = null;
-  //    try {
-  //      response = workspacesApi(user).getWorkspaceById(storageSourceId, List.of());
-  //      var entities = entitiesApi(user).listEntities(response.getWorkspace().getNamespace(),
-  // response.getWorkspace().getName(), Sample);
-  //      return entities;
-  //    } catch (ApiException e) {
-  //      throw new RuntimeException(e);
-  //    }
-  //  }
-
   public EntityQueryResponse entityQuery(
-      AuthenticatedUserRequest user, String storageSourceId, String tableName) {
-    WorkspaceResponse response;
+      AuthenticatedUserRequest user, String workspaceId, String tableName) {
     try {
-      response = workspacesApi(user).getWorkspaceById(storageSourceId, List.of());
+      WorkspaceResponse response = workspacesApi(user).getWorkspaceById(workspaceId, List.of());
       return entitiesApi(user)
           .entityQuery(
               response.getWorkspace().getNamespace(),
@@ -116,15 +103,14 @@ public class RawlsService {
               null,
               null);
     } catch (ApiException e) {
-      throw new RawlsException("Entity Query Failed", e);
+      throw new RawlsException("Entity Query failed for workspace %s".formatted(workspaceId), e);
     }
   }
 
   public Map<String, EntityTypeMetadata> entityMetadata(
-      AuthenticatedUserRequest user, String storageSourceId) {
-    WorkspaceResponse response;
+      AuthenticatedUserRequest user, String workspaceId) {
     try {
-      response = workspacesApi(user).getWorkspaceById(storageSourceId, List.of());
+      WorkspaceResponse response = workspacesApi(user).getWorkspaceById(workspaceId, List.of());
       var entities =
           entitiesApi(user)
               .entityTypeMetadata(
@@ -147,7 +133,7 @@ public class RawlsService {
                             .attributeNames((List<String>) value.get("attributeNames"));
                       }));
     } catch (ApiException e) {
-      throw new RawlsException("Entity Metadata failed", e);
+      throw new RawlsException("Entity Metadata failed for workspace %s".formatted(workspaceId), e);
     }
   }
 

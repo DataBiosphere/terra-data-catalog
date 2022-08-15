@@ -189,17 +189,17 @@ public class DatasetService {
 
   private DatasetPreviewTable generateRawlsTable(
       AuthenticatedUserRequest user, Dataset dataset, String tableName) {
-    Map<String, EntityTypeMetadata> ent =
+    Map<String, EntityTypeMetadata> entities =
         rawlsService.entityMetadata(user, dataset.storageSourceId());
-    EntityTypeMetadata obj = ent.get(tableName);
+    EntityTypeMetadata tableMetadata = entities.get(tableName);
     return new DatasetPreviewTable()
-        .columns(convertEntityToColumn(obj))
+        .columns(convertTableMetadataToColumns(tableMetadata))
         .rows(
             rawlsService
                 .entityQuery(user, dataset.storageSourceId(), tableName)
                 .getResults()
                 .stream()
-                .map(entity -> convertEntityToRow(entity, obj.getIdName()))
+                .map(entity -> convertEntityToRow(entity, tableMetadata.getIdName()))
                 .toList());
   }
 
@@ -211,13 +211,13 @@ public class DatasetService {
     return rows;
   }
 
-  private static List<ColumnModel> convertEntityToColumn(EntityTypeMetadata entity) {
-    List<ColumnModel> model = new ArrayList<>();
-    model.add(new ColumnModel().name(entity.getIdName()));
+  private static List<ColumnModel> convertTableMetadataToColumns(EntityTypeMetadata entity) {
+    List<ColumnModel> columns = new ArrayList<>();
+    columns.add(new ColumnModel().name(entity.getIdName()));
     entity.getAttributeNames().stream()
         .map(name -> new ColumnModel().name(name))
-        .forEach(model::add);
-    return model;
+        .forEach(columns::add);
+    return columns;
   }
 
   private void ensureActionPermission(
@@ -281,8 +281,10 @@ public class DatasetService {
 
   private static List<TableMetadata> convertRawlsTablesToCatalogTables(
       Map<String, EntityTypeMetadata> entityTables) {
-    return entityTables.keySet().stream()
-        .map(entityTypeMetadata -> new TableMetadata().name(entityTypeMetadata).hasData(true))
+    return entityTables.entrySet().stream()
+        .map(
+            entry ->
+                new TableMetadata().name(entry.getKey()).hasData(entry.getValue().getCount() != 0))
         .toList();
   }
 

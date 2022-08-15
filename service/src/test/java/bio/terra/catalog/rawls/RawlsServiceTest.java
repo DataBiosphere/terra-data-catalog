@@ -141,7 +141,7 @@ class RawlsServiceTest {
     String tableName = "table";
     WorkspaceResponse response =
         new WorkspaceResponse().workspace(new WorkspaceDetails().name(name).namespace(namespace));
-    when(workspacesApi.getWorkspaceById(id, List.of())).thenThrow(new ApiException());
+    when(workspacesApi.getWorkspaceById(id, List.of())).thenReturn(response);
     when(entitiesApi.entityQuery(
             namespace, name, tableName, null, null, null, null, null, List.of(), null, null))
         .thenThrow(new ApiException());
@@ -162,13 +162,13 @@ class RawlsServiceTest {
   }
 
   @Test
-  void entityMetadataExecption() throws Exception {
+  void entityMetadataException() throws Exception {
     String id = "abc";
     String name = "name";
     String namespace = "namespace";
     WorkspaceResponse response =
         new WorkspaceResponse().workspace(new WorkspaceDetails().name(name).namespace(namespace));
-    when(workspacesApi.getWorkspaceById(id, List.of())).thenThrow(new ApiException());
+    when(workspacesApi.getWorkspaceById(id, List.of())).thenReturn(response);
     when(entitiesApi.entityTypeMetadata(namespace, name, true, null)).thenThrow(new ApiException());
     assertThrows(RawlsException.class, () -> rawlsService.entityMetadata(user, id));
   }
