@@ -14,6 +14,7 @@ import bio.terra.catalog.service.dataset.Dataset;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
+import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.exception.NotFoundException;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
@@ -76,15 +77,15 @@ public class DatasetService {
       node.set("id", TextNode.valueOf(dataset.id().toValue()));
       return node;
     }
+  }
 
-    private ObjectNode toJsonNode(String json) {
-      try {
-        return objectMapper.readValue(json, ObjectNode.class);
-      } catch (JsonProcessingException e) {
-        // This shouldn't occur, as the data stored in postgres must be valid JSON, because it's
-        // stored as JSONB.
-        throw new IllegalMetadataException(e);
-      }
+  private ObjectNode toJsonNode(String json) {
+    try {
+      return objectMapper.readValue(json, ObjectNode.class);
+    } catch (JsonProcessingException e) {
+      // This shouldn't occur on retrieve, as the data stored in postgres must be valid JSON,
+      // because it's stored as JSONB.
+      throw new BadRequestException("catalogEntry/metadata must be a valid json object", e);
     }
   }
 
@@ -208,6 +209,7 @@ public class DatasetService {
   }
 
   public void updateMetadata(AuthenticatedUserRequest user, DatasetId datasetId, String metadata) {
+    validateMetadata(metadata);
     var dataset = datasetDao.retrieve(datasetId);
     ensureActionPermission(user, dataset, SamAction.UPDATE_ANY_METADATA);
     datasetDao.update(dataset.withMetadata(metadata));
@@ -218,6 +220,7 @@ public class DatasetService {
       StorageSystem storageSystem,
       String storageSourceId,
       String metadata) {
+    validateMetadata(metadata);
     var dataset = new Dataset(storageSourceId, storageSystem, metadata);
     ensureActionPermission(user, dataset, SamAction.CREATE_METADATA);
     return datasetDao.create(dataset).id();
@@ -228,6 +231,10 @@ public class DatasetService {
     var dataset = datasetDao.retrieve(datasetId);
     var tableMetadataList = generateDatasetTables(user, dataset);
     return new DatasetPreviewTablesResponse().tables(tableMetadataList);
+  }
+
+  private void validateMetadata(String metadata) {
+    toJsonNode(metadata);
   }
 
   private static List<TableMetadata> convertDatarepoTablesToCatalogTables(
