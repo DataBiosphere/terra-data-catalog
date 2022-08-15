@@ -102,6 +102,7 @@ public class RawlsService {
               null,
               null,
               null,
+              null,
               List.of(),
               null,
               null);
@@ -114,27 +115,12 @@ public class RawlsService {
       AuthenticatedUserRequest user, String workspaceId) {
     try {
       WorkspaceResponse response = workspacesApi(user).getWorkspaceById(workspaceId, List.of());
-      var entities =
-          entitiesApi(user)
-              .entityTypeMetadata(
-                  response.getWorkspace().getNamespace(),
-                  response.getWorkspace().getName(),
-                  true,
-                  null);
-      //noinspection unchecked
-      return ((Map<String, Map<String, Object>>) entities)
-          .entrySet().stream()
-              .collect(
-                  Collectors.toMap(
-                      Map.Entry::getKey,
-                      entry -> {
-                        Map<String, Object> value = entry.getValue();
-                        //noinspection unchecked
-                        return new EntityTypeMetadata()
-                            .idName((String) value.get("idName"))
-                            .count((Integer) value.get("count"))
-                            .attributeNames((List<String>) value.get("attributeNames"));
-                      }));
+      return entitiesApi(user)
+          .entityTypeMetadata(
+              response.getWorkspace().getNamespace(),
+              response.getWorkspace().getName(),
+              true,
+              null);
     } catch (ApiException e) {
       throw new RawlsException("Entity Metadata failed for workspace %s".formatted(workspaceId), e);
     }

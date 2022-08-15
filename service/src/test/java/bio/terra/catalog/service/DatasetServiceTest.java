@@ -35,6 +35,7 @@ import bio.terra.datarepo.model.SnapshotModel;
 import bio.terra.datarepo.model.SnapshotPreviewModel;
 import bio.terra.datarepo.model.TableDataType;
 import bio.terra.datarepo.model.TableModel;
+import bio.terra.rawls.model.Entity;
 import bio.terra.rawls.model.EntityQueryResponse;
 import bio.terra.rawls.model.EntityTypeMetadata;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -320,13 +321,14 @@ class DatasetServiceTest {
     Map<String, EntityTypeMetadata> map = new HashMap<>();
     map.put("str", new EntityTypeMetadata());
     map.put(tableName, ent);
+    Entity entity = new Entity().name("sample");
     when(datasetDao.retrieve(datasetId)).thenReturn(tdrDataset);
     when(rawlsService.entityMetadata(user, tdrDataset.storageSourceId())).thenReturn(map);
     when(rawlsService.entityQuery(user, tdrDataset.storageSourceId(), tableName))
-        .thenReturn(new EntityQueryResponse().results(List.of()));
+        .thenReturn(new EntityQueryResponse().results(List.of(entity)));
     DatasetPreviewTable datasetPreviewTable =
         datasetService.getDatasetPreview(user, tdrDataset.id(), tableName);
-    assertThat(datasetPreviewTable.getRows(), empty());
+    assertThat(datasetPreviewTable.getRows(), hasSize(1));
     assertThat(datasetPreviewTable.getColumns(), hasSize(4));
     assertThat(
         datasetPreviewTable.getColumns().get(0),

@@ -133,7 +133,7 @@ class RawlsServiceTest {
     when(workspacesApi.getWorkspaceById(id, List.of())).thenReturn(response);
     EntityQueryResponse queryResponse = new EntityQueryResponse();
     when(entitiesApi.entityQuery(
-            namespace, name, tableName, null, null, null, null, null, List.of(), null, null))
+            namespace, name, tableName, null, null, null, null, null, null, List.of(), null, null))
         .thenReturn(queryResponse);
     assertThat(rawlsService.entityQuery(user, id, tableName), is(queryResponse));
   }
@@ -148,7 +148,7 @@ class RawlsServiceTest {
         new WorkspaceResponse().workspace(new WorkspaceDetails().name(name).namespace(namespace));
     when(workspacesApi.getWorkspaceById(id, List.of())).thenReturn(response);
     when(entitiesApi.entityQuery(
-            namespace, name, tableName, null, null, null, null, null, List.of(), null, null))
+            namespace, name, tableName, null, null, null, null, null, null, List.of(), null, null))
         .thenThrow(new ApiException());
     assertThrows(RawlsException.class, () -> rawlsService.entityQuery(user, id, tableName));
   }

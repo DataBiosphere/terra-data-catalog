@@ -206,8 +206,7 @@ public class DatasetService {
   }
 
   private Object convertEntityToRow(Entity entity, String idName) {
-    @SuppressWarnings("unchecked")
-    Map<String, String> att = (Map<String, String>) entity.getAttributes();
+    Map<String, String> att = entity.getAttributes();
     Map<String, String> rows = new HashMap<>(att);
     rows.put(idName, entity.getName());
     return rows;
