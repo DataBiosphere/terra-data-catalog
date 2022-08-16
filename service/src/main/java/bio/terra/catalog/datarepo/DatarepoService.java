@@ -4,8 +4,6 @@ import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
-import bio.terra.datarepo.api.SnapshotsApi;
-import bio.terra.datarepo.api.UnauthenticatedApi;
 import bio.terra.datarepo.client.ApiException;
 import bio.terra.datarepo.model.RepositoryStatusModel;
 import bio.terra.datarepo.model.SnapshotModel;
@@ -61,7 +59,8 @@ public class DatarepoService {
   public Map<String, DatasetAccessLevel> getSnapshotIdsAndRoles(AuthenticatedUserRequest user) {
     try {
       Map<String, List<String>> response =
-          snapshotsApi(user)
+          datarepoClient
+              .snapshotsApi(user)
               .enumerateSnapshots(null, MAX_DATASETS, null, null, null, null, null)
               .getRoleMap();
       return response.entrySet().stream()
@@ -76,7 +75,9 @@ public class DatarepoService {
   public SnapshotModel getPreviewTables(AuthenticatedUserRequest user, String snapshotId) {
     try {
       UUID id = UUID.fromString(snapshotId);
-      return snapshotsApi(user).retrieveSnapshot(id, List.of(SnapshotRetrieveIncludeModel.TABLES));
+      return datarepoClient
+          .snapshotsApi(user)
+          .retrieveSnapshot(id, List.of(SnapshotRetrieveIncludeModel.TABLES));
     } catch (ApiException e) {
       throw new DatarepoException(e);
     }
@@ -86,7 +87,9 @@ public class DatarepoService {
       AuthenticatedUserRequest user, String snapshotId, String tableName) {
     try {
       UUID id = UUID.fromString(snapshotId);
-      return snapshotsApi(user).lookupSnapshotPreviewById(id, tableName, null, null, null, null);
+      return datarepoClient
+          .snapshotsApi(user)
+          .lookupSnapshotPreviewById(id, tableName, null, null, null, null);
     } catch (ApiException e) {
       throw new DatarepoException(e);
     }
@@ -95,26 +98,18 @@ public class DatarepoService {
   public DatasetAccessLevel getRole(AuthenticatedUserRequest user, String snapshotId) {
     try {
       UUID id = UUID.fromString(snapshotId);
-      List<String> roles = snapshotsApi(user).retrieveUserSnapshotRoles(id);
+      List<String> roles = datarepoClient.snapshotsApi(user).retrieveUserSnapshotRoles(id);
       return getHighestAccessFromRoleList(roles);
     } catch (ApiException e) {
       throw new DatarepoException("Get snapshot roles failed", e);
     }
   }
 
-  private SnapshotsApi snapshotsApi(AuthenticatedUserRequest user) {
-    return datarepoClient.snapshotsApi(user);
-  }
-
-  private UnauthenticatedApi unauthenticatedApi() {
-    return datarepoClient.unauthenticatedApi();
-  }
-
   public SystemStatusSystems status() {
     var result = new SystemStatusSystems();
     try {
       // Don't retry status check
-      RepositoryStatusModel status = unauthenticatedApi().serviceStatus();
+      RepositoryStatusModel status = datarepoClient.unauthenticatedApi().serviceStatus();
       result.ok(status.isOk());
       // Populate error message if system status is non-ok
       if (!result.isOk()) {
