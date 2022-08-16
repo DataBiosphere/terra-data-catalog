@@ -84,8 +84,8 @@ public class RawlsService {
     return result;
   }
 
-  EntitiesApi entitiesApi(AuthenticatedUserRequest user) {
-    return new EntitiesApi(getApiClient(user));
+  private EntitiesApi entitiesApi(AuthenticatedUserRequest user) {
+    return rawlsClient.entitiesApi(user);
   }
 
   public static WorkspaceName getWorkspaceName(WorkspaceDetails workspaceDetails) {

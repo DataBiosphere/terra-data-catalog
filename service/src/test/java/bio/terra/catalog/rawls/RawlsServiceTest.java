@@ -6,10 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -52,6 +50,10 @@ class RawlsServiceTest {
 
   private void mockWorkspaces() {
     when(rawlsClient.workspacesApi(user)).thenReturn(workspacesApi);
+  }
+
+  private void mockEntities() {
+    when(rawlsClient.entitiesApi(user)).thenReturn(entitiesApi);
   }
 
   private void mockStatus() {
@@ -134,6 +136,9 @@ class RawlsServiceTest {
 
   @Test
   void getExportWorkspace() throws ApiException {
+    mockWorkspaces();
+    mockEntities();
+
     String workspaceIdSource = "workspaceSource";
     String workspaceIdDest = "workspaceDest";
 
@@ -158,6 +163,8 @@ class RawlsServiceTest {
 
   @Test
   void getExportWorkspaceException() throws ApiException {
+    mockWorkspaces();
+
     String workspaceIdSource = "workspaceSource";
     String workspaceIdDest = "workspaceDest";
     when(workspacesApi.getWorkspaceById(workspaceIdSource, List.of()))

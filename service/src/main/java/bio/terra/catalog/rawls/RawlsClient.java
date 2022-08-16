@@ -2,6 +2,7 @@ package bio.terra.catalog.rawls;
 
 import bio.terra.catalog.config.RawlsConfiguration;
 import bio.terra.common.iam.AuthenticatedUserRequest;
+import bio.terra.rawls.api.EntitiesApi;
 import bio.terra.rawls.api.StatusApi;
 import bio.terra.rawls.api.WorkspacesApi;
 import bio.terra.rawls.client.ApiClient;
@@ -30,6 +31,10 @@ public class RawlsClient {
 
   WorkspacesApi workspacesApi(AuthenticatedUserRequest user) {
     return new WorkspacesApi(getApiClient(user));
+  }
+
+  EntitiesApi entitiesApi(AuthenticatedUserRequest user) {
+    return new EntitiesApi(getApiClient(user));
   }
 
   StatusApi statusApi() {
