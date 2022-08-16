@@ -13,7 +13,7 @@ def artifactGroup = "${group}.rawls"
 
 task downloadRawlsYaml(type: Download) {
     // this was the latest git commit hash at development time
-    src "https://raw.githubusercontent.com/broadinstitute/rawls/c0e6dfbfc29310903137f05737e27a947522bc37/core/src/main/resources/swagger/api-docs.yaml"
+    src "https://raw.githubusercontent.com/broadinstitute/rawls/d2e9799dacd6c39da2a13c07f6251ca1ee3e25c5/core/src/main/resources/swagger/api-docs.yaml"
     dest "${buildDir}/rawls-api-docs.yaml"
 }
 

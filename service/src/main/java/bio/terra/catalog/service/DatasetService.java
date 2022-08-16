@@ -19,11 +19,14 @@ import bio.terra.common.exception.NotFoundException;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.model.TableModel;
+import bio.terra.rawls.model.Entity;
+import bio.terra.rawls.model.EntityTypeMetadata;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -149,7 +152,9 @@ public class DatasetService {
     return switch (dataset.storageSystem()) {
       case TERRA_DATA_REPO -> convertDatarepoTablesToCatalogTables(
           datarepoService.getPreviewTables(user, dataset.storageSourceId()).getTables());
-      case TERRA_WORKSPACE, EXTERNAL -> List.of();
+      case TERRA_WORKSPACE -> convertRawlsTablesToCatalogTables(
+          rawlsService.entityMetadata(user, dataset.storageSourceId()));
+      case EXTERNAL -> List.of();
     };
   }
 
@@ -157,7 +162,8 @@ public class DatasetService {
       AuthenticatedUserRequest user, Dataset dataset, String tableName) {
     return switch (dataset.storageSystem()) {
       case TERRA_DATA_REPO -> generateDatarepoTable(user, dataset, tableName);
-      case TERRA_WORKSPACE, EXTERNAL -> new DatasetPreviewTable();
+      case TERRA_WORKSPACE -> generateRawlsTable(user, dataset, tableName);
+      case EXTERNAL -> new DatasetPreviewTable();
     };
   }
 
@@ -181,6 +187,38 @@ public class DatasetService {
             datarepoService
                 .getPreviewTable(user, dataset.storageSourceId(), tableName)
                 .getResult());
+  }
+
+  private DatasetPreviewTable generateRawlsTable(
+      AuthenticatedUserRequest user, Dataset dataset, String tableName) {
+    Map<String, EntityTypeMetadata> entities =
+        rawlsService.entityMetadata(user, dataset.storageSourceId());
+    EntityTypeMetadata tableMetadata = entities.get(tableName);
+    return new DatasetPreviewTable()
+        .columns(convertTableMetadataToColumns(tableMetadata))
+        .rows(
+            rawlsService
+                .entityQuery(user, dataset.storageSourceId(), tableName)
+                .getResults()
+                .stream()
+                .map(entity -> convertEntityToRow(entity, tableMetadata.getIdName()))
+                .toList());
+  }
+
+  private Object convertEntityToRow(Entity entity, String idName) {
+    Map<String, String> att = entity.getAttributes();
+    Map<String, String> rows = new HashMap<>(att);
+    rows.put(idName, entity.getName());
+    return rows;
+  }
+
+  private static List<ColumnModel> convertTableMetadataToColumns(EntityTypeMetadata entity) {
+    List<ColumnModel> columns = new ArrayList<>();
+    columns.add(new ColumnModel().name(entity.getIdName()));
+    entity.getAttributeNames().stream()
+        .map(name -> new ColumnModel().name(name))
+        .forEach(columns::add);
+    return columns;
   }
 
   private void ensureActionPermission(
@@ -245,6 +283,15 @@ public class DatasetService {
                 new TableMetadata()
                     .name(tableModel.getName())
                     .hasData(tableModel.getRowCount() > 0))
+        .toList();
+  }
+
+  private static List<TableMetadata> convertRawlsTablesToCatalogTables(
+      Map<String, EntityTypeMetadata> entityTables) {
+    return entityTables.entrySet().stream()
+        .map(
+            entry ->
+                new TableMetadata().name(entry.getKey()).hasData(entry.getValue().getCount() != 0))
         .toList();
   }
 
