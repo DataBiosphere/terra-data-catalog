@@ -129,6 +129,8 @@ class RawlsServiceTest {
 
   @Test
   void entityQuery() throws Exception {
+    mockWorkspaces();
+    mockEntities();
     String id = "abc";
     String name = "name";
     String namespace = "namespace";
@@ -145,6 +147,9 @@ class RawlsServiceTest {
 
   @Test
   void entityQueryException() throws Exception {
+    mockWorkspaces();
+    mockEntities();
+
     String id = "abc";
     String name = "name";
     String namespace = "namespace";
@@ -160,6 +165,8 @@ class RawlsServiceTest {
 
   @Test
   void entityMetadata() throws Exception {
+    mockWorkspaces();
+    mockEntities();
     String id = "abc";
     String name = "name";
     String namespace = "namespace";
@@ -173,6 +180,8 @@ class RawlsServiceTest {
 
   @Test
   void entityMetadataException() throws Exception {
+    mockWorkspaces();
+    mockEntities();
     String id = "abc";
     String name = "name";
     String namespace = "namespace";

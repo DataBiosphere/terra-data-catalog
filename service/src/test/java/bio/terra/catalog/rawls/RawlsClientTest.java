@@ -13,7 +13,7 @@ class RawlsClientTest {
 
   private static final String BASE_PATH = "base path";
   private static final String TOKEN = "token";
-  private static final String AUTH_NAME = "authorization";
+  private static final String AUTH_NAME = "googleoauth";
 
   private final RawlsClient client = new RawlsClient(new RawlsConfiguration(BASE_PATH));
 
