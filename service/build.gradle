@@ -22,7 +22,6 @@ dependencies {
     implementation 'javax.ws.rs:javax.ws.rs-api:2.1.1'
     implementation 'org.postgresql:postgresql:42.3.3'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-    implementation 'javax.servlet:jstl:1.2'
     implementation project(':rawls-client')
 
     liquibaseRuntime 'org.liquibase:liquibase-core:3.10.0'
@@ -43,6 +42,7 @@ test {
 
 sonarqube {
     properties {
+        property 'sonar.projectName', 'terra-data-catalog'
         property 'sonar.projectKey', 'terra-data-catalog'
         property 'sonar.organization', 'broad-databiosphere'
         property 'sonar.host.url', 'https://sonarcloud.io'

@@ -3,10 +3,14 @@ package bio.terra.catalog.rawls;
 import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.common.iam.AuthenticatedUserRequest;
+import bio.terra.rawls.api.EntitiesApi;
 import bio.terra.rawls.api.StatusApi;
 import bio.terra.rawls.api.WorkspacesApi;
 import bio.terra.rawls.client.ApiException;
+import bio.terra.rawls.model.EntityCopyDefinition;
 import bio.terra.rawls.model.WorkspaceAccessLevel;
+import bio.terra.rawls.model.WorkspaceDetails;
+import bio.terra.rawls.model.WorkspaceName;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -78,5 +82,45 @@ public class RawlsService {
       result.ok(false).addMessagesItem(errorMsg);
     }
     return result;
+  }
+
+  EntitiesApi entitiesApi(AuthenticatedUserRequest user) {
+    return new EntitiesApi(getApiClient(user));
+  }
+
+  public static WorkspaceName getWorkspaceName(WorkspaceDetails workspaceDetails) {
+    return new WorkspaceName()
+        .namespace(workspaceDetails.getNamespace())
+        .name(workspaceDetails.getName());
+  }
+
+  public void exportWorkspaceDataset(
+      AuthenticatedUserRequest user, String workspaceIdSource, String workspaceIdDest) {
+    try {
+      // build source name
+      WorkspaceDetails workspaceDetailsSource =
+          workspacesApi(user).getWorkspaceById(workspaceIdSource, List.of()).getWorkspace();
+      WorkspaceName workspaceNameSource = getWorkspaceName(workspaceDetailsSource);
+
+      // build destination name
+      WorkspaceDetails workspaceDetailsDest =
+          workspacesApi(user).getWorkspaceById(workspaceIdDest, List.of()).getWorkspace();
+      WorkspaceName workspaceNameDest = getWorkspaceName(workspaceDetailsDest);
+
+      // possible bug: empty entityType and entityNames copies all entities
+      EntityCopyDefinition body =
+          new EntityCopyDefinition()
+              .sourceWorkspace(workspaceNameSource)
+              .destinationWorkspace(workspaceNameDest)
+              .entityType("")
+              .entityNames(List.of());
+      entitiesApi(user).copyEntities(body, false);
+    } catch (ApiException e) {
+      String errorMsg =
+          String.format(
+              "Unable to export from workspace %s to workspace %s",
+              workspaceIdSource, workspaceIdDest);
+      throw new RawlsException(errorMsg, e);
+    }
   }
 }

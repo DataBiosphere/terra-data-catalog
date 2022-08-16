@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
+import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.api.SnapshotsApi;
 import bio.terra.datarepo.api.UnauthenticatedApi;
@@ -172,5 +173,14 @@ class DatarepoServiceTest {
 
     assertThat(t.getStatusCode(), is(HttpStatus.NOT_FOUND));
     assertThat(t.getMessage(), is("bio.terra.datarepo.client.ApiException: " + errorMessage));
+  }
+
+  @Test
+  void getExportSnapshotException() {
+    String snapshotId = "snapshotId";
+    String workspaceId = "workspaceId";
+    assertThrows(
+        BadRequestException.class,
+        () -> datarepoService.exportSnapshot(user, snapshotId, workspaceId));
   }
 }

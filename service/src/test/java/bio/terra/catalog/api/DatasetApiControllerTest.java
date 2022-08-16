@@ -53,6 +53,8 @@ class DatasetApiControllerTest {
   private static final String PREVIEW_TABLES_API = API_ID + "/tables";
   private static final String PREVIEW_TABLES_API_TABLE_NAME = PREVIEW_TABLES_API + "/{tableName}";
 
+  private static final String EXPORT_TABLES_API = API_ID + "/export/{workspaceId}";
+
   @Autowired private MockMvc mockMvc;
 
   @MockBean private DatasetService datasetService;
@@ -187,5 +189,15 @@ class DatasetApiControllerTest {
         .andExpect(header().string("Cache-Control", "no-store"))
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.columns[0].name").value(columnName));
+  }
+
+  @Test
+  void exportMetadata() throws Exception {
+    var datasetId = new DatasetId(UUID.randomUUID());
+    var workspaceId = UUID.randomUUID();
+    mockMvc
+        .perform(post(EXPORT_TABLES_API, datasetId.uuid(), workspaceId))
+        .andExpect(status().is2xxSuccessful());
+    verify(datasetService).exportDataset(user, datasetId, workspaceId);
   }
 }
