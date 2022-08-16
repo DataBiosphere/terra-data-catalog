@@ -8,9 +8,12 @@ import bio.terra.rawls.api.StatusApi;
 import bio.terra.rawls.api.WorkspacesApi;
 import bio.terra.rawls.client.ApiException;
 import bio.terra.rawls.model.EntityCopyDefinition;
+import bio.terra.rawls.model.EntityQueryResponse;
+import bio.terra.rawls.model.EntityTypeMetadata;
 import bio.terra.rawls.model.WorkspaceAccessLevel;
 import bio.terra.rawls.model.WorkspaceDetails;
 import bio.terra.rawls.model.WorkspaceName;
+import bio.terra.rawls.model.WorkspaceResponse;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -64,6 +67,44 @@ public class RawlsService {
 
   private WorkspacesApi workspacesApi(AuthenticatedUserRequest user) {
     return rawlsClient.workspacesApi(user);
+  }
+
+  public EntityQueryResponse entityQuery(
+      AuthenticatedUserRequest user, String workspaceId, String tableName) {
+    try {
+      WorkspaceResponse response = workspacesApi(user).getWorkspaceById(workspaceId, List.of());
+      return entitiesApi(user)
+          .entityQuery(
+              response.getWorkspace().getNamespace(),
+              response.getWorkspace().getName(),
+              tableName,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              List.of(),
+              null,
+              null);
+    } catch (ApiException e) {
+      throw new RawlsException("Entity Query failed for workspace %s".formatted(workspaceId), e);
+    }
+  }
+
+  public Map<String, EntityTypeMetadata> entityMetadata(
+      AuthenticatedUserRequest user, String workspaceId) {
+    try {
+      WorkspaceResponse response = workspacesApi(user).getWorkspaceById(workspaceId, List.of());
+      return entitiesApi(user)
+          .entityTypeMetadata(
+              response.getWorkspace().getNamespace(),
+              response.getWorkspace().getName(),
+              true,
+              null);
+    } catch (ApiException e) {
+      throw new RawlsException("Entity Metadata failed for workspace %s".formatted(workspaceId), e);
+    }
   }
 
   private StatusApi statusApi() {
