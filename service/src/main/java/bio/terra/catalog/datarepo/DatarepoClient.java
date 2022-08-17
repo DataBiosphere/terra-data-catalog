@@ -6,22 +6,15 @@ import bio.terra.datarepo.api.SnapshotsApi;
 import bio.terra.datarepo.api.UnauthenticatedApi;
 import bio.terra.datarepo.client.ApiClient;
 import javax.ws.rs.client.Client;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class DatarepoClient {
   private final DatarepoConfiguration datarepoConfig;
-  private final Client commonHttpClient;
+  private final Client commonHttpClient = new ApiClient().getHttpClient();
 
-  @Autowired
   public DatarepoClient(DatarepoConfiguration datarepoConfig) {
     this.datarepoConfig = datarepoConfig;
-    this.commonHttpClient = new ApiClient().getHttpClient();
-  }
-
-  public SnapshotsApi snapshotsApi(AuthenticatedUserRequest user) {
-    return new SnapshotsApi(getApiClient(user));
   }
 
   private ApiClient getApiClient(AuthenticatedUserRequest user) {
@@ -35,7 +28,11 @@ public class DatarepoClient {
     return new ApiClient().setHttpClient(commonHttpClient).setBasePath(datarepoConfig.basePath());
   }
 
-  public UnauthenticatedApi unauthenticatedApi() {
+  SnapshotsApi snapshotsApi(AuthenticatedUserRequest user) {
+    return new SnapshotsApi(getApiClient(user));
+  }
+
+  UnauthenticatedApi unauthenticatedApi() {
     return new UnauthenticatedApi(getApiClient());
   }
 }

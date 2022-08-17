@@ -29,8 +29,8 @@ class RawlsClientTest {
     ApiClient workspacesClient = client.workspacesApi(user).getApiClient();
     validateClient(workspacesClient, TOKEN);
 
-    ApiClient entitesClient = client.entitiesApi(user).getApiClient();
-    validateClient(entitesClient, TOKEN);
+    ApiClient entitiesClient = client.entitiesApi(user).getApiClient();
+    validateClient(entitiesClient, TOKEN);
 
     var statusClient = client.statusApi().getApiClient();
     validateClient(statusClient, null);
@@ -38,9 +38,9 @@ class RawlsClientTest {
     assertThat(statusClient.getHttpClient(), is(workspacesClient.getHttpClient()));
   }
 
-  private static void validateClient(ApiClient workspacesClient, String token) {
-    assertThat(workspacesClient.getBasePath(), is(BASE_PATH));
-    OAuth oauth = (OAuth) workspacesClient.getAuthentication(AUTH_NAME);
+  private static void validateClient(ApiClient client, String token) {
+    assertThat(client.getBasePath(), is(BASE_PATH));
+    OAuth oauth = (OAuth) client.getAuthentication(AUTH_NAME);
     assertThat(oauth.getAccessToken(), is(token));
   }
 }
