@@ -17,6 +17,7 @@ import bio.terra.rawls.model.WorkspaceDetails;
 import bio.terra.rawls.model.WorkspaceName;
 import bio.terra.rawls.model.WorkspaceResponse;
 import com.google.common.annotations.VisibleForTesting;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -98,7 +99,7 @@ public class RawlsService {
               response.getWorkspace().getName(),
               tableName,
               null,
-              null,
+              BigDecimal.valueOf(30),
               null,
               null,
               null,

@@ -92,7 +92,7 @@ public class DatarepoService {
       AuthenticatedUserRequest user, String snapshotId, String tableName) {
     try {
       UUID id = UUID.fromString(snapshotId);
-      return snapshotsApi(user).lookupSnapshotPreviewById(id, tableName, null, null, null, null);
+      return snapshotsApi(user).lookupSnapshotPreviewById(id, tableName, null, 30, null, null);
     } catch (ApiException e) {
       throw new DatarepoException(e);
     }

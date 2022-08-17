@@ -88,6 +88,7 @@ public class DatasetOperations extends TestScript {
     crudUserJourney(client, StorageSystem.WKS, workspaceDetails.getWorkspaceId());
 
     previewUserJourney(StorageSystem.TDR, snapshotId.toString());
+    previewUserJourney(StorageSystem.WKS, workspaceDetails.getWorkspaceId());
   }
 
   private void previewUserJourney(StorageSystem storageSystem, String sourceId)
@@ -113,7 +114,7 @@ public class DatasetOperations extends TestScript {
         containsInAnyOrder(
             new ColumnModel().name("sample_id").arrayOf(false),
             new ColumnModel().name("participant_id").arrayOf(false),
-            new ColumnModel().name("files").arrayOf(true),
+            //   new ColumnModel().name("files").arrayOf(true),
             new ColumnModel().name("type").arrayOf(false)));
 
     assertThat(sampleTable.getRows(), hasSize(15));
