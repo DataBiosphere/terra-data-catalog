@@ -1,10 +1,12 @@
 package scripts.client;
 
 import bio.terra.rawls.api.BillingV2Api;
+import bio.terra.rawls.api.EntitiesApi;
 import bio.terra.rawls.api.WorkspacesApi;
 import bio.terra.rawls.client.ApiClient;
 import bio.terra.rawls.client.ApiException;
 import bio.terra.rawls.model.CreateRawlsV2BillingProjectFullRequest;
+import bio.terra.rawls.model.Entity;
 import bio.terra.rawls.model.WorkspaceACLUpdate;
 import bio.terra.rawls.model.WorkspaceAccessLevel;
 import bio.terra.rawls.model.WorkspaceDetails;
@@ -35,6 +37,7 @@ public class RawlsClient {
           .toList();
 
   private final WorkspacesApi workspacesApi;
+  private final EntitiesApi entitiesApi;
   private final BillingV2Api billingApi;
 
   private boolean deleteWorkspaceWorkaround;
@@ -83,6 +86,19 @@ public class RawlsClient {
     return new BillingV2Api(billingApiClient);
   }
 
+  private EntitiesApi createEntitiesApi(String basePath, TestUserSpecification testUser)
+      throws IOException {
+    var entitiesApiClient = new ApiClient();
+    entitiesApiClient.setBasePath(basePath);
+    GoogleCredentials testRunnerCredentials =
+        AuthenticationUtils.getDelegatedUserCredential(
+            testUser, AuthenticationUtils.userLoginScopes);
+    String testRunnerAccessToken =
+        AuthenticationUtils.getAccessToken(testRunnerCredentials).getTokenValue();
+    entitiesApiClient.setAccessToken(testRunnerAccessToken);
+    return new EntitiesApi(entitiesApiClient);
+  }
+
   /**
    * Build the API client object for the given test user and catalog server. The test user's token
    * is always refreshed. If a test user isn't configured (e.g. when running locally), return an
@@ -96,6 +112,7 @@ public class RawlsClient {
     String basePath = Objects.requireNonNull(server.rawlsUri, "Rawls URI required");
     workspacesApi = createWorkspacesApi(basePath, testUser);
     billingApi = createBillingApi(basePath, testUser);
+    entitiesApi = createEntitiesApi(basePath, testUser);
   }
 
   private String createBillingProject() throws ApiException {
@@ -116,7 +133,26 @@ public class RawlsClient {
             .attributes(Map.of());
     var workspaceDetails = workspacesApi.createWorkspace(request);
     log.info("created workspace {}", workspaceDetails.getWorkspaceId());
+    ingestData(workspaceDetails.getNamespace(), workspaceDetails.getName());
     return workspaceDetails;
+  }
+
+  private void ingestData(String namespace, String name) throws ApiException {
+    for (int i = 1; i <= 15; i++) {
+      Entity entity = new Entity().entityType("sample").name("sample" + i);
+      entity.setAttributes(
+          Map.of(
+              //          "files",
+              //             List.of(1, 2, 3, 4, 5),
+              "type", "bam", "participant_id", "participant" + i));
+      entitiesApi.createEntity(entity, namespace, name);
+    }
+    for (int i = 1; i <= 15; i++) {
+      Entity entity = new Entity().entityType("participant").name("participant" + i);
+      entity.setAttributes(
+          Map.of("age", String.valueOf(i + 10), "biological_sex", i % 2 == 0 ? "male" : "female"));
+      entitiesApi.createEntity(entity, namespace, name);
+    }
   }
 
   public void deleteWorkspace(WorkspaceDetails workspaceDetails) throws ApiException {
