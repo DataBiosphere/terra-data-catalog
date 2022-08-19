@@ -17,7 +17,9 @@ import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.StorageSystem;
 import bio.terra.catalog.model.TableMetadata;
 import bio.terra.datarepo.model.DatasetModel;
+import bio.terra.rawls.model.EntityCopyDefinition;
 import bio.terra.rawls.model.WorkspaceDetails;
+import bio.terra.rawls.model.WorkspaceName;
 import bio.terra.testrunner.runner.TestScript;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
 import com.google.api.client.http.HttpStatusCodes;
@@ -48,7 +50,8 @@ public class DatasetOperations extends TestScript {
 
   // Rawls APIs
   private RawlsClient rawlsClient;
-  private WorkspaceDetails workspaceDetails;
+  private WorkspaceDetails workspaceSource;
+  private WorkspaceDetails workspaceDest;
 
   // Catalog APis
   private UUID datasetId;
@@ -63,7 +66,8 @@ public class DatasetOperations extends TestScript {
 
   private void setupWorkspace(TestUserSpecification user) throws Exception {
     rawlsClient = new RawlsClient(server, user);
-    workspaceDetails = rawlsClient.createTestWorkspace();
+    workspaceSource = rawlsClient.createTestWorkspace();
+    workspaceDest = rawlsClient.createTestWorkspace();
   }
 
   private void setupSnapshot(TestUserSpecification user) throws Exception {
@@ -85,9 +89,32 @@ public class DatasetOperations extends TestScript {
     datasetsApi = new DatasetsApi(client);
 
     crudUserJourney(client, StorageSystem.TDR, snapshotId.toString());
-    crudUserJourney(client, StorageSystem.WKS, workspaceDetails.getWorkspaceId());
+    crudUserJourney(client, StorageSystem.WKS, workspaceSource.getWorkspaceId());
 
     previewUserJourney(StorageSystem.TDR, snapshotId.toString());
+
+    exportUserJourney(testUser, workspaceSource, workspaceDest);
+  }
+
+  public static WorkspaceName getWorkspaceName(WorkspaceDetails workspaceDetails) {
+    return new WorkspaceName()
+        .namespace(workspaceDetails.getNamespace())
+        .name(workspaceDetails.getName());
+  }
+
+  private void exportUserJourney(
+      TestUserSpecification testUser,
+      WorkspaceDetails workspaceSource,
+      WorkspaceDetails workspaceDest) {
+    WorkspaceName workspaceNameSource = getWorkspaceName(workspaceSource);
+    WorkspaceName workspaceNameDest = getWorkspaceName(workspaceSource);
+    EntityCopyDefinition body =
+        new EntityCopyDefinition()
+            .sourceWorkspace(workspaceNameSource)
+            .destinationWorkspace(workspaceNameDest)
+            .entityType("")
+            .entityNames(List.of());
+    // TODO: perform copy
   }
 
   private void previewUserJourney(StorageSystem storageSystem, String sourceId)
@@ -192,8 +219,11 @@ public class DatasetOperations extends TestScript {
       snapshotsApi.delete(snapshotId);
       log.info("deleted snapshot " + snapshotId);
     }
-    if (workspaceDetails != null) {
-      rawlsClient.deleteWorkspace(workspaceDetails);
+    if (workspaceSource != null) {
+      rawlsClient.deleteWorkspace(workspaceSource);
+    }
+    if (workspaceDest != null) {
+      rawlsClient.deleteWorkspace(workspaceDest);
     }
   }
 }
