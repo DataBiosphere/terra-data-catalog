@@ -1,13 +1,16 @@
 package scripts.client;
 
 import bio.terra.rawls.api.BillingV2Api;
+import bio.terra.rawls.api.EntitiesApi;
 import bio.terra.rawls.api.WorkspacesApi;
 import bio.terra.rawls.client.ApiClient;
 import bio.terra.rawls.client.ApiException;
 import bio.terra.rawls.model.CreateRawlsV2BillingProjectFullRequest;
+import bio.terra.rawls.model.EntityCopyDefinition;
 import bio.terra.rawls.model.WorkspaceACLUpdate;
 import bio.terra.rawls.model.WorkspaceAccessLevel;
 import bio.terra.rawls.model.WorkspaceDetails;
+import bio.terra.rawls.model.WorkspaceName;
 import bio.terra.rawls.model.WorkspaceRequest;
 import bio.terra.testrunner.common.utils.AuthenticationUtils;
 import bio.terra.testrunner.runner.config.ServerSpecification;
@@ -35,9 +38,21 @@ public class RawlsClient {
           .toList();
 
   private final WorkspacesApi workspacesApi;
+  private final EntitiesApi entitiesApi;
   private final BillingV2Api billingApi;
 
   private boolean deleteWorkspaceWorkaround;
+
+  private ApiClient setUserAndScopes(
+      ApiClient apiClient, String basePath, TestUserSpecification testUser, List<String> scopes)
+      throws IOException {
+    apiClient.setBasePath(basePath);
+    GoogleCredentials userCredentials =
+        AuthenticationUtils.getDelegatedUserCredential(testUser, BILLING_SCOPES);
+    String accessToken = AuthenticationUtils.getAccessToken(userCredentials).getTokenValue();
+    apiClient.setAccessToken(accessToken);
+    return apiClient;
+  }
 
   private WorkspacesApi createWorkspacesApi(String basePath, TestUserSpecification testUser)
       throws IOException {
@@ -60,27 +75,21 @@ public class RawlsClient {
             return super.selectHeaderAccept(accepts);
           }
         };
-    workspaceApiClient.setBasePath(basePath);
 
-    GoogleCredentials userCredential =
-        AuthenticationUtils.getDelegatedUserCredential(
-            testUser, AuthenticationUtils.userLoginScopes);
-    workspaceApiClient.setAccessToken(
-        AuthenticationUtils.getAccessToken(userCredential).getTokenValue());
-
-    return new WorkspacesApi(workspaceApiClient);
+    return new WorkspacesApi(
+        setUserAndScopes(
+            workspaceApiClient, basePath, testUser, AuthenticationUtils.userLoginScopes));
   }
 
   private BillingV2Api createBillingApi(String basePath, TestUserSpecification testUser)
       throws IOException {
-    var billingApiClient = new ApiClient();
-    billingApiClient.setBasePath(basePath);
-    GoogleCredentials testRunnerCredentials =
-        AuthenticationUtils.getDelegatedUserCredential(testUser, BILLING_SCOPES);
-    String testRunnerAccessToken =
-        AuthenticationUtils.getAccessToken(testRunnerCredentials).getTokenValue();
-    billingApiClient.setAccessToken(testRunnerAccessToken);
-    return new BillingV2Api(billingApiClient);
+    return new BillingV2Api(setUserAndScopes(new ApiClient(), basePath, testUser, BILLING_SCOPES));
+  }
+
+  private EntitiesApi createEntitiesApi(String basePath, TestUserSpecification testUser)
+      throws IOException {
+    return new EntitiesApi(
+        setUserAndScopes(new ApiClient(), basePath, testUser, AuthenticationUtils.userLoginScopes));
   }
 
   /**
@@ -96,6 +105,7 @@ public class RawlsClient {
     String basePath = Objects.requireNonNull(server.rawlsUri, "Rawls URI required");
     workspacesApi = createWorkspacesApi(basePath, testUser);
     billingApi = createBillingApi(basePath, testUser);
+    entitiesApi = createEntitiesApi(basePath, testUser);
   }
 
   private String createBillingProject() throws ApiException {
@@ -117,6 +127,25 @@ public class RawlsClient {
     var workspaceDetails = workspacesApi.createWorkspace(request);
     log.info("created workspace {}", workspaceDetails.getWorkspaceId());
     return workspaceDetails;
+  }
+
+  public static WorkspaceName getWorkspaceName(WorkspaceDetails workspaceDetails) {
+    return new WorkspaceName()
+        .namespace(workspaceDetails.getNamespace())
+        .name(workspaceDetails.getName());
+  }
+
+  public void exportWorkspace(WorkspaceDetails workspaceSource, WorkspaceDetails workspaceDest)
+      throws ApiException {
+    WorkspaceName workspaceNameSource = getWorkspaceName(workspaceSource);
+    WorkspaceName workspaceNameDest = getWorkspaceName(workspaceDest);
+    EntityCopyDefinition body =
+        new EntityCopyDefinition()
+            .sourceWorkspace(workspaceNameSource)
+            .destinationWorkspace(workspaceNameDest)
+            .entityType("")
+            .entityNames(List.of());
+    entitiesApi.copyEntities(body, false);
   }
 
   public void deleteWorkspace(WorkspaceDetails workspaceDetails) throws ApiException {

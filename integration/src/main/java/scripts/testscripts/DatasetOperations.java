@@ -17,9 +17,7 @@ import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.StorageSystem;
 import bio.terra.catalog.model.TableMetadata;
 import bio.terra.datarepo.model.DatasetModel;
-import bio.terra.rawls.model.EntityCopyDefinition;
 import bio.terra.rawls.model.WorkspaceDetails;
-import bio.terra.rawls.model.WorkspaceName;
 import bio.terra.testrunner.runner.TestScript;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
 import com.google.api.client.http.HttpStatusCodes;
@@ -93,28 +91,12 @@ public class DatasetOperations extends TestScript {
 
     previewUserJourney(StorageSystem.TDR, snapshotId.toString());
 
-    exportUserJourney(testUser, workspaceSource, workspaceDest);
+    exportUserJourney(workspaceSource, workspaceDest);
   }
 
-  public static WorkspaceName getWorkspaceName(WorkspaceDetails workspaceDetails) {
-    return new WorkspaceName()
-        .namespace(workspaceDetails.getNamespace())
-        .name(workspaceDetails.getName());
-  }
-
-  private void exportUserJourney(
-      TestUserSpecification testUser,
-      WorkspaceDetails workspaceSource,
-      WorkspaceDetails workspaceDest) {
-    WorkspaceName workspaceNameSource = getWorkspaceName(workspaceSource);
-    WorkspaceName workspaceNameDest = getWorkspaceName(workspaceSource);
-    EntityCopyDefinition body =
-        new EntityCopyDefinition()
-            .sourceWorkspace(workspaceNameSource)
-            .destinationWorkspace(workspaceNameDest)
-            .entityType("")
-            .entityNames(List.of());
-    // TODO: perform copy
+  private void exportUserJourney(WorkspaceDetails workspaceSource, WorkspaceDetails workspaceDest)
+      throws bio.terra.rawls.client.ApiException {
+    rawlsClient.exportWorkspace(workspaceSource, workspaceDest);
   }
 
   private void previewUserJourney(StorageSystem storageSystem, String sourceId)
