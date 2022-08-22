@@ -90,7 +90,7 @@ public class RawlsService {
   }
 
   public EntityQueryResponse entityQuery(
-      AuthenticatedUserRequest user, String workspaceId, String tableName) {
+      AuthenticatedUserRequest user, String workspaceId, String tableName, int maxRows) {
     try {
       WorkspaceResponse response = workspacesApi(user).getWorkspaceById(workspaceId, List.of());
       return entitiesApi(user)
@@ -99,7 +99,7 @@ public class RawlsService {
               response.getWorkspace().getName(),
               tableName,
               null,
-              BigDecimal.valueOf(30),
+              BigDecimal.valueOf(maxRows),
               null,
               null,
               null,

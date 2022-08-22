@@ -300,7 +300,7 @@ class DatasetServiceTest {
                                     new ColumnModel()
                                         .datatype(TableDataType.INTEGER)
                                         .name("column a"))))));
-    when(datarepoService.getPreviewTable(user, tdrDataset.storageSourceId(), tableName))
+    when(datarepoService.getPreviewTable(user, tdrDataset.storageSourceId(), tableName, 30))
         .thenReturn(new SnapshotPreviewModel().result(List.of()));
     DatasetPreviewTable datasetPreviewTable =
         datasetService.getDatasetPreview(user, tdrDataset.id(), tableName);
@@ -308,7 +308,7 @@ class DatasetServiceTest {
     assertThat(datasetPreviewTable.getColumns(), hasSize(1));
     assertThat(
         datasetPreviewTable.getColumns().get(0),
-        is(new bio.terra.catalog.model.ColumnModel().name("column a").arrayOf(false)));
+        is(new bio.terra.catalog.model.ColumnModel().name("column a")));
   }
 
   @Test
@@ -324,7 +324,7 @@ class DatasetServiceTest {
     Entity entity = new Entity().name("sample");
     when(datasetDao.retrieve(datasetId)).thenReturn(tdrDataset);
     when(rawlsService.entityMetadata(user, tdrDataset.storageSourceId())).thenReturn(map);
-    when(rawlsService.entityQuery(user, tdrDataset.storageSourceId(), tableName))
+    when(rawlsService.entityQuery(user, tdrDataset.storageSourceId(), tableName, 30))
         .thenReturn(new EntityQueryResponse().results(List.of(entity)));
     DatasetPreviewTable datasetPreviewTable =
         datasetService.getDatasetPreview(user, tdrDataset.id(), tableName);

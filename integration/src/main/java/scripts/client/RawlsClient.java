@@ -63,40 +63,36 @@ public class RawlsClient {
             return super.selectHeaderAccept(accepts);
           }
         };
-    workspaceApiClient.setBasePath(basePath);
-
-    GoogleCredentials userCredential =
-        AuthenticationUtils.getDelegatedUserCredential(
-            testUser, AuthenticationUtils.userLoginScopes);
-    workspaceApiClient.setAccessToken(
-        AuthenticationUtils.getAccessToken(userCredential).getTokenValue());
-
+    extracted(basePath, testUser, workspaceApiClient, AuthenticationUtils.userLoginScopes);
     return new WorkspacesApi(workspaceApiClient);
   }
 
   private BillingV2Api createBillingApi(String basePath, TestUserSpecification testUser)
       throws IOException {
     var billingApiClient = new ApiClient();
-    billingApiClient.setBasePath(basePath);
-    GoogleCredentials testRunnerCredentials =
-        AuthenticationUtils.getDelegatedUserCredential(testUser, BILLING_SCOPES);
-    String testRunnerAccessToken =
-        AuthenticationUtils.getAccessToken(testRunnerCredentials).getTokenValue();
-    billingApiClient.setAccessToken(testRunnerAccessToken);
+    extracted(basePath, testUser, billingApiClient, BILLING_SCOPES);
     return new BillingV2Api(billingApiClient);
   }
 
   private EntitiesApi createEntitiesApi(String basePath, TestUserSpecification testUser)
       throws IOException {
     var entitiesApiClient = new ApiClient();
+    extracted(basePath, testUser, entitiesApiClient, AuthenticationUtils.userLoginScopes);
+    return new EntitiesApi(entitiesApiClient);
+  }
+
+  private void extracted(
+      String basePath,
+      TestUserSpecification testUser,
+      ApiClient entitiesApiClient,
+      List<String> scopes)
+      throws IOException {
     entitiesApiClient.setBasePath(basePath);
     GoogleCredentials testRunnerCredentials =
-        AuthenticationUtils.getDelegatedUserCredential(
-            testUser, AuthenticationUtils.userLoginScopes);
+        AuthenticationUtils.getDelegatedUserCredential(testUser, scopes);
     String testRunnerAccessToken =
         AuthenticationUtils.getAccessToken(testRunnerCredentials).getTokenValue();
     entitiesApiClient.setAccessToken(testRunnerAccessToken);
-    return new EntitiesApi(entitiesApiClient);
   }
 
   /**
@@ -142,9 +138,7 @@ public class RawlsClient {
       Entity entity = new Entity().entityType("sample").name("sample" + i);
       entity.setAttributes(
           Map.of(
-              //          "files",
-              //             List.of(1, 2, 3, 4, 5),
-              "type", "bam", "participant_id", "participant" + i));
+              "files", List.of(1, 2, 3, 4, 5), "type", "bam", "participant_id", "participant" + i));
       entitiesApi.createEntity(entity, namespace, name);
     }
     for (int i = 1; i <= 15; i++) {

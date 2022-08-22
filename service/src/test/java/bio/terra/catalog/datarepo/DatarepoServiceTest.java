@@ -145,7 +145,7 @@ class DatarepoServiceTest {
     when(snapshotsApi.lookupSnapshotPreviewById(id, tableName, null, null, null, null))
         .thenReturn(new SnapshotPreviewModel());
     assertThat(
-        datarepoService.getPreviewTable(user, id.toString(), tableName),
+        datarepoService.getPreviewTable(user, id.toString(), tableName, 10),
         is(new SnapshotPreviewModel()));
   }
 
@@ -161,7 +161,7 @@ class DatarepoServiceTest {
     DatarepoException t =
         assertThrows(
             DatarepoException.class,
-            () -> datarepoService.getPreviewTable(user, id.toString(), tableName));
+            () -> datarepoService.getPreviewTable(user, id.toString(), tableName, 10));
 
     assertThat(t.getStatusCode(), is(HttpStatus.NOT_FOUND));
     assertThat(t.getMessage(), is("bio.terra.datarepo.client.ApiException: " + errorMessage));

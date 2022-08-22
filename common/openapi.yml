@@ -363,9 +363,6 @@ components:
       properties:
         name:
           type: string
-        array_of:
-          type: boolean
-          description: if true, this column is an array of data.
 
     TableMetadata:
       required:

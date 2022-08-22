@@ -135,7 +135,7 @@ class RawlsServiceTest {
     when(entitiesApi.entityQuery(
             namespace, name, tableName, null, null, null, null, null, null, List.of(), null, null))
         .thenReturn(queryResponse);
-    assertThat(rawlsService.entityQuery(user, id, tableName), is(queryResponse));
+    assertThat(rawlsService.entityQuery(user, id, tableName, 10), is(queryResponse));
   }
 
   @Test
@@ -150,7 +150,7 @@ class RawlsServiceTest {
     when(entitiesApi.entityQuery(
             namespace, name, tableName, null, null, null, null, null, null, List.of(), null, null))
         .thenThrow(new ApiException());
-    assertThrows(RawlsException.class, () -> rawlsService.entityQuery(user, id, tableName));
+    assertThrows(RawlsException.class, () -> rawlsService.entityQuery(user, id, tableName, 10));
   }
 
   @Test

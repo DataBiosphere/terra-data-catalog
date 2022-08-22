@@ -89,10 +89,10 @@ public class DatarepoService {
   }
 
   public SnapshotPreviewModel getPreviewTable(
-      AuthenticatedUserRequest user, String snapshotId, String tableName) {
+      AuthenticatedUserRequest user, String snapshotId, String tableName, int maxRows) {
     try {
       UUID id = UUID.fromString(snapshotId);
-      return snapshotsApi(user).lookupSnapshotPreviewById(id, tableName, null, 30, null, null);
+      return snapshotsApi(user).lookupSnapshotPreviewById(id, tableName, null, maxRows, null, null);
     } catch (ApiException e) {
       throw new DatarepoException(e);
     }
