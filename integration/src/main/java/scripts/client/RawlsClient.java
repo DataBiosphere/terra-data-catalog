@@ -6,11 +6,10 @@ import bio.terra.rawls.api.WorkspacesApi;
 import bio.terra.rawls.client.ApiClient;
 import bio.terra.rawls.client.ApiException;
 import bio.terra.rawls.model.CreateRawlsV2BillingProjectFullRequest;
-import bio.terra.rawls.model.EntityCopyDefinition;
+import bio.terra.rawls.model.EntityTypeMetadata;
 import bio.terra.rawls.model.WorkspaceACLUpdate;
 import bio.terra.rawls.model.WorkspaceAccessLevel;
 import bio.terra.rawls.model.WorkspaceDetails;
-import bio.terra.rawls.model.WorkspaceName;
 import bio.terra.rawls.model.WorkspaceRequest;
 import bio.terra.testrunner.common.utils.AuthenticationUtils;
 import bio.terra.testrunner.runner.config.ServerSpecification;
@@ -20,6 +19,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
 import org.glassfish.jersey.client.ClientConfig;
@@ -83,13 +83,16 @@ public class RawlsClient {
 
   private BillingV2Api createBillingApi(String basePath, TestUserSpecification testUser)
       throws IOException {
-    return new BillingV2Api(setUserAndScopes(new ApiClient(), basePath, testUser, BILLING_SCOPES));
+    var billingApiClient = new ApiClient();
+    return new BillingV2Api(setUserAndScopes(billingApiClient, basePath, testUser, BILLING_SCOPES));
   }
 
   private EntitiesApi createEntitiesApi(String basePath, TestUserSpecification testUser)
       throws IOException {
+    var entitiesApiClient = new ApiClient();
     return new EntitiesApi(
-        setUserAndScopes(new ApiClient(), basePath, testUser, AuthenticationUtils.userLoginScopes));
+        setUserAndScopes(
+            entitiesApiClient, basePath, testUser, AuthenticationUtils.userLoginScopes));
   }
 
   /**
@@ -129,23 +132,11 @@ public class RawlsClient {
     return workspaceDetails;
   }
 
-  public static WorkspaceName getWorkspaceName(WorkspaceDetails workspaceDetails) {
-    return new WorkspaceName()
-        .namespace(workspaceDetails.getNamespace())
-        .name(workspaceDetails.getName());
-  }
-
-  public void exportWorkspace(WorkspaceDetails workspaceSource, WorkspaceDetails workspaceDest)
-      throws ApiException {
-    WorkspaceName workspaceNameSource = getWorkspaceName(workspaceSource);
-    WorkspaceName workspaceNameDest = getWorkspaceName(workspaceDest);
-    EntityCopyDefinition body =
-        new EntityCopyDefinition()
-            .sourceWorkspace(workspaceNameSource)
-            .destinationWorkspace(workspaceNameDest)
-            .entityType("")
-            .entityNames(List.of());
-    entitiesApi.copyEntities(body, false);
+  public Set<String> getWorkspaceEntities(WorkspaceDetails workspaceDetails) throws ApiException {
+    Map<String, EntityTypeMetadata> entityTypeMetadataMap =
+        entitiesApi.entityTypeMetadata(
+            workspaceDetails.getNamespace(), workspaceDetails.getName(), true, null);
+    return entityTypeMetadataMap.keySet();
   }
 
   public void deleteWorkspace(WorkspaceDetails workspaceDetails) throws ApiException {
