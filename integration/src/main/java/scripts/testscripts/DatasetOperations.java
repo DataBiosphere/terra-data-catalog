@@ -107,7 +107,7 @@ public class DatasetOperations extends TestScript {
             .storageSystem(storageSystem);
     datasetId = datasetsApi.createDataset(request).getId();
 
-    // Export workspace to workspace
+    // Export workspace dataset to workspace
     var workspaceId = UUID.fromString(workspaceDest.getWorkspaceId());
     datasetsApi.exportDataset(datasetId, workspaceId);
 
