@@ -7,6 +7,8 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isA;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -300,7 +302,8 @@ class DatasetServiceTest {
                                     new ColumnModel()
                                         .datatype(TableDataType.INTEGER)
                                         .name("column a"))))));
-    when(datarepoService.getPreviewTable(user, tdrDataset.storageSourceId(), tableName, 30))
+    when(datarepoService.getPreviewTable(
+            eq(user), eq(tdrDataset.storageSourceId()), eq(tableName), anyInt()))
         .thenReturn(new SnapshotPreviewModel().result(List.of()));
     DatasetPreviewTable datasetPreviewTable =
         datasetService.getDatasetPreview(user, tdrDataset.id(), tableName);
@@ -324,7 +327,8 @@ class DatasetServiceTest {
     Entity entity = new Entity().name("sample");
     when(datasetDao.retrieve(datasetId)).thenReturn(tdrDataset);
     when(rawlsService.entityMetadata(user, tdrDataset.storageSourceId())).thenReturn(map);
-    when(rawlsService.entityQuery(user, tdrDataset.storageSourceId(), tableName, 30))
+    when(rawlsService.entityQuery(
+            eq(user), eq(tdrDataset.storageSourceId()), eq(tableName), anyInt()))
         .thenReturn(new EntityQueryResponse().results(List.of(entity)));
     DatasetPreviewTable datasetPreviewTable =
         datasetService.getDatasetPreview(user, tdrDataset.id(), tableName);

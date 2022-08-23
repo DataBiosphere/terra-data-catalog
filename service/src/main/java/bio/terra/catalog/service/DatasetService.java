@@ -216,9 +216,9 @@ public class DatasetService {
 
   private static List<ColumnModel> convertTableMetadataToColumns(EntityTypeMetadata entity) {
     List<ColumnModel> columns = new ArrayList<>();
-    columns.add(new ColumnModel().name(entity.getIdName()).arrayOf(false));
+    columns.add(new ColumnModel().name(entity.getIdName()));
     entity.getAttributeNames().stream()
-        .map(name -> new ColumnModel().name(name).arrayOf(false))
+        .map(name -> new ColumnModel().name(name))
         .forEach(columns::add);
     return columns;
   }
