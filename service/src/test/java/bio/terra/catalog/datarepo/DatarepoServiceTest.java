@@ -5,15 +5,12 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import bio.terra.catalog.config.DatarepoConfiguration;
-import bio.terra.catalog.iam.SamAuthenticatedUserRequestFactory;
 import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
+import bio.terra.common.exception.BadRequestException;
+import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.api.SnapshotsApi;
 import bio.terra.datarepo.api.UnauthenticatedApi;
 import bio.terra.datarepo.client.ApiException;
@@ -34,84 +31,82 @@ import org.springframework.http.HttpStatus;
 
 @ExtendWith(MockitoExtension.class)
 class DatarepoServiceTest {
+  private DatarepoService datarepoService;
 
+  @Mock private DatarepoClient datarepoClient;
+  @Mock private AuthenticatedUserRequest user;
   @Mock private SnapshotsApi snapshotsApi;
   @Mock private UnauthenticatedApi unauthenticatedApi;
 
-  private DatarepoService datarepoService;
-
   @BeforeEach
   void beforeEach() {
-    DatarepoService service =
-        new DatarepoService(
-            new DatarepoConfiguration(""), mock(SamAuthenticatedUserRequestFactory.class));
-    datarepoService = spy(service);
+    datarepoService = new DatarepoService(datarepoClient);
   }
 
-  private void mockSnapshotsApi() {
-    doReturn(snapshotsApi).when(datarepoService).snapshotsApi();
+  private void mockSnapshots() {
+    when(datarepoClient.snapshotsApi(user)).thenReturn(snapshotsApi);
   }
 
-  private void mockUnauthenticatedApi() {
-    doReturn(unauthenticatedApi).when(datarepoService).unauthenticatedApi();
+  private void mockStatus() {
+    when(datarepoClient.unauthenticatedApi()).thenReturn(unauthenticatedApi);
   }
 
   @Test
   void getSnapshots() throws Exception {
-    mockSnapshotsApi();
+    mockSnapshots();
     var items = Map.of("id", List.of("steward"));
     var expectedItems = Map.of("id", DatasetAccessLevel.OWNER);
     var esm = new EnumerateSnapshotModel().roleMap(items);
     when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any()))
         .thenReturn(esm);
-    assertThat(datarepoService.getSnapshotIdsAndRoles(), is(expectedItems));
+    assertThat(datarepoService.getSnapshotIdsAndRoles(user), is(expectedItems));
   }
 
   @Test
   void getSnapshotsException() throws Exception {
-    mockSnapshotsApi();
+    mockSnapshots();
     when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any()))
         .thenThrow(new ApiException());
-    assertThrows(DatarepoException.class, () -> datarepoService.getSnapshotIdsAndRoles());
+    assertThrows(DatarepoException.class, () -> datarepoService.getSnapshotIdsAndRoles(user));
   }
 
   @Test
   void getRoleReader() throws Exception {
-    mockSnapshotsApi();
+    mockSnapshots();
     var id = UUID.randomUUID();
     when(snapshotsApi.retrieveUserSnapshotRoles(id))
         .thenReturn(List.of(DatarepoService.READER_ROLE_NAME));
-    assertThat(datarepoService.getRole(id.toString()), is(DatasetAccessLevel.READER));
+    assertThat(datarepoService.getRole(user, id.toString()), is(DatasetAccessLevel.READER));
   }
 
   @Test
   void getRoleSteward() throws Exception {
-    mockSnapshotsApi();
+    mockSnapshots();
     var id = UUID.randomUUID();
     when(snapshotsApi.retrieveUserSnapshotRoles(id))
         .thenReturn(List.of(DatarepoService.STEWARD_ROLE_NAME));
-    assertThat(datarepoService.getRole(id.toString()), is(DatasetAccessLevel.OWNER));
+    assertThat(datarepoService.getRole(user, id.toString()), is(DatasetAccessLevel.OWNER));
   }
 
   @Test
   void userHasActionException() throws Exception {
-    mockSnapshotsApi();
+    mockSnapshots();
     var id = UUID.randomUUID();
     when(snapshotsApi.retrieveUserSnapshotRoles(id)).thenThrow(new ApiException());
     var stringId = id.toString();
-    assertThrows(DatarepoException.class, () -> datarepoService.getRole(stringId));
+    assertThrows(DatarepoException.class, () -> datarepoService.getRole(user, stringId));
   }
 
   @Test
   void statusOk() throws Exception {
-    mockUnauthenticatedApi();
+    mockStatus();
     when(unauthenticatedApi.serviceStatus()).thenReturn(new RepositoryStatusModel().ok(true));
     assertThat(datarepoService.status(), is(new SystemStatusSystems().ok(true)));
   }
 
   @Test
   void statusDown() throws Exception {
-    mockUnauthenticatedApi();
+    mockStatus();
     when(unauthenticatedApi.serviceStatus()).thenReturn(new RepositoryStatusModel().ok(false));
     var status = datarepoService.status();
     assertFalse(status.isOk());
@@ -119,7 +114,7 @@ class DatarepoServiceTest {
 
   @Test
   void statusException() throws Exception {
-    mockUnauthenticatedApi();
+    mockStatus();
     when(unauthenticatedApi.serviceStatus()).thenThrow(new ApiException());
     var status = datarepoService.status();
     assertFalse(status.isOk());
@@ -127,23 +122,23 @@ class DatarepoServiceTest {
 
   @Test
   void getPreviewTables() throws Exception {
-    mockSnapshotsApi();
+    mockSnapshots();
     var id = UUID.randomUUID();
     when(snapshotsApi.retrieveSnapshot(id, List.of(SnapshotRetrieveIncludeModel.TABLES)))
         .thenReturn(new SnapshotModel());
-    assertThat(datarepoService.getPreviewTables(id.toString()), is(new SnapshotModel()));
+    assertThat(datarepoService.getPreviewTables(user, id.toString()), is(new SnapshotModel()));
   }
 
   @Test
   void getPreviewTablesDatarepoException() throws Exception {
-    mockSnapshotsApi();
+    mockSnapshots();
     var id = UUID.randomUUID();
     var errorMessage = "Oops, I have errored";
     when(snapshotsApi.retrieveSnapshot(id, List.of(SnapshotRetrieveIncludeModel.TABLES)))
         .thenThrow(new ApiException(HttpStatus.NOT_FOUND.value(), errorMessage));
     DatarepoException t =
         assertThrows(
-            DatarepoException.class, () -> datarepoService.getPreviewTables(id.toString()));
+            DatarepoException.class, () -> datarepoService.getPreviewTables(user, id.toString()));
 
     assertThat(t.getStatusCode(), is(HttpStatus.NOT_FOUND));
     assertThat(t.getMessage(), is("bio.terra.datarepo.client.ApiException: " + errorMessage));
@@ -151,18 +146,19 @@ class DatarepoServiceTest {
 
   @Test
   void getPreviewTable() throws Exception {
-    mockSnapshotsApi();
+    mockSnapshots();
     var id = UUID.randomUUID();
     var tableName = "table";
     when(snapshotsApi.lookupSnapshotPreviewById(id, tableName, null, null, null, null))
         .thenReturn(new SnapshotPreviewModel());
     assertThat(
-        datarepoService.getPreviewTable(id.toString(), tableName), is(new SnapshotPreviewModel()));
+        datarepoService.getPreviewTable(user, id.toString(), tableName),
+        is(new SnapshotPreviewModel()));
   }
 
   @Test
   void getPreviewTableDatarepoException() throws Exception {
-    mockSnapshotsApi();
+    mockSnapshots();
     var id = UUID.randomUUID();
     var tableName = "table";
     var errorMessage = "Oops, I have errored";
@@ -173,9 +169,18 @@ class DatarepoServiceTest {
     DatarepoException t =
         assertThrows(
             DatarepoException.class,
-            () -> datarepoService.getPreviewTable(id.toString(), tableName));
+            () -> datarepoService.getPreviewTable(user, id.toString(), tableName));
 
     assertThat(t.getStatusCode(), is(HttpStatus.NOT_FOUND));
     assertThat(t.getMessage(), is("bio.terra.datarepo.client.ApiException: " + errorMessage));
+  }
+
+  @Test
+  void getExportSnapshotException() {
+    String snapshotId = "snapshotId";
+    String workspaceId = "workspaceId";
+    assertThrows(
+        BadRequestException.class,
+        () -> datarepoService.exportSnapshot(user, snapshotId, workspaceId));
   }
 }

@@ -6,16 +6,6 @@
   "datarepoUri": "https://data.alpha.envs-terra.bio/",
   "rawlsUri": "https://rawls.dsde-alpha.broadinstitute.org/",
 
-  "cluster": {
-    "clusterName": "terra-alpha",
-    "clusterShortName": "terra-alpha",
-    "region": "us-central1",
-    "zone": "us-central1-a",
-    "project": "broad-dsde-alpha",
-    "namespace": "terra-alpha",
-    "containerName": "catalog",
-    "apiComponentLabel":  "catalog"
-  },
   "deploymentScript": {},
   "testRunnerServiceAccountFile": "testrunner-perf.json",
 

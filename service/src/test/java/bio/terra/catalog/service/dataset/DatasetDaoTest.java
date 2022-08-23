@@ -64,7 +64,7 @@ class DatasetDaoTest {
     createDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO);
     createDataset(storageSourceId, StorageSystem.TERRA_WORKSPACE);
     long datasetCount =
-        datasetDao.enumerate().stream()
+        datasetDao.listAllDatasets().stream()
             .filter(dataset -> dataset.storageSourceId().equals(storageSourceId))
             .count();
     assertEquals(2L, datasetCount);
