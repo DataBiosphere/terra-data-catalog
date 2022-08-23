@@ -93,17 +93,18 @@ public class DatasetOperations extends TestScript {
 
     previewUserJourney(StorageSystem.TDR, snapshotId.toString());
 
-    exportUserJourney(workspaceSource, workspaceDest);
+    exportUserJourney(StorageSystem.WKS, workspaceSource, workspaceDest);
   }
 
-  private void exportUserJourney(WorkspaceDetails workspaceSource, WorkspaceDetails workspaceDest)
+  private void exportUserJourney(StorageSystem storageSystem, WorkspaceDetails workspaceSource,
+                                 WorkspaceDetails workspaceDest)
       throws ApiException, bio.terra.rawls.client.ApiException {
     // Create workspace dataset
     var request =
         new CreateDatasetRequest()
             .catalogEntry(METADATA_1)
             .storageSourceId(workspaceSource.getWorkspaceId())
-            .storageSystem(StorageSystem.WKS);
+            .storageSystem(storageSystem);
     datasetId = datasetsApi.createDataset(request).getId();
 
     // Export workspace to workspace

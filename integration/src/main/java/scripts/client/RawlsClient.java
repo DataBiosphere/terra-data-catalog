@@ -43,7 +43,7 @@ public class RawlsClient {
 
   private boolean deleteWorkspaceWorkaround;
 
-  private ApiClient setUserAndScopes(
+  private static ApiClient setUserAndScopes(
       ApiClient apiClient, String basePath, TestUserSpecification testUser, List<String> scopes)
       throws IOException {
     apiClient.setBasePath(basePath);
