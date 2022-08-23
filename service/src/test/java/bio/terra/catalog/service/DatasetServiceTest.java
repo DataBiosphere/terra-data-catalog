@@ -90,8 +90,7 @@ class DatasetServiceTest {
   @BeforeEach
   public void beforeEach() {
     datasetService =
-        new DatasetService(
-            datarepoService, rawlsService, samService, datasetDao, objectMapper);
+        new DatasetService(datarepoService, rawlsService, samService, datasetDao, objectMapper);
   }
 
   private void mockDataset() {
