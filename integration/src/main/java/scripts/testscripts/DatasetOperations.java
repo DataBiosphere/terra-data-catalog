@@ -96,8 +96,8 @@ public class DatasetOperations extends TestScript {
     exportUserJourney(StorageSystem.WKS, workspaceSource, workspaceDest);
   }
 
-  private void exportUserJourney(StorageSystem storageSystem, WorkspaceDetails workspaceSource,
-                                 WorkspaceDetails workspaceDest)
+  private void exportUserJourney(
+      StorageSystem storageSystem, WorkspaceDetails workspaceSource, WorkspaceDetails workspaceDest)
       throws ApiException, bio.terra.rawls.client.ApiException {
     // Create workspace dataset
     var request =
