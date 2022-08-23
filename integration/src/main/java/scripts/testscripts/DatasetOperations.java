@@ -67,7 +67,6 @@ public class DatasetOperations extends TestScript {
   private void setupWorkspace(TestUserSpecification user) throws Exception {
     rawlsClient = new RawlsClient(server, user);
     workspaceSource = rawlsClient.createTestWorkspace();
-    workspaceDest = rawlsClient.createTestWorkspace();
   }
 
   private void setupSnapshot(TestUserSpecification user) throws Exception {
@@ -93,18 +92,20 @@ public class DatasetOperations extends TestScript {
 
     previewUserJourney(StorageSystem.TDR, snapshotId.toString());
 
-    exportUserJourney(workspaceSource, workspaceDest);
+    exportUserJourney(StorageSystem.WKS, workspaceSource);
   }
 
-  private void exportUserJourney(WorkspaceDetails workspaceSource, WorkspaceDetails workspaceDest)
+  private void exportUserJourney(StorageSystem storageSystem, WorkspaceDetails workspaceSource)
       throws ApiException, bio.terra.rawls.client.ApiException {
+
     // Create workspace dataset
     var request =
         new CreateDatasetRequest()
             .catalogEntry(METADATA_1)
             .storageSourceId(workspaceSource.getWorkspaceId())
-            .storageSystem(StorageSystem.WKS);
+            .storageSystem(storageSystem);
     datasetId = datasetsApi.createDataset(request).getId();
+    workspaceDest = rawlsClient.createTestWorkspace();
 
     // Export workspace to workspace
     var workspaceId = UUID.fromString(workspaceDest.getWorkspaceId());
@@ -115,6 +116,10 @@ public class DatasetOperations extends TestScript {
     Set<String> entitiesDest = rawlsClient.getWorkspaceEntities(workspaceDest);
 
     assertEquals(entitiesSource, entitiesDest);
+
+    // Delete workspace
+    rawlsClient.deleteWorkspace(workspaceDest);
+    workspaceDest = null;
 
     // Delete catalog entry
     datasetsApi.deleteDataset(datasetId);
