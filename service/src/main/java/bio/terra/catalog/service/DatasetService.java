@@ -17,7 +17,6 @@ import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.exception.NotFoundException;
 import bio.terra.common.exception.UnauthorizedException;
-import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.model.TableModel;
 import bio.terra.rawls.model.Entity;
 import bio.terra.rawls.model.EntityTypeMetadata;
@@ -100,23 +99,23 @@ public class DatasetService {
         .toList();
   }
 
-  private List<DatasetWithAccessLevel> collectDatarepoDatasets(AuthenticatedUserRequest user) {
+  private List<DatasetWithAccessLevel> collectDatarepoDatasets() {
     // For this storage system, get the collection of visible datasets and the user's roles for
     // each dataset.
-    var roleMap = datarepoService.getSnapshotIdsAndRoles(user);
+    var roleMap = datarepoService.getSnapshotIdsAndRoles();
     return convertSourceObjectsToDatasetsWithAccessLevel(roleMap, StorageSystem.TERRA_DATA_REPO);
   }
 
-  private List<DatasetWithAccessLevel> collectWorkspaceDatasets(AuthenticatedUserRequest user) {
-    var roleMap = rawlsService.getWorkspaceIdsAndRoles(user);
+  private List<DatasetWithAccessLevel> collectWorkspaceDatasets() {
+    var roleMap = rawlsService.getWorkspaceIdsAndRoles();
     return convertSourceObjectsToDatasetsWithAccessLevel(roleMap, StorageSystem.TERRA_WORKSPACE);
   }
 
-  public DatasetsListResponse listDatasets(AuthenticatedUserRequest user) {
+  public DatasetsListResponse listDatasets() {
     List<DatasetWithAccessLevel> datasets = new ArrayList<>();
-    datasets.addAll(collectWorkspaceDatasets(user));
-    datasets.addAll(collectDatarepoDatasets(user));
-    if (samService.hasGlobalAction(user, SamAction.READ_ANY_METADATA)) {
+    datasets.addAll(collectWorkspaceDatasets());
+    datasets.addAll(collectDatarepoDatasets());
+    if (samService.hasGlobalAction(SamAction.READ_ANY_METADATA)) {
       datasets.addAll(
           datasetDao.listAllDatasets().stream()
               .map(dataset -> new DatasetWithAccessLevel(dataset, DatasetAccessLevel.READER))
@@ -134,44 +133,36 @@ public class DatasetService {
     return response;
   }
 
-  private boolean checkStoragePermission(
-      AuthenticatedUserRequest user, Dataset dataset, SamAction action) {
+  private boolean checkStoragePermission(Dataset dataset, SamAction action) {
     return switch (dataset.storageSystem()) {
-      case TERRA_DATA_REPO -> datarepoService
-          .getRole(user, dataset.storageSourceId())
-          .hasAction(action);
-      case TERRA_WORKSPACE -> rawlsService
-          .getRole(user, dataset.storageSourceId())
-          .hasAction(action);
+      case TERRA_DATA_REPO -> datarepoService.getRole(dataset.storageSourceId()).hasAction(action);
+      case TERRA_WORKSPACE -> rawlsService.getRole(dataset.storageSourceId()).hasAction(action);
       case EXTERNAL -> false;
     };
   }
 
-  private List<TableMetadata> generateDatasetTables(
-      AuthenticatedUserRequest user, Dataset dataset) {
+  private List<TableMetadata> generateDatasetTables(Dataset dataset) {
     return switch (dataset.storageSystem()) {
       case TERRA_DATA_REPO -> convertDatarepoTablesToCatalogTables(
-          datarepoService.getPreviewTables(user, dataset.storageSourceId()).getTables());
+          datarepoService.getPreviewTables(dataset.storageSourceId()).getTables());
       case TERRA_WORKSPACE -> convertRawlsTablesToCatalogTables(
-          rawlsService.entityMetadata(user, dataset.storageSourceId()));
+          rawlsService.entityMetadata(dataset.storageSourceId()));
       case EXTERNAL -> List.of();
     };
   }
 
-  private DatasetPreviewTable generateDatasetTablePreview(
-      AuthenticatedUserRequest user, Dataset dataset, String tableName) {
+  private DatasetPreviewTable generateDatasetTablePreview(Dataset dataset, String tableName) {
     return switch (dataset.storageSystem()) {
-      case TERRA_DATA_REPO -> generateDatarepoTable(user, dataset, tableName);
-      case TERRA_WORKSPACE -> generateRawlsTable(user, dataset, tableName);
+      case TERRA_DATA_REPO -> generateDatarepoTable(dataset, tableName);
+      case TERRA_WORKSPACE -> generateRawlsTable(dataset, tableName);
       case EXTERNAL -> new DatasetPreviewTable();
     };
   }
 
-  private DatasetPreviewTable generateDatarepoTable(
-      AuthenticatedUserRequest user, Dataset dataset, String tableName) {
+  private DatasetPreviewTable generateDatarepoTable(Dataset dataset, String tableName) {
     return new DatasetPreviewTable()
         .columns(
-            datarepoService.getPreviewTables(user, dataset.storageSourceId()).getTables().stream()
+            datarepoService.getPreviewTables(dataset.storageSourceId()).getTables().stream()
                 .filter(tableModel -> tableModel.getName().equals(tableName))
                 .findFirst()
                 .orElseThrow(
@@ -183,24 +174,17 @@ public class DatasetService {
                 .stream()
                 .map(DatasetService::convertDatarepoColumnModelToCatalogColumnModel)
                 .toList())
-        .rows(
-            datarepoService
-                .getPreviewTable(user, dataset.storageSourceId(), tableName)
-                .getResult());
+        .rows(datarepoService.getPreviewTable(dataset.storageSourceId(), tableName).getResult());
   }
 
-  private DatasetPreviewTable generateRawlsTable(
-      AuthenticatedUserRequest user, Dataset dataset, String tableName) {
+  private DatasetPreviewTable generateRawlsTable(Dataset dataset, String tableName) {
     Map<String, EntityTypeMetadata> entities =
-        rawlsService.entityMetadata(user, dataset.storageSourceId());
+        rawlsService.entityMetadata(dataset.storageSourceId());
     EntityTypeMetadata tableMetadata = entities.get(tableName);
     return new DatasetPreviewTable()
         .columns(convertTableMetadataToColumns(tableMetadata))
         .rows(
-            rawlsService
-                .entityQuery(user, dataset.storageSourceId(), tableName)
-                .getResults()
-                .stream()
+            rawlsService.entityQuery(dataset.storageSourceId(), tableName).getResults().stream()
                 .map(entity -> convertEntityToRow(entity, tableMetadata.getIdName()))
                 .toList());
   }
@@ -221,53 +205,46 @@ public class DatasetService {
     return columns;
   }
 
-  private void ensureActionPermission(
-      AuthenticatedUserRequest user, Dataset dataset, SamAction action) {
+  private void ensureActionPermission(Dataset dataset, SamAction action) {
     // Ensure that the current user has permission to perform this action. The current user
     // can either have permission granted by the storage system that owns the dataset, or if
     // they're a catalog admin user who has permission to perform any operation on any
     // catalog entry.
-    if (!samService.hasGlobalAction(user, action)
-        && !checkStoragePermission(user, dataset, action)) {
-      throw new UnauthorizedException(
-          String.format("User %s does not have permission to %s", user.getEmail(), action));
+    if (!samService.hasGlobalAction(action) && !checkStoragePermission(dataset, action)) {
+      throw new UnauthorizedException(String.format("User does not have permission to %s", action));
     }
   }
 
-  public void deleteMetadata(AuthenticatedUserRequest user, DatasetId datasetId) {
+  public void deleteMetadata(DatasetId datasetId) {
     var dataset = datasetDao.retrieve(datasetId);
-    ensureActionPermission(user, dataset, SamAction.DELETE_ANY_METADATA);
+    ensureActionPermission(dataset, SamAction.DELETE_ANY_METADATA);
     datasetDao.delete(dataset);
   }
 
-  public String getMetadata(AuthenticatedUserRequest user, DatasetId datasetId) {
+  public String getMetadata(DatasetId datasetId) {
     var dataset = datasetDao.retrieve(datasetId);
-    ensureActionPermission(user, dataset, SamAction.READ_ANY_METADATA);
+    ensureActionPermission(dataset, SamAction.READ_ANY_METADATA);
     return dataset.metadata();
   }
 
-  public void updateMetadata(AuthenticatedUserRequest user, DatasetId datasetId, String metadata) {
+  public void updateMetadata(DatasetId datasetId, String metadata) {
     validateMetadata(metadata);
     var dataset = datasetDao.retrieve(datasetId);
-    ensureActionPermission(user, dataset, SamAction.UPDATE_ANY_METADATA);
+    ensureActionPermission(dataset, SamAction.UPDATE_ANY_METADATA);
     datasetDao.update(dataset.withMetadata(metadata));
   }
 
   public DatasetId createDataset(
-      AuthenticatedUserRequest user,
-      StorageSystem storageSystem,
-      String storageSourceId,
-      String metadata) {
+      StorageSystem storageSystem, String storageSourceId, String metadata) {
     validateMetadata(metadata);
     var dataset = new Dataset(storageSourceId, storageSystem, metadata);
-    ensureActionPermission(user, dataset, SamAction.CREATE_METADATA);
+    ensureActionPermission(dataset, SamAction.CREATE_METADATA);
     return datasetDao.create(dataset).id();
   }
 
-  public DatasetPreviewTablesResponse listDatasetPreviewTables(
-      AuthenticatedUserRequest user, DatasetId datasetId) {
+  public DatasetPreviewTablesResponse listDatasetPreviewTables(DatasetId datasetId) {
     var dataset = datasetDao.retrieve(datasetId);
-    var tableMetadataList = generateDatasetTables(user, dataset);
+    var tableMetadataList = generateDatasetTables(dataset);
     return new DatasetPreviewTablesResponse().tables(tableMetadataList);
   }
 
@@ -302,19 +279,18 @@ public class DatasetService {
         .arrayOf(datarepoColumnModel.isArrayOf());
   }
 
-  public DatasetPreviewTable getDatasetPreview(
-      AuthenticatedUserRequest user, DatasetId datasetId, String tableName) {
+  public DatasetPreviewTable getDatasetPreview(DatasetId datasetId, String tableName) {
     var dataset = datasetDao.retrieve(datasetId);
-    return generateDatasetTablePreview(user, dataset, tableName);
+    return generateDatasetTablePreview(dataset, tableName);
   }
 
-  public void exportDataset(AuthenticatedUserRequest user, DatasetId datasetId, UUID workspaceId) {
+  public void exportDataset(DatasetId datasetId, UUID workspaceId) {
     var dataset = datasetDao.retrieve(datasetId);
     switch (dataset.storageSystem()) {
       case TERRA_DATA_REPO -> datarepoService.exportSnapshot(
-          user, dataset.storageSourceId(), workspaceId.toString());
+          dataset.storageSourceId(), workspaceId.toString());
       case TERRA_WORKSPACE -> rawlsService.exportWorkspaceDataset(
-          user, dataset.storageSourceId(), workspaceId.toString());
+          dataset.storageSourceId(), workspaceId.toString());
       case EXTERNAL -> {
         /* NYI */
       }

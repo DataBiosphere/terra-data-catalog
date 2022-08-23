@@ -2,20 +2,33 @@ package bio.terra.catalog.rawls;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.mockito.Mockito.when;
 
 import bio.terra.catalog.config.RawlsConfiguration;
+import bio.terra.catalog.iam.SamAuthenticatedUserRequestFactory;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.rawls.client.ApiClient;
 import bio.terra.rawls.client.auth.OAuth;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class RawlsClientTest {
 
   private static final String BASE_PATH = "base path";
   private static final String TOKEN = "token";
   private static final String AUTH_NAME = "googleoauth";
+  @Mock private SamAuthenticatedUserRequestFactory requestFactory;
 
-  private final RawlsClient client = new RawlsClient(new RawlsConfiguration(BASE_PATH));
+  private RawlsClient client;
+
+  @BeforeEach
+  void beforeEach() {
+    client = new RawlsClient(new RawlsConfiguration(BASE_PATH), requestFactory);
+  }
 
   @Test
   void testApis() {
@@ -25,11 +38,12 @@ class RawlsClientTest {
             .setSubjectId("")
             .setToken(TOKEN)
             .build();
+    when(requestFactory.getUser()).thenReturn(user);
 
-    ApiClient workspacesClient = client.workspacesApi(user).getApiClient();
+    ApiClient workspacesClient = client.workspacesApi().getApiClient();
     validateClient(workspacesClient, TOKEN);
 
-    ApiClient entitiesClient = client.entitiesApi(user).getApiClient();
+    ApiClient entitiesClient = client.entitiesApi().getApiClient();
     validateClient(entitiesClient, TOKEN);
 
     var statusClient = client.statusApi().getApiClient();

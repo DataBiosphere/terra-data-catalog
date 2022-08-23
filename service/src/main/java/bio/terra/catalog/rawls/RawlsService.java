@@ -2,7 +2,6 @@ package bio.terra.catalog.rawls;
 
 import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
-import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.rawls.client.ApiException;
 import bio.terra.rawls.model.EntityCopyDefinition;
 import bio.terra.rawls.model.EntityQueryResponse;
@@ -39,9 +38,9 @@ public class RawlsService {
     this.rawlsClient = rawlsClient;
   }
 
-  public Map<String, DatasetAccessLevel> getWorkspaceIdsAndRoles(AuthenticatedUserRequest user) {
+  public Map<String, DatasetAccessLevel> getWorkspaceIdsAndRoles() {
     try {
-      return rawlsClient.workspacesApi(user).listWorkspaces(ACCESS_LEVEL_AND_ID).stream()
+      return rawlsClient.workspacesApi().listWorkspaces(ACCESS_LEVEL_AND_ID).stream()
           .collect(
               Collectors.toMap(
                   workspaceListResponse -> workspaceListResponse.getWorkspace().getWorkspaceId(),
@@ -52,26 +51,22 @@ public class RawlsService {
     }
   }
 
-  public DatasetAccessLevel getRole(AuthenticatedUserRequest user, String workspaceId) {
+  public DatasetAccessLevel getRole(String workspaceId) {
     try {
       WorkspaceAccessLevel accessLevel =
-          rawlsClient
-              .workspacesApi(user)
-              .getWorkspaceById(workspaceId, ACCESS_LEVEL)
-              .getAccessLevel();
+          rawlsClient.workspacesApi().getWorkspaceById(workspaceId, ACCESS_LEVEL).getAccessLevel();
       return ROLE_TO_DATASET_ACCESS.get(accessLevel);
     } catch (ApiException e) {
       throw new RawlsException("Get workspace role failed", e);
     }
   }
 
-  public EntityQueryResponse entityQuery(
-      AuthenticatedUserRequest user, String workspaceId, String tableName) {
+  public EntityQueryResponse entityQuery(String workspaceId, String tableName) {
     try {
       WorkspaceResponse response =
-          rawlsClient.workspacesApi(user).getWorkspaceById(workspaceId, List.of());
+          rawlsClient.workspacesApi().getWorkspaceById(workspaceId, List.of());
       return rawlsClient
-          .entitiesApi(user)
+          .entitiesApi()
           .entityQuery(
               response.getWorkspace().getNamespace(),
               response.getWorkspace().getName(),
@@ -90,13 +85,12 @@ public class RawlsService {
     }
   }
 
-  public Map<String, EntityTypeMetadata> entityMetadata(
-      AuthenticatedUserRequest user, String workspaceId) {
+  public Map<String, EntityTypeMetadata> entityMetadata(String workspaceId) {
     try {
       WorkspaceResponse response =
-          rawlsClient.workspacesApi(user).getWorkspaceById(workspaceId, List.of());
+          rawlsClient.workspacesApi().getWorkspaceById(workspaceId, List.of());
       return rawlsClient
-          .entitiesApi(user)
+          .entitiesApi()
           .entityTypeMetadata(
               response.getWorkspace().getNamespace(),
               response.getWorkspace().getName(),
@@ -127,23 +121,16 @@ public class RawlsService {
         .name(workspaceDetails.getName());
   }
 
-  public void exportWorkspaceDataset(
-      AuthenticatedUserRequest user, String workspaceIdSource, String workspaceIdDest) {
+  public void exportWorkspaceDataset(String workspaceIdSource, String workspaceIdDest) {
     try {
       // build source name
       WorkspaceDetails workspaceDetailsSource =
-          rawlsClient
-              .workspacesApi(user)
-              .getWorkspaceById(workspaceIdSource, List.of())
-              .getWorkspace();
+          rawlsClient.workspacesApi().getWorkspaceById(workspaceIdSource, List.of()).getWorkspace();
       WorkspaceName workspaceNameSource = getWorkspaceName(workspaceDetailsSource);
 
       // build destination name
       WorkspaceDetails workspaceDetailsDest =
-          rawlsClient
-              .workspacesApi(user)
-              .getWorkspaceById(workspaceIdDest, List.of())
-              .getWorkspace();
+          rawlsClient.workspacesApi().getWorkspaceById(workspaceIdDest, List.of()).getWorkspace();
       WorkspaceName workspaceNameDest = getWorkspaceName(workspaceDetailsDest);
 
       // possible bug: empty entityType and entityNames copies all entities
@@ -153,7 +140,7 @@ public class RawlsService {
               .destinationWorkspace(workspaceNameDest)
               .entityType("")
               .entityNames(List.of());
-      rawlsClient.entitiesApi(user).copyEntities(body, false);
+      rawlsClient.entitiesApi().copyEntities(body, false);
     } catch (ApiException e) {
       String errorMsg =
           String.format(

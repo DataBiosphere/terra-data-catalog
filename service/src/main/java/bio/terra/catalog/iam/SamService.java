@@ -2,15 +2,12 @@ package bio.terra.catalog.iam;
 
 import bio.terra.catalog.config.SamConfiguration;
 import bio.terra.catalog.model.SystemStatusSystems;
-import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.common.sam.SamRetry;
 import bio.terra.common.sam.exception.SamExceptionFactory;
 import java.util.List;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
 import org.broadinstitute.dsde.workbench.client.sam.api.ResourcesApi;
-import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
 import org.broadinstitute.dsde.workbench.client.sam.model.SystemStatus;
-import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,12 +19,18 @@ public class SamService {
   private final SamConfiguration samConfig;
   private final SamClient samClient;
 
+  private final SamAuthenticatedUserRequestFactory requestFactory;
+
   private static final String CATALOG_RESOURCE_TYPE = "catalog";
 
   @Autowired
-  public SamService(SamConfiguration samConfig, SamClient samClient) {
+  public SamService(
+      SamConfiguration samConfig,
+      SamClient samClient,
+      SamAuthenticatedUserRequestFactory requestFactory) {
     this.samConfig = samConfig;
     this.samClient = samClient;
+    this.requestFactory = requestFactory;
   }
 
   /**
@@ -36,12 +39,11 @@ public class SamService {
    * <p>This checks the action against the "global" catalog resource, which is used for global
    * permission checks.
    *
-   * @param userRequest authenticated user
    * @param action sam action
    * @return true if the user has any actions on that resource; false otherwise.
    */
-  public boolean hasGlobalAction(AuthenticatedUserRequest userRequest, SamAction action) {
-    String accessToken = userRequest.getToken();
+  public boolean hasGlobalAction(SamAction action) {
+    String accessToken = requestFactory.getUser().getToken();
     ResourcesApi resourceApi = samClient.resourcesApi(accessToken);
     try {
       return SamRetry.retry(
@@ -54,24 +56,6 @@ public class SamService {
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw SamExceptionFactory.create("Error checking resource permission in Sam", e);
-    }
-  }
-
-  /**
-   * Fetch the user status (email and subjectId) from Sam.
-   *
-   * @param userToken user token
-   * @return {@link UserStatusInfo}
-   */
-  public UserStatusInfo getUserStatusInfo(String userToken) {
-    UsersApi usersApi = samClient.usersApi(userToken);
-    try {
-      return SamRetry.retry(usersApi::getUserStatusInfo);
-    } catch (ApiException e) {
-      throw SamExceptionFactory.create("Error getting user email from Sam", e);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw SamExceptionFactory.create("Error getting user email from Sam", e);
     }
   }
 

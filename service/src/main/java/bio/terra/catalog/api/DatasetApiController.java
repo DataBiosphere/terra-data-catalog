@@ -75,7 +75,7 @@ public class DatasetApiController implements DatasetsApi {
 
   @Override
   public ResponseEntity<Void> exportDataset(UUID datasetId, UUID workspaceId) {
-    datasetService.exportDataset(getUser(), new DatasetId(datasetId), workspaceId);
+    datasetService.exportDataset(new DatasetId(datasetId), workspaceId);
     return ResponseEntity.noContent().build();
   }
 }

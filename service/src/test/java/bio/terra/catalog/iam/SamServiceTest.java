@@ -1,7 +1,5 @@
 package bio.terra.catalog.iam;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -13,9 +11,7 @@ import java.util.List;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
 import org.broadinstitute.dsde.workbench.client.sam.api.ResourcesApi;
 import org.broadinstitute.dsde.workbench.client.sam.api.StatusApi;
-import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
 import org.broadinstitute.dsde.workbench.client.sam.model.SystemStatus;
-import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,9 +22,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class SamServiceTest {
 
   @Mock private SamClient samClient;
-  @Mock private UsersApi usersApi;
   @Mock private ResourcesApi resourcesApi;
   @Mock private StatusApi statusApi;
+  @Mock private SamAuthenticatedUserRequestFactory requestFactory;
 
   private static final String TOKEN = "token";
   private static final AuthenticatedUserRequest USER =
@@ -38,14 +34,11 @@ class SamServiceTest {
 
   @BeforeEach
   void beforeEach() {
-    samService = new SamService(new SamConfiguration("", ""), samClient);
-  }
-
-  private void mockUsers() {
-    when(samClient.usersApi(TOKEN)).thenReturn(usersApi);
+    samService = new SamService(new SamConfiguration("", ""), samClient, requestFactory);
   }
 
   private void mockResources() {
+    when(requestFactory.getUser()).thenReturn(USER);
     when(samClient.resourcesApi(TOKEN)).thenReturn(resourcesApi);
   }
 
@@ -58,15 +51,7 @@ class SamServiceTest {
     mockResources();
     var action = SamAction.READ_ANY_METADATA;
     when(resourcesApi.resourceActions(any(), any())).thenReturn(List.of(action.value));
-    assertTrue(samService.hasGlobalAction(USER, action));
-  }
-
-  @Test
-  void getUserStatusInfo() throws Exception {
-    mockUsers();
-    UserStatusInfo userStatusInfo = new UserStatusInfo();
-    when(usersApi.getUserStatusInfo()).thenReturn(userStatusInfo);
-    assertThat(userStatusInfo, is(samService.getUserStatusInfo(TOKEN)));
+    assertTrue(samService.hasGlobalAction(action));
   }
 
   @Test

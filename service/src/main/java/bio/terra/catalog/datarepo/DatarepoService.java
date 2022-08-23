@@ -1,14 +1,8 @@
 package bio.terra.catalog.datarepo;
 
-import bio.terra.catalog.config.DatarepoConfiguration;
-import bio.terra.catalog.iam.SamAuthenticatedUserRequestFactory;
 import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.common.exception.BadRequestException;
-import bio.terra.common.iam.AuthenticatedUserRequest;
-import bio.terra.datarepo.api.SnapshotsApi;
-import bio.terra.datarepo.api.UnauthenticatedApi;
-import bio.terra.datarepo.client.ApiClient;
 import bio.terra.datarepo.client.ApiException;
 import bio.terra.datarepo.model.RepositoryStatusModel;
 import bio.terra.datarepo.model.SnapshotModel;
@@ -45,9 +39,8 @@ public class DatarepoService {
   private final DatarepoClient datarepoClient;
 
   @Autowired
-  public DatarepoService(DatarepoClient datarepoClient, SamAuthenticatedUserRequestFactory userFactory) {
+  public DatarepoService(DatarepoClient datarepoClient) {
     this.datarepoClient = datarepoClient;
-    this.userFactory = userFactory;
   }
 
   private DatasetAccessLevel getHighestAccessFromRoleList(List<String> roles) {
@@ -130,8 +123,7 @@ public class DatarepoService {
     return result;
   }
 
-  public void exportSnapshot(
-      AuthenticatedUserRequest user, String snapshotIdSource, String workspaceIdDest) {
+  public void exportSnapshot(String snapshotIdSource, String workspaceIdDest) {
     throw new BadRequestException("Exporting Data Repo datasets is not supported in the service");
   }
 }

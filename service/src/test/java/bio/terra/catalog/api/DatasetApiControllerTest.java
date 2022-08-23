@@ -196,6 +196,6 @@ class DatasetApiControllerTest {
     mockMvc
         .perform(post(EXPORT_TABLES_API, datasetId.uuid(), workspaceId))
         .andExpect(status().is2xxSuccessful());
-    verify(datasetService).exportDataset(user, datasetId, workspaceId);
+    verify(datasetService).exportDataset(datasetId, workspaceId);
   }
 }
