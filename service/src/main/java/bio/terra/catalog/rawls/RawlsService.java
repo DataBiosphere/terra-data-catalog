@@ -11,7 +11,6 @@ import bio.terra.rawls.model.WorkspaceAccessLevel;
 import bio.terra.rawls.model.WorkspaceDetails;
 import bio.terra.rawls.model.WorkspaceName;
 import bio.terra.rawls.model.WorkspaceResponse;
-import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;

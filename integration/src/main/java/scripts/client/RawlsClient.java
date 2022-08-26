@@ -76,8 +76,6 @@ public class RawlsClient {
             return super.selectHeaderAccept(accepts);
           }
         };
-    extracted(basePath, testUser, workspaceApiClient, AuthenticationUtils.userLoginScopes);
-    return new WorkspacesApi(workspaceApiClient);
 
     return new WorkspacesApi(
         setUserAndScopes(
@@ -87,38 +85,15 @@ public class RawlsClient {
   private BillingV2Api createBillingApi(String basePath, TestUserSpecification testUser)
       throws IOException {
     var billingApiClient = new ApiClient();
-    extracted(basePath, testUser, billingApiClient, BILLING_SCOPES);
+    setUserAndScopes(billingApiClient, basePath, testUser, BILLING_SCOPES);
     return new BillingV2Api(billingApiClient);
   }
 
   private EntitiesApi createEntitiesApi(String basePath, TestUserSpecification testUser)
       throws IOException {
     var entitiesApiClient = new ApiClient();
-    extracted(basePath, testUser, entitiesApiClient, AuthenticationUtils.userLoginScopes);
+    setUserAndScopes(entitiesApiClient, basePath, testUser, AuthenticationUtils.userLoginScopes);
     return new EntitiesApi(entitiesApiClient);
-  }
-
-  private void extracted(
-      String basePath,
-      TestUserSpecification testUser,
-      ApiClient entitiesApiClient,
-      List<String> scopes)
-      throws IOException {
-    entitiesApiClient.setBasePath(basePath);
-    GoogleCredentials testRunnerCredentials =
-        AuthenticationUtils.getDelegatedUserCredential(testUser, scopes);
-    String testRunnerAccessToken =
-        AuthenticationUtils.getAccessToken(testRunnerCredentials).getTokenValue();
-    entitiesApiClient.setAccessToken(testRunnerAccessToken);
-    return new BillingV2Api(setUserAndScopes(billingApiClient, basePath, testUser, BILLING_SCOPES));
-  }
-
-  private EntitiesApi createEntitiesApi(String basePath, TestUserSpecification testUser)
-      throws IOException {
-    var entitiesApiClient = new ApiClient();
-    return new EntitiesApi(
-        setUserAndScopes(
-            entitiesApiClient, basePath, testUser, AuthenticationUtils.userLoginScopes));
   }
 
   /**

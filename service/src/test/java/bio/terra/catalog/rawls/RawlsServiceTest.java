@@ -25,6 +25,7 @@ import bio.terra.rawls.model.WorkspaceDetails;
 import bio.terra.rawls.model.WorkspaceListResponse;
 import bio.terra.rawls.model.WorkspaceName;
 import bio.terra.rawls.model.WorkspaceResponse;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -140,7 +141,18 @@ class RawlsServiceTest {
     when(workspacesApi.getWorkspaceById(id, List.of())).thenReturn(response);
     EntityQueryResponse queryResponse = new EntityQueryResponse();
     when(entitiesApi.entityQuery(
-            namespace, name, tableName, null, null, null, null, null, null, List.of(), null, null))
+            namespace,
+            name,
+            tableName,
+            null,
+            BigDecimal.valueOf(10),
+            null,
+            null,
+            null,
+            null,
+            List.of(),
+            null,
+            null))
         .thenReturn(queryResponse);
     assertThat(rawlsService.entityQuery(user, id, tableName, 10), is(queryResponse));
   }
@@ -158,7 +170,18 @@ class RawlsServiceTest {
         new WorkspaceResponse().workspace(new WorkspaceDetails().name(name).namespace(namespace));
     when(workspacesApi.getWorkspaceById(id, List.of())).thenReturn(response);
     when(entitiesApi.entityQuery(
-            namespace, name, tableName, null, null, null, null, null, null, List.of(), null, null))
+            namespace,
+            name,
+            tableName,
+            null,
+            BigDecimal.valueOf(10),
+            null,
+            null,
+            null,
+            null,
+            List.of(),
+            null,
+            null))
         .thenThrow(new ApiException());
     assertThrows(RawlsException.class, () -> rawlsService.entityQuery(user, id, tableName, 10));
   }

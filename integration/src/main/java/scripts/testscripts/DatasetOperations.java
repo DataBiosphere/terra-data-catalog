@@ -92,7 +92,7 @@ public class DatasetOperations extends TestScript {
     crudUserJourney(client, StorageSystem.WKS, workspaceSource.getWorkspaceId());
 
     previewUserJourney(StorageSystem.TDR, snapshotId.toString());
-    previewUserJourney(StorageSystem.WKS, workspaceDetails.getWorkspaceId());
+    previewUserJourney(StorageSystem.WKS, workspaceSource.getWorkspaceId());
 
     exportUserJourney(StorageSystem.WKS, workspaceSource, workspaceDest);
   }
