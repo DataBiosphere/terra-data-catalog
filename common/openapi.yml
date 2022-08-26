@@ -153,6 +153,11 @@ paths:
         - $ref: '#/components/parameters/Id'
         - $ref: '#/components/parameters/WorkspaceId'
       operationId: exportDataset
+      requestBody:
+        description: A empty json request body to avoid Content-Length errors
+        content:
+          application/json: { }
+        required: true
       responses:
         '204':
           description: The data was successfully exported into a workspace
