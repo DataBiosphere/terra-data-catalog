@@ -198,7 +198,10 @@ class DatasetApiControllerTest {
     var datasetId = new DatasetId(UUID.randomUUID());
     var workspaceId = UUID.randomUUID();
     mockMvc
-        .perform(post(EXPORT_TABLES_API, datasetId.uuid(), workspaceId))
+        .perform(
+            post(EXPORT_TABLES_API, datasetId.uuid(), workspaceId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
         .andExpect(status().is2xxSuccessful());
     verify(datasetService).exportDataset(user, datasetId, workspaceId);
   }
