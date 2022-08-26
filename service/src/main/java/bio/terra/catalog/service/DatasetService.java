@@ -14,16 +14,22 @@ import bio.terra.catalog.service.dataset.Dataset;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
+import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.exception.NotFoundException;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.model.TableModel;
+import bio.terra.rawls.model.Entity;
+import bio.terra.rawls.model.EntityTypeMetadata;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -55,49 +61,76 @@ public class DatasetService {
     }
   }
 
+  private class DatasetWithAccessLevel {
+    private final Dataset dataset;
+    private final DatasetAccessLevel accessLevel;
+
+    public DatasetWithAccessLevel(Dataset dataset, DatasetAccessLevel accessLevel) {
+      this.dataset = dataset;
+      this.accessLevel = accessLevel;
+    }
+
+    public Dataset getDataset() {
+      return dataset;
+    }
+
+    public Object convertToObject() {
+      ObjectNode node = toJsonNode(dataset.metadata());
+      node.set("accessLevel", TextNode.valueOf(String.valueOf(accessLevel)));
+      node.set("id", TextNode.valueOf(dataset.id().toValue()));
+      return node;
+    }
+  }
+
   private ObjectNode toJsonNode(String json) {
     try {
       return objectMapper.readValue(json, ObjectNode.class);
     } catch (JsonProcessingException e) {
-      // This shouldn't occur, as the data stored in postgres must be valid JSON, because it's
-      // stored as JSONB.
-      throw new IllegalMetadataException(e);
+      // This shouldn't occur on retrieve, as the data stored in postgres must be valid JSON,
+      // because it's stored as JSONB.
+      throw new BadRequestException("catalogEntry/metadata must be a valid json object", e);
     }
   }
 
-  private List<ObjectNode> convertSourceObjectsToDatasetResponses(
+  private List<DatasetWithAccessLevel> convertSourceObjectsToDatasetsWithAccessLevel(
       Map<String, DatasetAccessLevel> roleMap, StorageSystem storageSystem) {
     List<Dataset> datasets = datasetDao.find(storageSystem, roleMap.keySet());
     return datasets.stream()
-        .map(dataset -> sourceAndDatasetToObjectNode(roleMap, dataset))
+        .map(dataset -> new DatasetWithAccessLevel(dataset, roleMap.get(dataset.storageSourceId())))
         .toList();
   }
 
-  private ObjectNode sourceAndDatasetToObjectNode(
-      Map<String, DatasetAccessLevel> roleMap, Dataset dataset) {
-    ObjectNode node = toJsonNode(dataset.metadata());
-    node.set(
-        "accessLevel", TextNode.valueOf(String.valueOf(roleMap.get(dataset.storageSourceId()))));
-    node.set("id", TextNode.valueOf(dataset.id().toValue()));
-    return node;
-  }
-
-  private List<ObjectNode> collectDatarepoDatasets(AuthenticatedUserRequest user) {
+  private List<DatasetWithAccessLevel> collectDatarepoDatasets(AuthenticatedUserRequest user) {
     // For this storage system, get the collection of visible datasets and the user's roles for
     // each dataset.
     var roleMap = datarepoService.getSnapshotIdsAndRoles(user);
-    return convertSourceObjectsToDatasetResponses(roleMap, StorageSystem.TERRA_DATA_REPO);
+    return convertSourceObjectsToDatasetsWithAccessLevel(roleMap, StorageSystem.TERRA_DATA_REPO);
   }
 
-  private List<ObjectNode> collectWorkspaceDatasets(AuthenticatedUserRequest user) {
+  private List<DatasetWithAccessLevel> collectWorkspaceDatasets(AuthenticatedUserRequest user) {
     var roleMap = rawlsService.getWorkspaceIdsAndRoles(user);
-    return convertSourceObjectsToDatasetResponses(roleMap, StorageSystem.TERRA_WORKSPACE);
+    return convertSourceObjectsToDatasetsWithAccessLevel(roleMap, StorageSystem.TERRA_WORKSPACE);
   }
 
   public DatasetsListResponse listDatasets(AuthenticatedUserRequest user) {
+    List<DatasetWithAccessLevel> datasets = new ArrayList<>();
+    datasets.addAll(collectWorkspaceDatasets(user));
+    datasets.addAll(collectDatarepoDatasets(user));
+    if (samService.hasGlobalAction(user, SamAction.READ_ANY_METADATA)) {
+      datasets.addAll(
+          datasetDao.listAllDatasets().stream()
+              .map(dataset -> new DatasetWithAccessLevel(dataset, DatasetAccessLevel.READER))
+              .filter(
+                  datasetWithAccessLevel ->
+                      !datasets.stream()
+                          .map(datasetInList -> datasetInList.getDataset().id())
+                          .toList()
+                          .contains(datasetWithAccessLevel.getDataset().id()))
+              .toList());
+    }
     var response = new DatasetsListResponse();
-    response.getResult().addAll(collectWorkspaceDatasets(user));
-    response.getResult().addAll(collectDatarepoDatasets(user));
+
+    response.setResult(datasets.stream().map(DatasetWithAccessLevel::convertToObject).toList());
     return response;
   }
 
@@ -119,7 +152,9 @@ public class DatasetService {
     return switch (dataset.storageSystem()) {
       case TERRA_DATA_REPO -> convertDatarepoTablesToCatalogTables(
           datarepoService.getPreviewTables(user, dataset.storageSourceId()).getTables());
-      case TERRA_WORKSPACE, EXTERNAL -> List.of();
+      case TERRA_WORKSPACE -> convertRawlsTablesToCatalogTables(
+          rawlsService.entityMetadata(user, dataset.storageSourceId()));
+      case EXTERNAL -> List.of();
     };
   }
 
@@ -127,7 +162,8 @@ public class DatasetService {
       AuthenticatedUserRequest user, Dataset dataset, String tableName) {
     return switch (dataset.storageSystem()) {
       case TERRA_DATA_REPO -> generateDatarepoTable(user, dataset, tableName);
-      case TERRA_WORKSPACE, EXTERNAL -> new DatasetPreviewTable();
+      case TERRA_WORKSPACE -> generateRawlsTable(user, dataset, tableName);
+      case EXTERNAL -> new DatasetPreviewTable();
     };
   }
 
@@ -151,6 +187,38 @@ public class DatasetService {
             datarepoService
                 .getPreviewTable(user, dataset.storageSourceId(), tableName)
                 .getResult());
+  }
+
+  private DatasetPreviewTable generateRawlsTable(
+      AuthenticatedUserRequest user, Dataset dataset, String tableName) {
+    Map<String, EntityTypeMetadata> entities =
+        rawlsService.entityMetadata(user, dataset.storageSourceId());
+    EntityTypeMetadata tableMetadata = entities.get(tableName);
+    return new DatasetPreviewTable()
+        .columns(convertTableMetadataToColumns(tableMetadata))
+        .rows(
+            rawlsService
+                .entityQuery(user, dataset.storageSourceId(), tableName)
+                .getResults()
+                .stream()
+                .map(entity -> convertEntityToRow(entity, tableMetadata.getIdName()))
+                .toList());
+  }
+
+  private Object convertEntityToRow(Entity entity, String idName) {
+    Map<String, String> att = entity.getAttributes();
+    Map<String, String> rows = new HashMap<>(att);
+    rows.put(idName, entity.getName());
+    return rows;
+  }
+
+  private static List<ColumnModel> convertTableMetadataToColumns(EntityTypeMetadata entity) {
+    List<ColumnModel> columns = new ArrayList<>();
+    columns.add(new ColumnModel().name(entity.getIdName()));
+    entity.getAttributeNames().stream()
+        .map(name -> new ColumnModel().name(name))
+        .forEach(columns::add);
+    return columns;
   }
 
   private void ensureActionPermission(
@@ -179,6 +247,7 @@ public class DatasetService {
   }
 
   public void updateMetadata(AuthenticatedUserRequest user, DatasetId datasetId, String metadata) {
+    validateMetadata(metadata);
     var dataset = datasetDao.retrieve(datasetId);
     ensureActionPermission(user, dataset, SamAction.UPDATE_ANY_METADATA);
     datasetDao.update(dataset.withMetadata(metadata));
@@ -189,6 +258,7 @@ public class DatasetService {
       StorageSystem storageSystem,
       String storageSourceId,
       String metadata) {
+    validateMetadata(metadata);
     var dataset = new Dataset(storageSourceId, storageSystem, metadata);
     ensureActionPermission(user, dataset, SamAction.CREATE_METADATA);
     return datasetDao.create(dataset).id();
@@ -201,6 +271,10 @@ public class DatasetService {
     return new DatasetPreviewTablesResponse().tables(tableMetadataList);
   }
 
+  private void validateMetadata(String metadata) {
+    toJsonNode(metadata);
+  }
+
   private static List<TableMetadata> convertDatarepoTablesToCatalogTables(
       List<TableModel> datarepoTables) {
     return datarepoTables.stream()
@@ -209,6 +283,15 @@ public class DatasetService {
                 new TableMetadata()
                     .name(tableModel.getName())
                     .hasData(tableModel.getRowCount() > 0))
+        .toList();
+  }
+
+  private static List<TableMetadata> convertRawlsTablesToCatalogTables(
+      Map<String, EntityTypeMetadata> entityTables) {
+    return entityTables.entrySet().stream()
+        .map(
+            entry ->
+                new TableMetadata().name(entry.getKey()).hasData(entry.getValue().getCount() != 0))
         .toList();
   }
 
@@ -223,5 +306,18 @@ public class DatasetService {
       AuthenticatedUserRequest user, DatasetId datasetId, String tableName) {
     var dataset = datasetDao.retrieve(datasetId);
     return generateDatasetTablePreview(user, dataset, tableName);
+  }
+
+  public void exportDataset(AuthenticatedUserRequest user, DatasetId datasetId, UUID workspaceId) {
+    var dataset = datasetDao.retrieve(datasetId);
+    switch (dataset.storageSystem()) {
+      case TERRA_DATA_REPO -> datarepoService.exportSnapshot(
+          user, dataset.storageSourceId(), workspaceId.toString());
+      case TERRA_WORKSPACE -> rawlsService.exportWorkspaceDataset(
+          user, dataset.storageSourceId(), workspaceId.toString());
+      case EXTERNAL -> {
+        /* NYI */
+      }
+    }
   }
 }

@@ -145,6 +145,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorReport'
+  /api/v1/datasets/{id}/export/{workspaceId}:
+    post:
+      summary: Export the dataset data into a workspace
+      tags: [ datasets ]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/WorkspaceId'
+      operationId: exportDataset
+      responses:
+        '204':
+          description: The data was successfully exported into a workspace
+          content: { }
+        '403':
+          description: User does not have permission to export workspace
+        '404':
+          description: Unable to export data into a workspace
   /api/v1/datasets/{id}/tables:
     get:
       summary: Given a dataset ID, return its preview metadata
@@ -194,6 +210,14 @@ components:
       name: id
       in: path
       description: A UUID to used to identify an object in the catalog
+      required: true
+      schema:
+        type: string
+        format: uuid
+    WorkspaceId:
+      name: workspaceId
+      in: path
+      description: A UUID to used to identify a workspace object
       required: true
       schema:
         type: string

@@ -6,16 +6,6 @@
   "datarepoUri": "https://jade.datarepo-dev.broadinstitute.org/",
   "rawlsUri": "https://rawls.dsde-perf.broadinstitute.org/",
 
-  "cluster": {
-    "clusterName": "terra-perf",
-    "clusterShortName": "terra-perf",
-    "region": "us-central1",
-    "zone": "us-central1-a",
-    "project": "broad-dsde-perf",
-    "namespace": "terra-perf",
-    "containerName": "catalog",
-    "apiComponentLabel":  "catalog"
-  },
   "deploymentScript": {},
   "testRunnerServiceAccountFile": "testrunner-perf.json",
 

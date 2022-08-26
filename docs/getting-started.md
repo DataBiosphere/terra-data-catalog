@@ -194,3 +194,16 @@ git clone git@github.com:DataBiosphere/terra-data-catalog
 git clone git@github.com:broadinstitute/terraform-ap-deployments
 git clone git@github.com:broadinstitute/terra-helmfile
 ```
+
+## Resources
+
+### Team Resources
+
+1. [Google Drive](https://drive.google.com/drive/folders/1T-_Qgqo6eyF1suhQBfA9odVm15Kh_3iG)
+2. [Team Norms](https://docs.google.com/document/d/1ht5-Tf671Q-pJymAI3hpbU3MS-FOJmpaICrpfBnRVyw/edit?usp=sharing)
+3. [Service Design](https://docs.google.com/document/d/1dzWT7n3mZlW4A_B__NMyaqqC_pVLN90ZXxdKHQXmzew/edit?usp=sharing)
+4. [Architecture Diagram](https://docs.google.com/drawings/d/1u3unWQIzuAWeZKkiQ_YqVMoStpreRuW29vww1bNWVSo/edit?usp=sharing)
+
+### DevOps Resources
+
+1. [How to Onboard](https://docs.google.com/document/d/11pZE-GqeZFeSOG0UpGg_xyTDQpgBRfr0MLxpxvvQgEw/edit?usp=sharing)

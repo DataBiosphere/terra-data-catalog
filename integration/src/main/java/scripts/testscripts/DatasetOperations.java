@@ -7,6 +7,7 @@ import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -23,6 +24,7 @@ import bio.terra.testrunner.runner.config.TestUserSpecification;
 import com.google.api.client.http.HttpStatusCodes;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +50,8 @@ public class DatasetOperations extends TestScript {
 
   // Rawls APIs
   private RawlsClient rawlsClient;
-  private WorkspaceDetails workspaceDetails;
+  private WorkspaceDetails workspaceSource;
+  private WorkspaceDetails workspaceDest;
 
   // Catalog APis
   private UUID datasetId;
@@ -63,7 +66,8 @@ public class DatasetOperations extends TestScript {
 
   private void setupWorkspace(TestUserSpecification user) throws Exception {
     rawlsClient = new RawlsClient(server, user);
-    workspaceDetails = rawlsClient.createTestWorkspace();
+    workspaceSource = rawlsClient.createTestWorkspace();
+    workspaceDest = rawlsClient.createTestWorkspace();
   }
 
   private void setupSnapshot(TestUserSpecification user) throws Exception {
@@ -85,9 +89,37 @@ public class DatasetOperations extends TestScript {
     datasetsApi = new DatasetsApi(client);
 
     crudUserJourney(client, StorageSystem.TDR, snapshotId.toString());
-    crudUserJourney(client, StorageSystem.WKS, workspaceDetails.getWorkspaceId());
+    crudUserJourney(client, StorageSystem.WKS, workspaceSource.getWorkspaceId());
 
     previewUserJourney(StorageSystem.TDR, snapshotId.toString());
+
+    exportUserJourney(StorageSystem.WKS, workspaceSource, workspaceDest);
+  }
+
+  private void exportUserJourney(
+      StorageSystem storageSystem, WorkspaceDetails workspaceSource, WorkspaceDetails workspaceDest)
+      throws ApiException, bio.terra.rawls.client.ApiException {
+    // Create workspace dataset
+    var request =
+        new CreateDatasetRequest()
+            .catalogEntry(METADATA_1)
+            .storageSourceId(workspaceSource.getWorkspaceId())
+            .storageSystem(storageSystem);
+    datasetId = datasetsApi.createDataset(request).getId();
+
+    // Export workspace dataset to workspace
+    var workspaceId = UUID.fromString(workspaceDest.getWorkspaceId());
+    datasetsApi.exportDataset(datasetId, workspaceId);
+
+    // Extract workspace entity names
+    Set<String> entitiesSource = rawlsClient.getWorkspaceEntities(workspaceSource);
+    Set<String> entitiesDest = rawlsClient.getWorkspaceEntities(workspaceDest);
+
+    assertEquals(entitiesSource, entitiesDest);
+
+    // Delete catalog entry
+    datasetsApi.deleteDataset(datasetId);
+    datasetId = null;
   }
 
   private void previewUserJourney(StorageSystem storageSystem, String sourceId)
@@ -192,8 +224,11 @@ public class DatasetOperations extends TestScript {
       snapshotsApi.delete(snapshotId);
       log.info("deleted snapshot " + snapshotId);
     }
-    if (workspaceDetails != null) {
-      rawlsClient.deleteWorkspace(workspaceDetails);
+    if (workspaceSource != null) {
+      rawlsClient.deleteWorkspace(workspaceSource);
+    }
+    if (workspaceDest != null) {
+      rawlsClient.deleteWorkspace(workspaceDest);
     }
   }
 }
