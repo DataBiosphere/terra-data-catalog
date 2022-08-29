@@ -41,6 +41,8 @@ public class DatasetService {
   private final DatasetDao datasetDao;
   private final ObjectMapper objectMapper;
 
+  private static final int MAX_ROWS = 30;
+
   @Autowired
   public DatasetService(
       DatarepoService datarepoService,
@@ -161,14 +163,14 @@ public class DatasetService {
   private DatasetPreviewTable generateDatasetTablePreview(
       AuthenticatedUserRequest user, Dataset dataset, String tableName) {
     return switch (dataset.storageSystem()) {
-      case TERRA_DATA_REPO -> generateDatarepoTable(user, dataset, tableName);
-      case TERRA_WORKSPACE -> generateRawlsTable(user, dataset, tableName);
+      case TERRA_DATA_REPO -> generateDatarepoTable(user, dataset, tableName, MAX_ROWS);
+      case TERRA_WORKSPACE -> generateRawlsTable(user, dataset, tableName, MAX_ROWS);
       case EXTERNAL -> new DatasetPreviewTable();
     };
   }
 
   private DatasetPreviewTable generateDatarepoTable(
-      AuthenticatedUserRequest user, Dataset dataset, String tableName) {
+      AuthenticatedUserRequest user, Dataset dataset, String tableName, int maxRows) {
     return new DatasetPreviewTable()
         .columns(
             datarepoService.getPreviewTables(user, dataset.storageSourceId()).getTables().stream()
@@ -185,12 +187,12 @@ public class DatasetService {
                 .toList())
         .rows(
             datarepoService
-                .getPreviewTable(user, dataset.storageSourceId(), tableName)
+                .getPreviewTable(user, dataset.storageSourceId(), tableName, maxRows)
                 .getResult());
   }
 
   private DatasetPreviewTable generateRawlsTable(
-      AuthenticatedUserRequest user, Dataset dataset, String tableName) {
+      AuthenticatedUserRequest user, Dataset dataset, String tableName, int maxRows) {
     Map<String, EntityTypeMetadata> entities =
         rawlsService.entityMetadata(user, dataset.storageSourceId());
     EntityTypeMetadata tableMetadata = entities.get(tableName);
@@ -198,7 +200,7 @@ public class DatasetService {
         .columns(convertTableMetadataToColumns(tableMetadata))
         .rows(
             rawlsService
-                .entityQuery(user, dataset.storageSourceId(), tableName)
+                .entityQuery(user, dataset.storageSourceId(), tableName, maxRows)
                 .getResults()
                 .stream()
                 .map(entity -> convertEntityToRow(entity, tableMetadata.getIdName()))
@@ -206,8 +208,8 @@ public class DatasetService {
   }
 
   private Object convertEntityToRow(Entity entity, String idName) {
-    Map<String, String> att = entity.getAttributes();
-    Map<String, String> rows = new HashMap<>(att);
+    Map<String, Object> att = entity.getAttributes();
+    Map<String, Object> rows = new HashMap<>(att);
     rows.put(idName, entity.getName());
     return rows;
   }
@@ -297,9 +299,7 @@ public class DatasetService {
 
   private static ColumnModel convertDatarepoColumnModelToCatalogColumnModel(
       bio.terra.datarepo.model.ColumnModel datarepoColumnModel) {
-    return new ColumnModel()
-        .name(datarepoColumnModel.getName())
-        .arrayOf(datarepoColumnModel.isArrayOf());
+    return new ColumnModel().name(datarepoColumnModel.getName());
   }
 
   public DatasetPreviewTable getDatasetPreview(
