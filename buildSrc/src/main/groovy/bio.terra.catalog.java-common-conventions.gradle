@@ -4,6 +4,7 @@ plugins {
     id 'java'
 
     id 'com.diffplug.spotless'
+    id 'com.github.spotbugs'
     id 'org.hidetake.swagger.generator'
 }
 
@@ -73,6 +74,21 @@ compileJava {
         dependsOn(spotlessCheck)
     } else {
         dependsOn(spotlessApply)
+    }
+}
+
+// Spotbugs configuration
+spotbugs {
+    reportLevel = 'high'
+    effort = 'max'
+}
+spotbugsMain {
+    reports {
+        if (isCiServer) {
+            sarif.enabled = true
+        } else {
+            html.enabled = true
+        }
     }
 }
 
