@@ -1,5 +1,6 @@
-package bio.terra.catalog.api;
+package bio.terra.catalog.controller;
 
+import bio.terra.catalog.api.DatasetsApi;
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.CreatedDatasetId;

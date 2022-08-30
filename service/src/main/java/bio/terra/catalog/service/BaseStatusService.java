@@ -3,6 +3,7 @@ package bio.terra.catalog.service;
 import bio.terra.catalog.config.StatusCheckConfiguration;
 import bio.terra.catalog.model.SystemStatus;
 import bio.terra.catalog.model.SystemStatusSystems;
+import com.google.common.annotations.VisibleForTesting;
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,10 +32,10 @@ public class BaseStatusService {
 
   public BaseStatusService(StatusCheckConfiguration configuration) {
     this.configuration = configuration;
-    this.statusCheckMap = new ConcurrentHashMap<>();
-    this.cachedStatus = new AtomicReference<>(new SystemStatus().ok(false));
-    this.lastStatusUpdate = new AtomicReference<>(Instant.now());
-    this.scheduler = Executors.newScheduledThreadPool(1);
+    statusCheckMap = new ConcurrentHashMap<>();
+    cachedStatus = new AtomicReference<>(new SystemStatus().ok(false));
+    lastStatusUpdate = new AtomicReference<>(Instant.now());
+    scheduler = Executors.newScheduledThreadPool(1);
   }
 
   @PostConstruct
@@ -52,6 +53,7 @@ public class BaseStatusService {
     statusCheckMap.put(name, checkFn);
   }
 
+  @VisibleForTesting
   void checkStatus() {
     if (configuration.enabled()) {
       var newStatus = new SystemStatus();

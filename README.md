@@ -3,6 +3,8 @@
 [![Build and Test](https://github.com/DataBiosphere/terra-data-catalog/actions/workflows/build-and-test.yml/badge.svg?branch=main)](https://github.com/DataBiosphere/terra-data-catalog/actions/workflows/build-and-test.yml)
 [![Nightly Tests](https://github.com/DataBiosphere/terra-data-catalog/actions/workflows/nightly-tests.yml/badge.svg)](https://github.com/DataBiosphere/terra-data-catalog/actions/workflows/nightly-tests.yml)
 [![Publish and deploy](https://github.com/DataBiosphere/terra-data-catalog/actions/workflows/publish.yml/badge.svg)](https://github.com/DataBiosphere/terra-data-catalog/actions/workflows/publish.yml)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=terra-data-catalog&metric=coverage)](https://sonarcloud.io/summary/new_code?id=terra-data-catalog)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=terra-data-catalog&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=terra-data-catalog)
 
 The mission of the Terra Data Catalog is to make research data accessible and
 searchable to accelerate biomedical discoveries.

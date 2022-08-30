@@ -112,7 +112,7 @@ public class DatarepoService {
       RepositoryStatusModel status = datarepoClient.unauthenticatedApi().serviceStatus();
       result.ok(status.isOk());
       // Populate error message if system status is non-ok
-      if (!result.isOk()) {
+      if (result.isOk() == null || !result.isOk()) {
         String errorMsg = "Data repo status check failed. Messages = " + status.getSystems();
         logger.error(errorMsg);
         result.addMessagesItem(errorMsg);
