@@ -22,11 +22,11 @@ import bio.terra.datarepo.model.RepositoryStatusModel;
 import bio.terra.datarepo.model.SnapshotModel;
 import bio.terra.datarepo.model.SnapshotPreviewModel;
 import bio.terra.datarepo.model.SnapshotRetrieveIncludeModel;
+import bio.terra.datarepo.model.TableDataType;
+import bio.terra.datarepo.model.TableModel;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import bio.terra.datarepo.model.TableDataType;
-import bio.terra.datarepo.model.TableModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,7 +64,7 @@ class DatarepoServiceTest {
     var esm = new EnumerateSnapshotModel().roleMap(items);
     when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any()))
         .thenReturn(esm);
-    assertThat(datarepoService.getSnapshotIdsAndRoles(user), is(expectedItems));
+    assertThat(datarepoService.getIdsAndRoles(user), is(expectedItems));
   }
 
   @Test
@@ -72,7 +72,7 @@ class DatarepoServiceTest {
     mockSnapshots();
     when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any()))
         .thenThrow(new ApiException());
-    assertThrows(DatarepoException.class, () -> datarepoService.getSnapshotIdsAndRoles(user));
+    assertThrows(DatarepoException.class, () -> datarepoService.getIdsAndRoles(user));
   }
 
   @Test
@@ -186,7 +186,7 @@ class DatarepoServiceTest {
     String workspaceId = "workspaceId";
     assertThrows(
         BadRequestException.class,
-        () -> datarepoService.exportSnapshot(user, snapshotId, workspaceId));
+        () -> datarepoService.exportToWorkspace(user, snapshotId, workspaceId));
   }
 
   @Test
@@ -206,6 +206,5 @@ class DatarepoServiceTest {
                                     new ColumnModel()
                                         .datatype(TableDataType.INTEGER)
                                         .name("column a"))))));
-
   }
 }

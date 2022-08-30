@@ -106,8 +106,8 @@ class DatasetServiceTest {
   void listDatasets() {
     var workspaces = Map.of(workspaceSourceId, DatasetAccessLevel.OWNER);
     var idToRole = Map.of(sourceId, DatasetAccessLevel.OWNER);
-    when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(idToRole);
-    when(rawlsService.getWorkspaceIdsAndRoles(user)).thenReturn(workspaces);
+    when(datarepoService.getIdsAndRoles(user)).thenReturn(idToRole);
+    when(rawlsService.getIdsAndRoles(user)).thenReturn(workspaces);
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, workspaces.keySet()))
         .thenReturn(List.of(workspaceDataset));
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
@@ -127,8 +127,8 @@ class DatasetServiceTest {
   void listDatasetsUsingAdminPermissions() {
     Map<String, DatasetAccessLevel> workspaces = Map.of();
     var datasets = Map.of(sourceId, DatasetAccessLevel.OWNER);
-    when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(datasets);
-    when(rawlsService.getWorkspaceIdsAndRoles(user)).thenReturn(workspaces);
+    when(datarepoService.getIdsAndRoles(user)).thenReturn(datasets);
+    when(rawlsService.getIdsAndRoles(user)).thenReturn(workspaces);
     when(samService.hasGlobalAction(user, SamAction.READ_ANY_METADATA)).thenReturn(true);
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, workspaces.keySet())).thenReturn(List.of());
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, datasets.keySet()))
@@ -330,7 +330,7 @@ class DatasetServiceTest {
     UUID workspaceId = UUID.randomUUID();
     doThrow(new BadRequestException("error"))
         .when(datarepoService)
-        .exportSnapshot(user, sourceId, workspaceId.toString());
+        .exportToWorkspace(user, sourceId, workspaceId.toString());
     assertThrows(
         BadRequestException.class,
         () -> datasetService.exportDataset(user, datasetId, workspaceId));
@@ -342,6 +342,6 @@ class DatasetServiceTest {
     UUID workspaceId = UUID.randomUUID();
     datasetService.exportDataset(user, datasetId, workspaceId);
     verify(rawlsService)
-        .exportWorkspaceDataset(user, workspaceDataset.storageSourceId(), workspaceId.toString());
+        .exportToWorkspace(user, workspaceDataset.storageSourceId(), workspaceId.toString());
   }
 }
