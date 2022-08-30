@@ -1,9 +1,14 @@
 package bio.terra.catalog.rawls;
 
+import bio.terra.catalog.model.ColumnModel;
+import bio.terra.catalog.model.DatasetPreviewTable;
 import bio.terra.catalog.model.SystemStatusSystems;
+import bio.terra.catalog.model.TableMetadata;
+import bio.terra.catalog.service.dataset.Dataset;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.rawls.client.ApiException;
+import bio.terra.rawls.model.Entity;
 import bio.terra.rawls.model.EntityCopyDefinition;
 import bio.terra.rawls.model.EntityQueryResponse;
 import bio.terra.rawls.model.EntityTypeMetadata;
@@ -12,6 +17,8 @@ import bio.terra.rawls.model.WorkspaceDetails;
 import bio.terra.rawls.model.WorkspaceName;
 import bio.terra.rawls.model.WorkspaceResponse;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -91,6 +98,10 @@ public class RawlsService {
     }
   }
 
+  public List<TableMetadata> getPreviewTables(AuthenticatedUserRequest user, String workspaceId) {
+    return toCatalogTables(entityMetadata(user, workspaceId));
+  }
+
   public Map<String, EntityTypeMetadata> entityMetadata(
       AuthenticatedUserRequest user, String workspaceId) {
     try {
@@ -162,5 +173,41 @@ public class RawlsService {
               workspaceIdSource, workspaceIdDest);
       throw new RawlsException(errorMsg, e);
     }
+  }
+
+  public DatasetPreviewTable previewTable(
+      AuthenticatedUserRequest user, Dataset dataset, String tableName, int maxRows) {
+    Map<String, EntityTypeMetadata> entities = entityMetadata(user, dataset.storageSourceId());
+    EntityTypeMetadata tableMetadata = entities.get(tableName);
+    return new DatasetPreviewTable()
+        .columns(convertTableMetadataToColumns(tableMetadata))
+        .rows(
+            entityQuery(user, dataset.storageSourceId(), tableName, maxRows).getResults().stream()
+                .map(entity -> convertEntityToRow(entity, tableMetadata.getIdName()))
+                .toList());
+  }
+
+  private static Object convertEntityToRow(Entity entity, String idName) {
+    Map<String, String> att = entity.getAttributes();
+    Map<String, String> rows = new HashMap<>(att);
+    rows.put(idName, entity.getName());
+    return rows;
+  }
+
+  private static List<ColumnModel> convertTableMetadataToColumns(EntityTypeMetadata entity) {
+    List<ColumnModel> columns = new ArrayList<>();
+    columns.add(new ColumnModel().name(entity.getIdName()));
+    entity.getAttributeNames().stream()
+        .map(name -> new ColumnModel().name(name))
+        .forEach(columns::add);
+    return columns;
+  }
+
+  private static List<TableMetadata> toCatalogTables(Map<String, EntityTypeMetadata> entityTables) {
+    return entityTables.entrySet().stream()
+        .map(
+            entry ->
+                new TableMetadata().name(entry.getKey()).hasData(entry.getValue().getCount() != 0))
+        .toList();
   }
 }

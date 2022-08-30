@@ -7,13 +7,16 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.model.SystemStatusSystems;
+import bio.terra.catalog.service.dataset.Dataset;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.api.SnapshotsApi;
 import bio.terra.datarepo.api.UnauthenticatedApi;
 import bio.terra.datarepo.client.ApiException;
+import bio.terra.datarepo.model.ColumnModel;
 import bio.terra.datarepo.model.EnumerateSnapshotModel;
 import bio.terra.datarepo.model.RepositoryStatusModel;
 import bio.terra.datarepo.model.SnapshotModel;
@@ -22,6 +25,8 @@ import bio.terra.datarepo.model.SnapshotRetrieveIncludeModel;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import bio.terra.datarepo.model.TableDataType;
+import bio.terra.datarepo.model.TableModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -182,5 +187,25 @@ class DatarepoServiceTest {
     assertThrows(
         BadRequestException.class,
         () -> datarepoService.exportSnapshot(user, snapshotId, workspaceId));
+  }
+
+  @Test
+  void getPreviewTables() {
+    var tdrDataset =
+        new Dataset(dataset.id(), sourceId, StorageSystem.TERRA_DATA_REPO, metadata, null);
+    when(datasetDao.retrieve(datasetId)).thenReturn(tdrDataset);
+    when(datarepoService.getPreviewTables(user, tdrDataset.storageSourceId()))
+        .thenReturn(
+            new SnapshotModel()
+                .tables(
+                    List.of(
+                        new TableModel()
+                            .rowCount(1)
+                            .columns(
+                                List.of(
+                                    new ColumnModel()
+                                        .datatype(TableDataType.INTEGER)
+                                        .name("column a"))))));
+
   }
 }

@@ -1,8 +1,13 @@
 package bio.terra.catalog.datarepo;
 
+import bio.terra.catalog.model.ColumnModel;
+import bio.terra.catalog.model.DatasetPreviewTable;
 import bio.terra.catalog.model.SystemStatusSystems;
+import bio.terra.catalog.model.TableMetadata;
+import bio.terra.catalog.service.dataset.Dataset;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.common.exception.BadRequestException;
+import bio.terra.common.exception.NotFoundException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.client.ApiException;
 import bio.terra.datarepo.model.RepositoryStatusModel;
@@ -13,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,7 +78,7 @@ public class DatarepoService {
     }
   }
 
-  public SnapshotModel getPreviewTables(AuthenticatedUserRequest user, String snapshotId) {
+  private SnapshotModel getSnapshotTables(AuthenticatedUserRequest user, String snapshotId) {
     try {
       UUID id = UUID.fromString(snapshotId);
       return datarepoClient
@@ -83,7 +89,33 @@ public class DatarepoService {
     }
   }
 
-  public SnapshotPreviewModel getPreviewTable(
+  public List<TableMetadata> getPreviewTables(AuthenticatedUserRequest user, String snapshotId) {
+    return getSnapshotTables(user, snapshotId).getTables().stream()
+        .map(table -> new TableMetadata().name(table.getName()).hasData(table.getRowCount() > 0))
+        .toList();
+  }
+
+  public DatasetPreviewTable previewTable(
+      AuthenticatedUserRequest user, Dataset dataset, String tableName, int maxRows) {
+    return new DatasetPreviewTable()
+        .columns(
+            getSnapshotTables(user, dataset.storageSourceId()).getTables().stream()
+                .filter(tableModel -> tableModel.getName().equals(tableName))
+                .findFirst()
+                .orElseThrow(
+                    () ->
+                        new NotFoundException(
+                            String.format(
+                                "Table %s is not found for dataset %s", tableName, dataset.id())))
+                .getColumns()
+                .stream()
+                .map(column -> new ColumnModel().name(column.getName()))
+                .toList())
+        .rows(getPreviewTable(user, dataset.storageSourceId(), tableName, maxRows).getResult());
+  }
+
+  @VisibleForTesting
+  SnapshotPreviewModel getPreviewTable(
       AuthenticatedUserRequest user, String snapshotId, String tableName, int maxRows) {
     try {
       UUID id = UUID.fromString(snapshotId);

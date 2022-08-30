@@ -245,21 +245,6 @@ class DatasetServiceTest {
 
   @Test
   void getDatasetPreviewTablesRepo() {
-    var tdrDataset =
-        new Dataset(dataset.id(), sourceId, StorageSystem.TERRA_DATA_REPO, metadata, null);
-    when(datasetDao.retrieve(datasetId)).thenReturn(tdrDataset);
-    when(datarepoService.getPreviewTables(user, tdrDataset.storageSourceId()))
-        .thenReturn(
-            new SnapshotModel()
-                .tables(
-                    List.of(
-                        new TableModel()
-                            .rowCount(1)
-                            .columns(
-                                List.of(
-                                    new ColumnModel()
-                                        .datatype(TableDataType.INTEGER)
-                                        .name("column a"))))));
     DatasetPreviewTablesResponse results =
         datasetService.listDatasetPreviewTables(user, tdrDataset.id());
     assertThat(results, isA(DatasetPreviewTablesResponse.class));
