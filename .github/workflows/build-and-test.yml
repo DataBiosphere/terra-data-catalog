@@ -62,11 +62,6 @@ jobs:
             --image=${{ steps.image-name.outputs.name }} \
             -Djib.console=plain
 
-      - name: Run Trivy vulnerability scanner
-        uses: broadinstitute/dsp-appsec-trivy-action@v1
-        with:
-          image: ${{ steps.image-name.outputs.name }}
-
   source-clear:
     needs: [ build ]
     runs-on: ubuntu-latest
