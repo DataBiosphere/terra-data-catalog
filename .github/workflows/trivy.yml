@@ -1,6 +1,7 @@
 name: Trivy Vulnerability Scanner
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: "0 8 * * *" # runs at 8 AM UTC, 4 AM EST.
 
