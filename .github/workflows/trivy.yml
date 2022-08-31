@@ -1,4 +1,4 @@
-name: Trivy Vulnerability Scanner
+name: Trivy Scanner
 
 on:
   workflow_dispatch:
@@ -19,7 +19,7 @@ jobs:
           cache: 'gradle'
 
       - name: Build all projects without running tests
-        run: ./gradlew --build-cache build -x test
+        run: ./gradlew --build-cache build -x test -x spotlessCheck
 
       - name: Construct docker image name and tag
         id: image-name
@@ -53,5 +53,5 @@ jobs:
           status: failure
           author_name: Build on dev
           fields: workflow,message
-          text: 'Trivy failure :sadpanda:'
+          text: 'Trivy scan failure :sadpanda:'
           username: 'Data Explorer GitHub Action'
