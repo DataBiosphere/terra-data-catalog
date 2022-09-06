@@ -189,6 +189,18 @@ jobs:
           text: 'Build failed :sadpanda:'
           username: 'Data Explorer GitHub Action'
 
+  dispatch-trivy:
+    runs-on: ubuntu-latest
+
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Fire off Trivy action
+        uses: broadinstitute/workflow-dispatch@v1
+        with:
+          workflow: Trivy
+          token: ${{ secrets.BROADBOT_TOKEN }}
+
   dispatch-tag:
     needs: [ build, unit-tests-and-sonarqube, source-clear, integration-tests ]
     runs-on: ubuntu-latest
