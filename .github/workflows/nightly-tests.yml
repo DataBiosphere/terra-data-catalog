@@ -62,6 +62,17 @@ jobs:
             --image=${{ steps.image-name.outputs.name }} \
             -Djib.console=plain
 
+#  dispatch-trivy:
+#    needs: [ build ]
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - name: Fire off Trivy action
+#        uses: broadinstitute/workflow-dispatch@v1
+#        with:
+#          workflow: Trivy
+#          token: ${{ secrets.BROADBOT_TOKEN }}
+
   test-env:
     runs-on: ubuntu-latest
     outputs:
@@ -166,13 +177,3 @@ jobs:
             env.STATUS, needs.test-env.outputs.test-env,
             env.STATUS == 'success' && ':check_green:' || ':sadpanda:') }}
           username: 'Data Explorer Tests'
-
-  dispatch-trivy:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Fire off Trivy action
-        uses: broadinstitute/workflow-dispatch@v1
-        with:
-          workflow: Trivy
-          token: ${{ secrets.BROADBOT_TOKEN }}
