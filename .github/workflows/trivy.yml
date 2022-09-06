@@ -1,4 +1,4 @@
-name: Trivy Scanner
+name: Trivy
 on: workflow_dispatch
 
 jobs:
