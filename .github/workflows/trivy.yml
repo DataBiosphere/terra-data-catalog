@@ -20,9 +20,7 @@ jobs:
       - name: Construct docker image name and tag
         id: image-name
         run: |
-          GITHUB_REPO=$(basename ${{ github.repository }})
-          GIT_SHORT_HASH=$(git rev-parse --short HEAD)
-          echo ::set-output name=name::${GITHUB_REPO}:${GIT_SHORT_HASH}
+          echo ::set-output name=name::trivy-local-testing-image
 
       - name: Build image locally with jib
         run: |
