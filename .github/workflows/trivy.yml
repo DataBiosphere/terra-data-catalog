@@ -3,7 +3,7 @@ name: Trivy Scanner
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 8 * * *" # runs at 8 AM UTC, 4 AM EST.
+    - cron: "0 8 * * *" # runs at 8 AM UTC, 3 AM EST.
 
 jobs:
   trivy:
