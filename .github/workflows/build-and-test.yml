@@ -62,10 +62,18 @@ jobs:
             --image=${{ steps.image-name.outputs.name }} \
             -Djib.console=plain
 
-      - name: Run Trivy vulnerability scanner
-        uses: broadinstitute/dsp-appsec-trivy-action@v1
-        with:
-          image: ${{ steps.image-name.outputs.name }}
+#  dispatch-trivy:
+#    needs: [ build ]
+#    runs-on: ubuntu-latest
+#
+#    if: github.event_name == 'pull_request'
+#
+#    steps:
+#      - name: Fire off Trivy action
+#        uses: broadinstitute/workflow-dispatch@v1
+#        with:
+#          workflow: Trivy
+#          token: ${{ secrets.BROADBOT_TOKEN }}
 
   source-clear:
     needs: [ build ]
