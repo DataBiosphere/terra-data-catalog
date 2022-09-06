@@ -45,7 +45,7 @@ jobs:
         with:
           channel: '#jade-data-explorer'
           status: failure
-          author_name: Build on dev
+          author_name: Trivy action
           fields: workflow,message
           text: 'Trivy scan failure :sadpanda:'
           username: 'Data Explorer GitHub Action'
