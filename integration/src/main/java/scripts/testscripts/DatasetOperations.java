@@ -42,7 +42,6 @@ import scripts.client.RawlsClient;
 public class DatasetOperations extends TestScript {
 
   private static final Logger log = LoggerFactory.getLogger(DatasetOperations.class);
-  private static final String TEST_DATASET_NAME = "CatalogTestDataset";
 
   // TDR APIs
   private SnapshotsApi snapshotsApi;
@@ -59,6 +58,8 @@ public class DatasetOperations extends TestScript {
 
   @Override
   public void setup(List<TestUserSpecification> testUsers) throws Exception {
+    // Required to set Content-Length
+    System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
     var user = testUsers.get(0);
     setupSnapshot(user);
     setupWorkspace(user);
@@ -67,6 +68,7 @@ public class DatasetOperations extends TestScript {
   private void setupWorkspace(TestUserSpecification user) throws Exception {
     rawlsClient = new RawlsClient(server, user);
     workspaceSource = rawlsClient.createTestWorkspace();
+    rawlsClient.ingestData(workspaceSource);
     workspaceDest = rawlsClient.createTestWorkspace();
   }
 
@@ -94,9 +96,7 @@ public class DatasetOperations extends TestScript {
     previewUserJourney(StorageSystem.TDR, snapshotId.toString());
     previewUserJourney(StorageSystem.WKS, workspaceSource.getWorkspaceId());
 
-    // Test disabled as it is returning a Content-Length not set error
-    // When exportDataset is manually tested from swagger-ui, the test passes
-    // exportUserJourney(StorageSystem.WKS, workspaceSource, workspaceDest);
+    exportUserJourney(StorageSystem.WKS, workspaceSource, workspaceDest);
   }
 
   private void exportUserJourney(
