@@ -15,6 +15,7 @@ import bio.terra.catalog.api.DatasetsApi;
 import bio.terra.catalog.client.ApiException;
 import bio.terra.catalog.model.ColumnModel;
 import bio.terra.catalog.model.CreateDatasetRequest;
+import bio.terra.catalog.model.DatasetExportRequest;
 import bio.terra.catalog.model.StorageSystem;
 import bio.terra.catalog.model.TableMetadata;
 import bio.terra.datarepo.model.DatasetModel;
@@ -58,8 +59,6 @@ public class DatasetOperations extends TestScript {
 
   @Override
   public void setup(List<TestUserSpecification> testUsers) throws Exception {
-    // Required to set Content-Length
-    System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
     var user = testUsers.get(0);
     setupSnapshot(user);
     setupWorkspace(user);
@@ -112,7 +111,7 @@ public class DatasetOperations extends TestScript {
 
     // Export workspace dataset to workspace
     var workspaceId = UUID.fromString(workspaceDest.getWorkspaceId());
-    datasetsApi.exportDataset(datasetId, workspaceId);
+    datasetsApi.exportDataset(datasetId, new DatasetExportRequest().workspaceId(workspaceId));
 
     // Extract workspace entity names
     Set<String> entitiesSource = rawlsClient.getWorkspaceEntities(workspaceSource);
