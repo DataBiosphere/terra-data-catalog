@@ -136,8 +136,7 @@ class DatarepoServiceTest {
         .thenThrow(new ApiException(HttpStatus.NOT_FOUND.value(), errorMessage));
     String snapshotId = id.toString();
     DatarepoException t =
-        assertThrows(
-            DatarepoException.class, () -> datarepoService.getPreviewTables(snapshotId));
+        assertThrows(DatarepoException.class, () -> datarepoService.getPreviewTables(snapshotId));
 
     assertThat(t.getStatusCode(), is(HttpStatus.NOT_FOUND));
     assertThat(t.getMessage(), is("bio.terra.datarepo.client.ApiException: " + errorMessage));

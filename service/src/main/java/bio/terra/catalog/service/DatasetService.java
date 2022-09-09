@@ -56,12 +56,6 @@ public class DatasetService {
     this.objectMapper = objectMapper;
   }
 
-  public static class IllegalMetadataException extends RuntimeException {
-    public IllegalMetadataException(Throwable cause) {
-      super(cause);
-    }
-  }
-
   private class DatasetWithAccessLevel {
     private final Dataset dataset;
     private final DatasetAccessLevel accessLevel;
@@ -161,7 +155,8 @@ public class DatasetService {
     };
   }
 
-  private DatasetPreviewTable generateDatarepoTable(Dataset dataset, String tableName, int maxRows) {
+  private DatasetPreviewTable generateDatarepoTable(
+      Dataset dataset, String tableName, int maxRows) {
     return new DatasetPreviewTable()
         .columns(
             datarepoService.getPreviewTables(dataset.storageSourceId()).getTables().stream()
@@ -176,7 +171,10 @@ public class DatasetService {
                 .stream()
                 .map(DatasetService::convertDatarepoColumnModelToCatalogColumnModel)
                 .toList())
-        .rows(datarepoService.getPreviewTable(dataset.storageSourceId(), tableName, maxRows).getResult());
+        .rows(
+            datarepoService
+                .getPreviewTable(dataset.storageSourceId(), tableName, maxRows)
+                .getResult());
   }
 
   private DatasetPreviewTable generateRawlsTable(Dataset dataset, String tableName, int maxRows) {
@@ -186,7 +184,10 @@ public class DatasetService {
     return new DatasetPreviewTable()
         .columns(convertTableMetadataToColumns(tableMetadata))
         .rows(
-            rawlsService.entityQuery(dataset.storageSourceId(), tableName, maxRows).getResults().stream()
+            rawlsService
+                .entityQuery(dataset.storageSourceId(), tableName, maxRows)
+                .getResults()
+                .stream()
                 .map(entity -> convertEntityToRow(entity, tableMetadata.getIdName()))
                 .toList());
   }
