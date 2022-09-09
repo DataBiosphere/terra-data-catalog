@@ -7,6 +7,8 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isA;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -292,7 +294,8 @@ class DatasetServiceTest {
                                     new ColumnModel()
                                         .datatype(TableDataType.INTEGER)
                                         .name("column a"))))));
-    when(datarepoService.getPreviewTable(tdrDataset.storageSourceId(), tableName))
+    when(datarepoService.getPreviewTable(
+            eq(tdrDataset.storageSourceId()), eq(tableName), anyInt()))
         .thenReturn(new SnapshotPreviewModel().result(List.of()));
     DatasetPreviewTable datasetPreviewTable =
         datasetService.getDatasetPreview(tdrDataset.id(), tableName);
@@ -300,7 +303,7 @@ class DatasetServiceTest {
     assertThat(datasetPreviewTable.getColumns(), hasSize(1));
     assertThat(
         datasetPreviewTable.getColumns().get(0),
-        is(new bio.terra.catalog.model.ColumnModel().name("column a").arrayOf(false)));
+        is(new bio.terra.catalog.model.ColumnModel().name("column a")));
   }
 
   @Test
@@ -316,7 +319,8 @@ class DatasetServiceTest {
     Entity entity = new Entity().name("sample");
     when(datasetDao.retrieve(datasetId)).thenReturn(tdrDataset);
     when(rawlsService.entityMetadata(tdrDataset.storageSourceId())).thenReturn(map);
-    when(rawlsService.entityQuery(tdrDataset.storageSourceId(), tableName))
+    when(rawlsService.entityQuery(
+            eq(tdrDataset.storageSourceId()), eq(tableName), anyInt()))
         .thenReturn(new EntityQueryResponse().results(List.of(entity)));
     DatasetPreviewTable datasetPreviewTable =
         datasetService.getDatasetPreview(tdrDataset.id(), tableName);

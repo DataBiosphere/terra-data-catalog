@@ -1,5 +1,6 @@
-package bio.terra.catalog.api;
+package bio.terra.catalog.controller;
 
+import bio.terra.catalog.api.PublicApi;
 import bio.terra.catalog.config.VersionConfiguration;
 import bio.terra.catalog.model.SystemStatus;
 import bio.terra.catalog.model.VersionProperties;
@@ -12,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 public class PublicApiController implements PublicApi {
@@ -29,11 +29,8 @@ public class PublicApiController implements PublicApi {
 
     String clientId = "";
 
-    try {
-      clientId =
-          new String(
-              getClass().getResourceAsStream("/rendered/swagger-client-id").readAllBytes(),
-              StandardCharsets.UTF_8);
+    try (var stream = getClass().getResourceAsStream("/rendered/swagger-client-id")) {
+      clientId = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
     } catch (IOException | NullPointerException e) {
       log.error(
           "It doesn't look like configs have been rendered! Unable to parse swagger client id.", e);
@@ -59,7 +56,7 @@ public class PublicApiController implements PublicApi {
     return ResponseEntity.ok(currentVersion);
   }
 
-  @RequestMapping(value = "/")
+  @GetMapping(value = "/")
   public String index() {
     return "redirect:swagger-ui.html";
   }

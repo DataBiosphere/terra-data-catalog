@@ -82,12 +82,12 @@ public class DatarepoService {
     }
   }
 
-  public SnapshotPreviewModel getPreviewTable(String snapshotId, String tableName) {
+  public SnapshotPreviewModel getPreviewTable(String snapshotId, String tableName, int maxRows) {
     try {
       UUID id = UUID.fromString(snapshotId);
       return datarepoClient
           .snapshotsApi()
-          .lookupSnapshotPreviewById(id, tableName, null, null, null, null);
+          .lookupSnapshotPreviewById(id, tableName, null, maxRows, null, null);
     } catch (ApiException e) {
       throw new DatarepoException(e);
     }
@@ -110,7 +110,7 @@ public class DatarepoService {
       RepositoryStatusModel status = datarepoClient.unauthenticatedApi().serviceStatus();
       result.ok(status.isOk());
       // Populate error message if system status is non-ok
-      if (!result.isOk()) {
+      if (result.isOk() == null || !result.isOk()) {
         String errorMsg = "Data repo status check failed. Messages = " + status.getSystems();
         logger.error(errorMsg);
         result.addMessagesItem(errorMsg);

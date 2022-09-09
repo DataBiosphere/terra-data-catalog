@@ -6,6 +6,7 @@ import bio.terra.rawls.api.WorkspacesApi;
 import bio.terra.rawls.client.ApiClient;
 import bio.terra.rawls.client.ApiException;
 import bio.terra.rawls.model.CreateRawlsV2BillingProjectFullRequest;
+import bio.terra.rawls.model.Entity;
 import bio.terra.rawls.model.EntityTypeMetadata;
 import bio.terra.rawls.model.WorkspaceACLUpdate;
 import bio.terra.rawls.model.WorkspaceAccessLevel;
@@ -84,15 +85,15 @@ public class RawlsClient {
   private BillingV2Api createBillingApi(String basePath, TestUserSpecification testUser)
       throws IOException {
     var billingApiClient = new ApiClient();
-    return new BillingV2Api(setUserAndScopes(billingApiClient, basePath, testUser, BILLING_SCOPES));
+    setUserAndScopes(billingApiClient, basePath, testUser, BILLING_SCOPES);
+    return new BillingV2Api(billingApiClient);
   }
 
   private EntitiesApi createEntitiesApi(String basePath, TestUserSpecification testUser)
       throws IOException {
     var entitiesApiClient = new ApiClient();
-    return new EntitiesApi(
-        setUserAndScopes(
-            entitiesApiClient, basePath, testUser, AuthenticationUtils.userLoginScopes));
+    setUserAndScopes(entitiesApiClient, basePath, testUser, AuthenticationUtils.userLoginScopes);
+    return new EntitiesApi(entitiesApiClient);
   }
 
   /**
@@ -129,7 +130,24 @@ public class RawlsClient {
             .attributes(Map.of());
     var workspaceDetails = workspacesApi.createWorkspace(request);
     log.info("created workspace {}", workspaceDetails.getWorkspaceId());
+    ingestData(workspaceDetails.getNamespace(), workspaceDetails.getName());
     return workspaceDetails;
+  }
+
+  private void ingestData(String namespace, String name) throws ApiException {
+    for (int i = 1; i <= 15; i++) {
+      Entity entity = new Entity().entityType("sample").name("sample" + i);
+      entity.setAttributes(
+          Map.of(
+              "files", List.of(1, 2, 3, 4, 5), "type", "bam", "participant_id", "participant" + i));
+      entitiesApi.createEntity(entity, namespace, name);
+    }
+    for (int i = 1; i <= 15; i++) {
+      Entity entity = new Entity().entityType("participant").name("participant" + i);
+      entity.setAttributes(
+          Map.of("age", String.valueOf(i + 10), "biological_sex", i % 2 == 0 ? "male" : "female"));
+      entitiesApi.createEntity(entity, namespace, name);
+    }
   }
 
   public Set<String> getWorkspaceEntities(WorkspaceDetails workspaceDetails) throws ApiException {
