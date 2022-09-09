@@ -69,7 +69,7 @@ class DatasetServiceTest {
   private static final String sourceId = "sourceId";
   private static final String workspaceSourceId = "abc-def-workspace-id";
   private static final String metadata = """
-        {"name":"name"}""";
+      {"name":"name"}""";
   private static final Dataset dataset =
       new Dataset(datasetId, sourceId, StorageSystem.EXTERNAL, metadata, null);
   private static final Dataset tdrDataset =
@@ -165,14 +165,14 @@ class DatasetServiceTest {
   void testGetMetadata() {
     mockDataset();
     when(samService.hasGlobalAction(SamAction.READ_ANY_METADATA)).thenReturn(true);
-    datasetService.getMetadata(datasetId);
+    assertThat(datasetService.getMetadata(datasetId), is(metadata));
   }
 
   @Test
   void testGetMetadataUsingTdrPermission() {
     when(datasetDao.retrieve(tdrDataset.id())).thenReturn(tdrDataset);
     when(datarepoService.getRole(sourceId)).thenReturn(DatasetAccessLevel.READER);
-    datasetService.getMetadata(tdrDataset.id());
+    assertThat(datasetService.getMetadata(tdrDataset.id()), is(metadata));
   }
 
   @Test
@@ -321,14 +321,13 @@ class DatasetServiceTest {
 
   @Test
   void testExportSnapshot() {
-    when(datasetDao.retrieve(tdrDataset.id())).thenReturn(tdrDataset);
+    DatasetId id = tdrDataset.id();
+    when(datasetDao.retrieve(id)).thenReturn(tdrDataset);
     UUID workspaceId = UUID.randomUUID();
     doThrow(new BadRequestException("error"))
         .when(datarepoService)
         .exportSnapshot(tdrDataset.storageSourceId(), workspaceId.toString());
-    assertThrows(
-        BadRequestException.class,
-        () -> datasetService.exportDataset(tdrDataset.id(), workspaceId));
+    assertThrows(BadRequestException.class, () -> datasetService.exportDataset(id, workspaceId));
   }
 
   @Test
