@@ -8,7 +8,9 @@ import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import java.util.List;
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ExternalSystemService implements StorageSystemService {
   @Override
   public Map<String, DatasetAccessLevel> getIdsAndRoles(AuthenticatedUserRequest user) {

@@ -14,7 +14,6 @@ import bio.terra.datarepo.model.RepositoryStatusModel;
 import bio.terra.datarepo.model.SnapshotModel;
 import bio.terra.datarepo.model.SnapshotPreviewModel;
 import bio.terra.datarepo.model.SnapshotRetrieveIncludeModel;
-import com.google.common.annotations.VisibleForTesting;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -116,8 +115,7 @@ public class DatarepoService implements StorageSystemService {
         .rows(getPreviewTable(user, snaphsotId, tableName, maxRows).getResult());
   }
 
-  @VisibleForTesting
-  SnapshotPreviewModel getPreviewTable(
+  private SnapshotPreviewModel getPreviewTable(
       AuthenticatedUserRequest user, String snapshotId, String tableName, int maxRows) {
     try {
       UUID id = UUID.fromString(snapshotId);

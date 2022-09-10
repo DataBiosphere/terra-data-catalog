@@ -1,6 +1,7 @@
 package bio.terra.catalog.rawls;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -11,12 +12,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import bio.terra.catalog.model.ColumnModel;
+import bio.terra.catalog.model.DatasetPreviewTable;
+import bio.terra.catalog.model.TableMetadata;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
+import bio.terra.common.exception.NotFoundException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.rawls.api.EntitiesApi;
 import bio.terra.rawls.api.StatusApi;
 import bio.terra.rawls.api.WorkspacesApi;
 import bio.terra.rawls.client.ApiException;
+import bio.terra.rawls.model.Entity;
 import bio.terra.rawls.model.EntityCopyResponse;
 import bio.terra.rawls.model.EntityQueryResponse;
 import bio.terra.rawls.model.EntityTypeMetadata;
@@ -26,7 +32,6 @@ import bio.terra.rawls.model.WorkspaceListResponse;
 import bio.terra.rawls.model.WorkspaceName;
 import bio.terra.rawls.model.WorkspaceResponse;
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -129,7 +134,7 @@ class RawlsServiceTest {
   }
 
   @Test
-  void entityQuery() throws Exception {
+  void previewTable() throws Exception {
     mockWorkspaces();
     mockEntities();
     String id = "abc";
@@ -139,7 +144,20 @@ class RawlsServiceTest {
     WorkspaceResponse response =
         new WorkspaceResponse().workspace(new WorkspaceDetails().name(name).namespace(namespace));
     when(workspacesApi.getWorkspaceById(id, List.of())).thenReturn(response);
-    EntityQueryResponse queryResponse = new EntityQueryResponse();
+
+    var emptyTable = "empty";
+    EntityTypeMetadata entityType =
+        new EntityTypeMetadata().count(2).idName("idName").attributeNames(List.of("a", "b"));
+    var entityTypeResponse = Map.of(emptyTable, new EntityTypeMetadata(), tableName, entityType);
+    when(entitiesApi.entityTypeMetadata(namespace, name, true, null))
+        .thenReturn(entityTypeResponse);
+
+    var entityQueryResponse =
+        new EntityQueryResponse()
+            .results(
+                List.of(
+                    new Entity().name("idValue1").attributes(Map.of("a", 1, "b", 2)),
+                    new Entity().name("idValue2").attributes(Map.of("a", 3, "b", 4))));
     when(entitiesApi.entityQuery(
             namespace,
             name,
@@ -153,12 +171,23 @@ class RawlsServiceTest {
             List.of(),
             null,
             null))
-        .thenReturn(queryResponse);
-    assertThat(rawlsService.entityQuery(user, id, tableName, 10), is(queryResponse));
+        .thenReturn(entityQueryResponse);
+    var previewResponse =
+        new DatasetPreviewTable()
+            .columns(
+                List.of(
+                    new ColumnModel().name("idName"),
+                    new ColumnModel().name("a"),
+                    new ColumnModel().name("b")))
+            .rows(
+                List.of(
+                    Map.of("idName", "idValue1", "a", 1, "b", 2),
+                    Map.of("idName", "idValue2", "a", 3, "b", 4)));
+    assertThat(rawlsService.previewTable(user, id, tableName, 10), is(previewResponse));
   }
 
   @Test
-  void entityQueryException() throws Exception {
+  void previewTableMissingTable() throws Exception {
     mockWorkspaces();
     mockEntities();
 
@@ -169,6 +198,35 @@ class RawlsServiceTest {
     WorkspaceResponse response =
         new WorkspaceResponse().workspace(new WorkspaceDetails().name(name).namespace(namespace));
     when(workspacesApi.getWorkspaceById(id, List.of())).thenReturn(response);
+
+    var emptyTable = "empty";
+    EntityTypeMetadata entityType = new EntityTypeMetadata().count(10);
+    var entityTypeResponse = Map.of(emptyTable, new EntityTypeMetadata(), tableName, entityType);
+    when(entitiesApi.entityTypeMetadata(namespace, name, true, null))
+        .thenReturn(entityTypeResponse);
+
+    assertThrows(NotFoundException.class, () -> rawlsService.previewTable(user, id, "unknown", 10));
+  }
+
+  @Test
+  void previewTableException() throws Exception {
+    mockWorkspaces();
+    mockEntities();
+
+    String id = "abc";
+    String name = "name";
+    String namespace = "namespace";
+    String tableName = "table";
+    WorkspaceResponse response =
+        new WorkspaceResponse().workspace(new WorkspaceDetails().name(name).namespace(namespace));
+    when(workspacesApi.getWorkspaceById(id, List.of())).thenReturn(response);
+
+    var emptyTable = "empty";
+    EntityTypeMetadata entityType = new EntityTypeMetadata().count(10);
+    var entityTypeResponse = Map.of(emptyTable, new EntityTypeMetadata(), tableName, entityType);
+    when(entitiesApi.entityTypeMetadata(namespace, name, true, null))
+        .thenReturn(entityTypeResponse);
+
     when(entitiesApi.entityQuery(
             namespace,
             name,
@@ -183,11 +241,12 @@ class RawlsServiceTest {
             null,
             null))
         .thenThrow(new ApiException());
-    assertThrows(RawlsException.class, () -> rawlsService.entityQuery(user, id, tableName, 10));
+
+    assertThrows(RawlsException.class, () -> rawlsService.previewTable(user, id, tableName, 10));
   }
 
   @Test
-  void entityMetadata() throws Exception {
+  void getPreviewTables() throws Exception {
     mockWorkspaces();
     mockEntities();
     String id = "abc";
@@ -196,13 +255,28 @@ class RawlsServiceTest {
     WorkspaceResponse response =
         new WorkspaceResponse().workspace(new WorkspaceDetails().name(name).namespace(namespace));
     when(workspacesApi.getWorkspaceById(id, List.of())).thenReturn(response);
-    Map<String, EntityTypeMetadata> queryResponse = new HashMap<>();
-    when(entitiesApi.entityTypeMetadata(namespace, name, true, null)).thenReturn(queryResponse);
-    assertThat(rawlsService.entityMetadata(user, id), is(queryResponse));
+
+    var tableName = "sample";
+    var emptyTable = "empty";
+    var entityTypeResponse =
+        Map.of(
+            emptyTable,
+            new EntityTypeMetadata().count(0),
+            tableName,
+            new EntityTypeMetadata().count(10));
+    when(entitiesApi.entityTypeMetadata(namespace, name, true, null))
+        .thenReturn(entityTypeResponse);
+
+    var tables = rawlsService.getPreviewTables(user, id);
+    assertThat(
+        tables,
+        containsInAnyOrder(
+            new TableMetadata().name(emptyTable).hasData(false),
+            new TableMetadata().name(tableName).hasData(true)));
   }
 
   @Test
-  void entityMetadataException() throws Exception {
+  void getPreviewTablesException() throws Exception {
     mockWorkspaces();
     mockEntities();
     String id = "abc";
@@ -212,7 +286,7 @@ class RawlsServiceTest {
         new WorkspaceResponse().workspace(new WorkspaceDetails().name(name).namespace(namespace));
     when(workspacesApi.getWorkspaceById(id, List.of())).thenReturn(response);
     when(entitiesApi.entityTypeMetadata(namespace, name, true, null)).thenThrow(new ApiException());
-    assertThrows(RawlsException.class, () -> rawlsService.entityMetadata(user, id));
+    assertThrows(RawlsException.class, () -> rawlsService.getPreviewTables(user, id));
   }
 
   @Test

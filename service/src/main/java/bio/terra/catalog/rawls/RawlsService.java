@@ -76,7 +76,7 @@ public class RawlsService implements StorageSystemService {
     }
   }
 
-  public EntityQueryResponse entityQuery(
+  private EntityQueryResponse entityQuery(
       AuthenticatedUserRequest user, String workspaceId, String tableName, int maxRows) {
     try {
       WorkspaceResponse response =
@@ -106,7 +106,7 @@ public class RawlsService implements StorageSystemService {
     return toCatalogTables(entityMetadata(user, workspaceId));
   }
 
-  public Map<String, EntityTypeMetadata> entityMetadata(
+  private Map<String, EntityTypeMetadata> entityMetadata(
       AuthenticatedUserRequest user, String workspaceId) {
     try {
       WorkspaceResponse response =

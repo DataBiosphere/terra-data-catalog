@@ -39,16 +39,16 @@ public class DatasetService {
   public DatasetService(
       DatarepoService datarepoService,
       RawlsService rawlsService,
+      ExternalSystemService externalService,
       SamService samService,
       DatasetDao datasetDao,
       ObjectMapper objectMapper) {
     this.datarepoService = datarepoService;
     this.rawlsService = rawlsService;
+    this.externalService = externalService;
     this.samService = samService;
     this.datasetDao = datasetDao;
     this.objectMapper = objectMapper;
-
-    externalService = new ExternalSystemService();
   }
 
   private StorageSystemService getService(StorageSystem system) {
