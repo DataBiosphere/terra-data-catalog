@@ -1,4 +1,4 @@
-package bio.terra.catalog.api;
+package bio.terra.catalog.controller;
 
 import bio.terra.catalog.model.ErrorReport;
 import bio.terra.common.exception.AbstractGlobalExceptionHandler;

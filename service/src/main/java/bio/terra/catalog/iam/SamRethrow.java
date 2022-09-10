@@ -40,6 +40,7 @@ public class SamRethrow {
     try {
       return function.apply();
     } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
       throw SamExceptionFactory.create("Interrupted during Sam operation " + operation, e);
     }
   }
@@ -54,6 +55,7 @@ public class SamRethrow {
     try {
       function.apply();
     } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
       throw SamExceptionFactory.create("Interrupted during Sam operation " + operation, e);
     }
   }

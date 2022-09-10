@@ -4,8 +4,9 @@ import bio.terra.catalog.config.CatalogDatabaseConfiguration;
 import bio.terra.common.migrate.LiquibaseMigrator;
 import org.springframework.context.ApplicationContext;
 
-public final class StartupInitializer {
-  private static final String changelogPath = "db/changelog.xml";
+public enum StartupInitializer {
+  UNUSED;
+  private static final String CHANGELOG_PATH = "db/changelog.xml";
 
   public static void initialize(ApplicationContext applicationContext) {
     // Initialize or upgrade the database depending on the configuration
@@ -14,9 +15,9 @@ public final class StartupInitializer {
 
     // Migrate the database
     if (databaseConfiguration.isInitializeOnStart()) {
-      migrateService.initialize(changelogPath, databaseConfiguration.getDataSource());
+      migrateService.initialize(CHANGELOG_PATH, databaseConfiguration.getDataSource());
     } else if (databaseConfiguration.isUpgradeOnStart()) {
-      migrateService.upgrade(changelogPath, databaseConfiguration.getDataSource());
+      migrateService.upgrade(CHANGELOG_PATH, databaseConfiguration.getDataSource());
     }
   }
 }
