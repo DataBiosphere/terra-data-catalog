@@ -5,8 +5,7 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.when;
 
 import bio.terra.catalog.config.RawlsConfiguration;
-import bio.terra.catalog.iam.SamAuthenticatedUserRequestFactory;
-import bio.terra.common.iam.AuthenticatedUserRequest;
+import bio.terra.catalog.iam.User;
 import bio.terra.rawls.client.ApiClient;
 import bio.terra.rawls.client.auth.OAuth;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,24 +20,18 @@ class RawlsClientTest {
   private static final String BASE_PATH = "base path";
   private static final String TOKEN = "token";
   private static final String AUTH_NAME = "googleoauth";
-  @Mock private SamAuthenticatedUserRequestFactory requestFactory;
+  @Mock private User user;
 
   private RawlsClient client;
 
   @BeforeEach
   void beforeEach() {
-    client = new RawlsClient(new RawlsConfiguration(BASE_PATH), requestFactory);
+    client = new RawlsClient(new RawlsConfiguration(BASE_PATH), user);
   }
 
   @Test
   void testApis() {
-    var user =
-        new AuthenticatedUserRequest.Builder()
-            .setEmail("")
-            .setSubjectId("")
-            .setToken(TOKEN)
-            .build();
-    when(requestFactory.getUser()).thenReturn(user);
+    when(user.getToken()).thenReturn(TOKEN);
 
     ApiClient workspacesClient = client.workspacesApi().getApiClient();
     validateClient(workspacesClient, TOKEN);

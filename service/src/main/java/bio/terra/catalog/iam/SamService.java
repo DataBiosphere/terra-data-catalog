@@ -19,18 +19,15 @@ public class SamService {
   private final SamConfiguration samConfig;
   private final SamClient samClient;
 
-  private final SamAuthenticatedUserRequestFactory requestFactory;
+  private final User user;
 
   private static final String CATALOG_RESOURCE_TYPE = "catalog";
 
   @Autowired
-  public SamService(
-      SamConfiguration samConfig,
-      SamClient samClient,
-      SamAuthenticatedUserRequestFactory requestFactory) {
+  public SamService(SamConfiguration samConfig, SamClient samClient, User user) {
     this.samConfig = samConfig;
     this.samClient = samClient;
-    this.requestFactory = requestFactory;
+    this.user = user;
   }
 
   /**
@@ -43,7 +40,7 @@ public class SamService {
    * @return true if the user has any actions on that resource; false otherwise.
    */
   public boolean hasGlobalAction(SamAction action) {
-    String accessToken = requestFactory.getUser().getToken();
+    String accessToken = user.getToken();
     ResourcesApi resourceApi = samClient.resourcesApi(accessToken);
     try {
       return SamRetry.retry(

@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import bio.terra.catalog.config.SamConfiguration;
-import bio.terra.common.iam.AuthenticatedUserRequest;
 import java.util.List;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
 import org.broadinstitute.dsde.workbench.client.sam.api.ResourcesApi;
@@ -24,21 +23,18 @@ class SamServiceTest {
   @Mock private SamClient samClient;
   @Mock private ResourcesApi resourcesApi;
   @Mock private StatusApi statusApi;
-  @Mock private SamAuthenticatedUserRequestFactory requestFactory;
+  @Mock private User user;
 
   private static final String TOKEN = "token";
-  private static final AuthenticatedUserRequest USER =
-      AuthenticatedUserRequest.builder().setToken(TOKEN).setEmail("").setSubjectId("").build();
-
   private SamService samService;
 
   @BeforeEach
   void beforeEach() {
-    samService = new SamService(new SamConfiguration("", ""), samClient, requestFactory);
+    samService = new SamService(new SamConfiguration("", ""), samClient, user);
   }
 
   private void mockResources() {
-    when(requestFactory.getUser()).thenReturn(USER);
+    when(user.getToken()).thenReturn(TOKEN);
     when(samClient.resourcesApi(TOKEN)).thenReturn(resourcesApi);
   }
 

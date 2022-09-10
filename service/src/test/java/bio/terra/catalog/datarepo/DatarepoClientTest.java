@@ -5,8 +5,7 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.when;
 
 import bio.terra.catalog.config.DatarepoConfiguration;
-import bio.terra.catalog.iam.SamAuthenticatedUserRequestFactory;
-import bio.terra.common.iam.AuthenticatedUserRequest;
+import bio.terra.catalog.iam.User;
 import bio.terra.datarepo.client.ApiClient;
 import bio.terra.datarepo.client.auth.OAuth;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,24 +21,18 @@ class DatarepoClientTest {
   private static final String TOKEN = "token";
   private static final String AUTH_NAME = "googleoauth";
 
-  @Mock private SamAuthenticatedUserRequestFactory requestFactory;
+  @Mock private User user;
 
   private DatarepoClient client;
 
   @BeforeEach
   void beforeEach() {
-    client = new DatarepoClient(new DatarepoConfiguration(BASE_PATH), requestFactory);
+    client = new DatarepoClient(new DatarepoConfiguration(BASE_PATH), user);
   }
 
   @Test
   void testApis() {
-    var user =
-        new AuthenticatedUserRequest.Builder()
-            .setEmail("")
-            .setSubjectId("")
-            .setToken(TOKEN)
-            .build();
-    when(requestFactory.getUser()).thenReturn(user);
+    when(user.getToken()).thenReturn(TOKEN);
 
     var snapshotsClient = client.snapshotsApi().getApiClient();
     validateClient(snapshotsClient, TOKEN);

@@ -1,6 +1,5 @@
 package bio.terra.catalog.api;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -15,7 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.controller.DatasetApiController;
 import bio.terra.catalog.controller.GlobalExceptionHandler;
-import bio.terra.catalog.iam.SamAuthenticatedUserRequestFactory;
+import bio.terra.catalog.iam.User;
 import bio.terra.catalog.model.ColumnModel;
 import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.DatasetPreviewTable;
@@ -25,7 +24,6 @@ import bio.terra.catalog.model.TableMetadata;
 import bio.terra.catalog.service.DatasetService;
 import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.catalog.service.dataset.exception.DatasetNotFoundException;
-import bio.terra.common.iam.AuthenticatedUserRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
@@ -60,13 +58,13 @@ class DatasetApiControllerTest {
 
   @MockBean private DatasetService datasetService;
 
-  @MockBean private SamAuthenticatedUserRequestFactory authenticatedUserRequestFactory;
+  @MockBean private User user;
 
-  private final AuthenticatedUserRequest user = mock(AuthenticatedUserRequest.class);
+  private static final String TOKEN = "TOKEN";
 
   @BeforeEach
   void beforeEach() {
-    when(authenticatedUserRequestFactory.getUser()).thenReturn(user);
+    when(user.getToken()).thenReturn(TOKEN);
   }
 
   @Test
