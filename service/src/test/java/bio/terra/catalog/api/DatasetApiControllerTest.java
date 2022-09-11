@@ -14,7 +14,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.controller.DatasetApiController;
 import bio.terra.catalog.controller.GlobalExceptionHandler;
-import bio.terra.catalog.iam.User;
 import bio.terra.catalog.model.ColumnModel;
 import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.DatasetPreviewTable;
@@ -28,7 +27,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
 import java.util.UUID;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,15 +55,6 @@ class DatasetApiControllerTest {
   @Autowired private MockMvc mockMvc;
 
   @MockBean private DatasetService datasetService;
-
-  @MockBean private User user;
-
-  private static final String TOKEN = "TOKEN";
-
-  @BeforeEach
-  void beforeEach() {
-    when(user.getToken()).thenReturn(TOKEN);
-  }
 
   @Test
   void listDatasets() throws Exception {
