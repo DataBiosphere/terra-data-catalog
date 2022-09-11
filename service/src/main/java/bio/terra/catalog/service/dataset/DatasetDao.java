@@ -119,6 +119,10 @@ public class DatasetDao {
 
   @ReadTransaction
   public List<Dataset> find(StorageSystem storageSystem, Collection<String> ids) {
+    if (ids.isEmpty()) {
+      return List.of();
+    }
+
     String sql =
         "SELECT * FROM dataset WHERE storage_system = :storageSystem AND storage_source_id IN (:ids)";
     var params = Map.of("storageSystem", String.valueOf(storageSystem), "ids", ids);

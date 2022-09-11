@@ -2,6 +2,7 @@ package bio.terra.catalog.service.dataset;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.empty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -97,7 +98,13 @@ class DatasetDaoTest {
     Dataset d3 = createDataset("id3", StorageSystem.EXTERNAL);
     var datasets =
         datasetDao.find(
-            StorageSystem.TERRA_DATA_REPO, List.of(d1.storageSourceId(), d3.storageSourceId()));
-    assertThat(datasets, contains(d1));
+            StorageSystem.TERRA_DATA_REPO,
+            List.of(d1.storageSourceId(), d2.storageSourceId(), d3.storageSourceId()));
+    assertThat(datasets, contains(d1, d2));
+  }
+
+  @Test
+  void testFindNoIds() {
+    assertThat(datasetDao.find(StorageSystem.EXTERNAL, List.of()), empty());
   }
 }
