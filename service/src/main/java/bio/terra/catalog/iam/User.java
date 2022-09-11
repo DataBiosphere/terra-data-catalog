@@ -8,10 +8,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 
 /**
- * A Component that extracts the bearer token for the current HTTP request, if any..
- *
- * <p>If the current user isn't authenticated, trying to get their token will throw an {@link
- * UnauthorizedException}.
+ * This represents the user associated with the current HTTP request. If injected into a singleton
+ * scope class, such as a service, spring will create a proxy object so the value for the current
+ * http request is returned. If no http scope exists when this is used, the proxy will throw an
+ * exception.
  */
 @Component
 @RequestScope
@@ -19,26 +19,26 @@ public class User {
   static final String OAUTH2_ACCESS_TOKEN = "OAUTH2_CLAIM_access_token";
   static final String AUTHORIZATION = "Authorization";
 
-  private final HttpServletRequest servletRequest;
+  private final HttpServletRequest httpRequest;
 
   @Autowired
-  public User(HttpServletRequest servletRequest) {
-    this.servletRequest = servletRequest;
+  public User(HttpServletRequest httpRequest) {
+    this.httpRequest = httpRequest;
   }
 
   /**
-   * Get the user token from OAuth2 claim or Authorization header. Throws UnauthorizedException if
-   * the token could not be found.
+   * @return the current user's authentication token.
+   * @throws UnauthorizedException if no authentication is found for the current user
    */
   public String getToken() {
-    String oauth2Header = servletRequest.getHeader(OAUTH2_ACCESS_TOKEN);
+    String oauth2Header = httpRequest.getHeader(OAUTH2_ACCESS_TOKEN);
     if (oauth2Header != null) {
       return oauth2Header;
-    } else {
-      String authHeader = servletRequest.getHeader(AUTHORIZATION);
-      if (authHeader != null) {
-        return BearerTokenParser.parse(authHeader);
-      }
+    }
+    String authHeader = httpRequest.getHeader(AUTHORIZATION);
+    if (authHeader != null) {
+      // Invalid tokens will throw an UnauthorizedException.
+      return BearerTokenParser.parse(authHeader);
     }
     throw new UnauthorizedException("Unable to retrieve access token");
   }

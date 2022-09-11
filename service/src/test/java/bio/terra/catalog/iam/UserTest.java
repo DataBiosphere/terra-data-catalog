@@ -3,37 +3,36 @@ package bio.terra.catalog.iam;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
 
 import bio.terra.common.exception.UnauthorizedException;
-import javax.servlet.http.HttpServletRequest;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockHttpServletRequest;
 
-@ExtendWith(MockitoExtension.class)
 class UserTest {
 
-  @Mock private HttpServletRequest request;
+  private final MockHttpServletRequest request = new MockHttpServletRequest();
 
-  private User user;
-
-  @BeforeEach
-  void beforeEach() {
-    user = new User(request);
-  }
+  private final User user = new User(request);
 
   @Test
-  void getUser() {
+  void getTokenOauth2() {
     var token = "token";
-    when(request.getHeader(User.OAUTH2_ACCESS_TOKEN)).thenReturn(token);
+    request.addHeader(User.OAUTH2_ACCESS_TOKEN, token);
     assertThat(user.getToken(), is(token));
   }
 
   @Test
-  void getUserNoAuth() {
-    assertThrows(UnauthorizedException.class, () -> user.getToken());
+  void getTokenBearer() {
+    var token = "token";
+    request.addHeader(User.AUTHORIZATION, "Bearer " + token);
+    assertThat(user.getToken(), is(token));
+  }
+
+  @Test
+  void geTokenNoAuth() {
+    assertThrows(UnauthorizedException.class, user::getToken);
+
+    request.addHeader(User.AUTHORIZATION, "bogus");
+    assertThrows(UnauthorizedException.class, user::getToken);
   }
 }
