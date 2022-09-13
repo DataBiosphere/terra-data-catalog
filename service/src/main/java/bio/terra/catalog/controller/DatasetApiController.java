@@ -4,6 +4,7 @@ import bio.terra.catalog.api.DatasetsApi;
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.CreatedDatasetId;
+import bio.terra.catalog.model.DatasetExportRequest;
 import bio.terra.catalog.model.DatasetPreviewTable;
 import bio.terra.catalog.model.DatasetPreviewTablesResponse;
 import bio.terra.catalog.model.DatasetsListResponse;
@@ -75,7 +76,13 @@ public class DatasetApiController implements DatasetsApi {
   }
 
   @Override
-  public ResponseEntity<Void> exportDataset(UUID datasetId, UUID workspaceId) {
+  public ResponseEntity<Void> exportDataset(UUID datasetId, DatasetExportRequest body) {
+    datasetService.exportDataset(new DatasetId(datasetId), body.getWorkspaceId());
+    return ResponseEntity.noContent().build();
+  }
+
+  @Override
+  public ResponseEntity<Void> exportDatasetDeprecated(UUID datasetId, UUID workspaceId) {
     datasetService.exportDataset(new DatasetId(datasetId), workspaceId);
     return ResponseEntity.noContent().build();
   }
