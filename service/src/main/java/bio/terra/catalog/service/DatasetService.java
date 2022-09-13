@@ -91,6 +91,8 @@ public class DatasetService {
         .toList();
   }
 
+  // FIXME: possibly refactor to first get all IDs, and then get all datasets. That will help
+  // FIXME: limit the DB work done here.
   public DatasetsListResponse listDatasets(AuthenticatedUserRequest user) {
     List<DatasetWithAccessLevel> datasets = new ArrayList<>();
     for (StorageSystem system : StorageSystem.values()) {
@@ -100,6 +102,9 @@ public class DatasetService {
       datasets.addAll(
           datasetDao.listAllDatasets().stream()
               .map(dataset -> new DatasetWithAccessLevel(dataset, DatasetAccessLevel.READER))
+              // FIXME: add a test for this case, then refactor. One fix is to pass a list of IDs
+              // FIXME: to DAO to exclude from `find()`. Doing it this way results in O(n^2)
+              // FIXME: complexity and can result in excess DB requests.
               .filter(
                   datasetWithAccessLevel ->
                       !datasets.stream()
