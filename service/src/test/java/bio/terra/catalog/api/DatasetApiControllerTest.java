@@ -18,6 +18,7 @@ import bio.terra.catalog.controller.DatasetApiController;
 import bio.terra.catalog.controller.GlobalExceptionHandler;
 import bio.terra.catalog.model.ColumnModel;
 import bio.terra.catalog.model.CreateDatasetRequest;
+import bio.terra.catalog.model.DatasetExportRequest;
 import bio.terra.catalog.model.DatasetPreviewTable;
 import bio.terra.catalog.model.DatasetPreviewTablesResponse;
 import bio.terra.catalog.model.DatasetsListResponse;
@@ -33,18 +34,14 @@ import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(
-    classes = {DatasetApiController.class, DatasetService.class, GlobalExceptionHandler.class})
+@ContextConfiguration(classes = {DatasetApiController.class, GlobalExceptionHandler.class})
 @WebMvcTest
 class DatasetApiControllerTest {
 
@@ -55,7 +52,8 @@ class DatasetApiControllerTest {
   private static final String PREVIEW_TABLES_API = API_ID + "/tables";
   private static final String PREVIEW_TABLES_API_TABLE_NAME = PREVIEW_TABLES_API + "/{tableName}";
 
-  private static final String EXPORT_TABLES_API = API_ID + "/export/{workspaceId}";
+  private static final String EXPORT_TABLES_API = API_ID + "/export";
+  private static final String EXPORT_TABLES_DEPRECATED_API = API_ID + "/export/{workspaceId}";
 
   @Autowired private MockMvc mockMvc;
 
@@ -65,6 +63,8 @@ class DatasetApiControllerTest {
 
   private final AuthenticatedUserRequest user = mock(AuthenticatedUserRequest.class);
 
+  private final ObjectMapper objectMapper = new ObjectMapper();
+
   @BeforeEach
   void beforeEach() {
     when(authenticatedUserRequestFactory.from(any())).thenReturn(user);
@@ -73,7 +73,7 @@ class DatasetApiControllerTest {
   @Test
   void listDatasets() throws Exception {
     DatasetsListResponse response = new DatasetsListResponse();
-    ObjectNode node = new ObjectMapper().createObjectNode();
+    ObjectNode node = objectMapper.createObjectNode();
     node.put("id", "id");
     response.addResultItem(node);
     when(datasetService.listDatasets(user)).thenReturn(response);
@@ -143,7 +143,7 @@ class DatasetApiControllerTest {
     var uuid = UUID.randomUUID();
     when(datasetService.createDataset(user, storageSystem, id, METADATA))
         .thenReturn(new DatasetId(uuid));
-    var postBody = new ObjectMapper().writeValueAsString(request);
+    var postBody = objectMapper.writeValueAsString(request);
     mockMvc
         .perform(post(API).contentType(MediaType.APPLICATION_JSON).content(postBody))
         .andExpect(status().isOk())
@@ -194,11 +194,26 @@ class DatasetApiControllerTest {
   }
 
   @Test
-  void exportMetadata() throws Exception {
+  void exportDataset() throws Exception {
+    var datasetId = new DatasetId(UUID.randomUUID());
+    var workspaceId = UUID.randomUUID();
+    var request = new DatasetExportRequest().workspaceId(workspaceId);
+    var postBody = objectMapper.writeValueAsString(request);
+    mockMvc
+        .perform(
+            post(EXPORT_TABLES_API, datasetId.uuid())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(postBody))
+        .andExpect(status().is2xxSuccessful());
+    verify(datasetService).exportDataset(user, datasetId, workspaceId);
+  }
+
+  @Test
+  void exportDatasetDeprecated() throws Exception {
     var datasetId = new DatasetId(UUID.randomUUID());
     var workspaceId = UUID.randomUUID();
     mockMvc
-        .perform(post(EXPORT_TABLES_API, datasetId.uuid(), workspaceId))
+        .perform(post(EXPORT_TABLES_DEPRECATED_API, datasetId.uuid(), workspaceId))
         .andExpect(status().is2xxSuccessful());
     verify(datasetService).exportDataset(user, datasetId, workspaceId);
   }
