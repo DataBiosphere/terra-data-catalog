@@ -190,7 +190,7 @@ class DatasetApiControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(postBody))
         .andExpect(status().is2xxSuccessful());
-    verify(datasetService).exportDataset(user, datasetId, workspaceId);
+    verify(datasetService).exportDataset(datasetId, workspaceId);
   }
 
   @Test
