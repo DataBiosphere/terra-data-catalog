@@ -130,11 +130,13 @@ public class RawlsClient {
             .attributes(Map.of());
     var workspaceDetails = workspacesApi.createWorkspace(request);
     log.info("created workspace {}", workspaceDetails.getWorkspaceId());
-    ingestData(workspaceDetails.getNamespace(), workspaceDetails.getName());
     return workspaceDetails;
   }
 
-  private void ingestData(String namespace, String name) throws ApiException {
+  public void ingestData(WorkspaceDetails workspaceDetails) throws ApiException {
+    var namespace = workspaceDetails.getNamespace();
+    var name = workspaceDetails.getName();
+
     for (int i = 1; i <= 15; i++) {
       Entity entity = new Entity().entityType("sample").name("sample" + i);
       entity.setAttributes(
