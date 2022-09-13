@@ -15,6 +15,9 @@ if (!isCiServer) {
     tasks.withType(JavaExec).configureEach {
         systemProperty 'spring.profiles.include', 'human-readable-logging'
     }
+    tasks.withType(Test).configureEach {
+        systemProperty 'spring.profiles.include', 'human-readable-logging'
+    }
 }
 
 java {
@@ -46,6 +49,7 @@ dependencies {
     testImplementation 'org.hamcrest:hamcrest:2.2'
 
     implementation 'bio.terra:terra-common-lib:0.0.53-SNAPSHOT'
+    implementation 'bio.terra:datarepo-client:1.349.0-SNAPSHOT'
 }
 
 tasks.named('test') {
@@ -79,8 +83,10 @@ spotbugs {
 }
 spotbugsMain {
     reports {
-        sarif {
-            enabled = true
+        if (isCiServer) {
+            sarif.enabled = true
+        } else {
+            html.enabled = true
         }
     }
 }

@@ -8,7 +8,9 @@ import bio.terra.common.db.ReadTransaction;
 import bio.terra.common.db.WriteTransaction;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,28 +37,20 @@ public class DatasetDao {
   }
 
   @ReadTransaction
-  public List<Dataset> enumerate() {
-    String sql =
-        "SELECT id, storage_source_id, storage_system, metadata, created_date FROM dataset";
-    MapSqlParameterSource params = new MapSqlParameterSource();
-    return jdbcTemplate.query(sql, params, new DatasetMapper());
-  }
-
-  @ReadTransaction
-  public Dataset retrieve(UUID id) {
+  public Dataset retrieve(DatasetId id) {
     String sql =
         "SELECT id, storage_source_id, storage_system, metadata, created_date FROM dataset WHERE id = :id";
-    MapSqlParameterSource params = new MapSqlParameterSource().addValue(ID_FIELD, id);
+    MapSqlParameterSource params = new MapSqlParameterSource().addValue(ID_FIELD, id.uuid());
     try {
       return jdbcTemplate.queryForObject(sql, params, new DatasetMapper());
     } catch (EmptyResultDataAccessException ex) {
-      throw new DatasetNotFoundException("Dataset not found for id " + id, ex);
+      throw new DatasetNotFoundException("Dataset not found for " + id, ex);
     }
   }
 
   private Dataset createOrUpdate(String sql, MapSqlParameterSource params) {
     DaoKeyHolder keyHolder = new DaoKeyHolder();
-    int rowsAffected = 0;
+    int rowsAffected;
     try {
       rowsAffected = jdbcTemplate.update(sql, params, keyHolder);
     } catch (DuplicateKeyException ex) {
@@ -96,7 +90,7 @@ public class DatasetDao {
             + "WHERE id = :id";
     MapSqlParameterSource params =
         new MapSqlParameterSource()
-            .addValue(ID_FIELD, dataset.id())
+            .addValue(ID_FIELD, dataset.id().uuid())
             .addValue(STORAGE_SOURCE_ID_FIELD, dataset.storageSourceId())
             .addValue(STORAGE_SYSTEM_FIELD, String.valueOf(dataset.storageSystem()))
             .addValue(METADATA_FIELD, dataset.metadata());
@@ -104,9 +98,10 @@ public class DatasetDao {
   }
 
   @WriteTransaction
-  public boolean delete(UUID id) {
+  public boolean delete(Dataset dataset) {
     String sql = "DELETE FROM dataset WHERE id = :id";
-    MapSqlParameterSource params = new MapSqlParameterSource().addValue(ID_FIELD, id);
+    MapSqlParameterSource params =
+        new MapSqlParameterSource().addValue(ID_FIELD, dataset.id().uuid());
     int rowsAffected = jdbcTemplate.update(sql, params);
     return rowsAffected > 0;
   }
@@ -114,11 +109,25 @@ public class DatasetDao {
   private static class DatasetMapper implements RowMapper<Dataset> {
     public Dataset mapRow(ResultSet rs, int rowNum) throws SQLException {
       return new Dataset(
-          rs.getObject(ID_FIELD, UUID.class),
+          new DatasetId(rs.getObject(ID_FIELD, UUID.class)),
           rs.getString(STORAGE_SOURCE_ID_FIELD),
           StorageSystem.valueOf(rs.getString(STORAGE_SYSTEM_FIELD)),
           rs.getString(METADATA_FIELD),
           rs.getTimestamp(CREATED_DATE_FIELD).toInstant());
     }
+  }
+
+  @ReadTransaction
+  public List<Dataset> find(StorageSystem storageSystem, Collection<String> ids) {
+    String sql =
+        "SELECT * FROM dataset WHERE storage_system = :storageSystem AND storage_source_id IN (:ids)";
+    var params = Map.of("storageSystem", String.valueOf(storageSystem), "ids", ids);
+    return jdbcTemplate.query(sql, params, new DatasetMapper());
+  }
+
+  @ReadTransaction
+  public List<Dataset> listAllDatasets() {
+    String sql = "SELECT * FROM dataset";
+    return jdbcTemplate.query(sql, new DatasetMapper());
   }
 }

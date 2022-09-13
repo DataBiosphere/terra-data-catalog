@@ -32,10 +32,10 @@ public class BaseStatusService {
 
   public BaseStatusService(StatusCheckConfiguration configuration) {
     this.configuration = configuration;
-    this.statusCheckMap = new ConcurrentHashMap<>();
-    this.cachedStatus = new AtomicReference<>(new SystemStatus().ok(false));
-    this.lastStatusUpdate = new AtomicReference<>(Instant.now());
-    this.scheduler = Executors.newScheduledThreadPool(1);
+    statusCheckMap = new ConcurrentHashMap<>();
+    cachedStatus = new AtomicReference<>(new SystemStatus().ok(false));
+    lastStatusUpdate = new AtomicReference<>(Instant.now());
+    scheduler = Executors.newScheduledThreadPool(1);
   }
 
   @PostConstruct
@@ -49,7 +49,6 @@ public class BaseStatusService {
     }
   }
 
-  @VisibleForTesting
   void registerStatusCheck(String name, Supplier<SystemStatusSystems> checkFn) {
     statusCheckMap.put(name, checkFn);
   }

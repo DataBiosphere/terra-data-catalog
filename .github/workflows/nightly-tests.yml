@@ -1,9 +1,24 @@
 name: Nightly Tests
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        description: 'environment to run test in'
+        required: true
+        options:
+          - perf
+          - staging
+          - alpha
+          - dev
+        default: 'perf'
   schedule:
     - cron: "0 6 * * *" # runs at 6 AM UTC, 1 AM EST.
+
+env:
+  TEST_ENV: ${{ github.event.inputs.environment }}
+  TEST_DEFAULT: perf
 
 jobs:
   build:
@@ -47,17 +62,46 @@ jobs:
             --image=${{ steps.image-name.outputs.name }} \
             -Djib.console=plain
 
-      - name: Run Trivy vulnerability scanner
-        uses: broadinstitute/dsp-appsec-trivy-action@v1
-        with:
-          image: ${{ steps.image-name.outputs.name }}
-
-  test-runner:
+  dispatch-trivy:
     needs: [ build ]
     runs-on: ubuntu-latest
 
     steps:
+      - name: Fire off Trivy action
+        uses: broadinstitute/workflow-dispatch@v1
+        with:
+          workflow: Trivy
+          token: ${{ secrets.BROADBOT_TOKEN }}
+
+  test-env:
+    runs-on: ubuntu-latest
+    outputs:
+      test-env: ${{ steps.test-env.outputs.test-env }}
+
+    steps:
+      - name: Set default test env
+        id: test-env
+        run: |
+          echo ::set-output name=test-env::${{ env.TEST_ENV || env.TEST_DEFAULT }}
+
+  test-runner:
+    needs: [ build, test-env ]
+    runs-on: ubuntu-latest
+
+    steps:
       - uses: actions/checkout@v2
+
+      - name: Get the helm chart versions for the perf env
+        run: |
+          curl -H 'Authorization: token ${{ secrets.BROADBOT_TOKEN }}' \
+            -H 'Accept: application/vnd.github.v3.raw' \
+            -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/versions/app/dev.yaml \
+            --create-dirs -o "integration/src/main/resources/rendered/dev.yaml"
+          curl -H 'Authorization: token ${{ secrets.BROADBOT_TOKEN }}' \
+            -H 'Accept: application/vnd.github.v3.raw' \
+            -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/environments/live/${{ needs.test-env.outputs.test-env }}.yaml \
+            --create-dirs -o "integration/src/main/resources/rendered/${{ needs.test-env.outputs.test-env }}.yaml"
+
       - name: Set up JDK
         uses: actions/setup-java@v2
         with:
@@ -68,23 +112,27 @@ jobs:
       - name: Render GitHub Secrets
         run: |
           echo "${{ secrets.DEV_FIRECLOUD_ACCOUNT_B64 }}" | base64 -d > "integration/src/main/resources/rendered/user-delegated-sa.json"
-          echo "${{ secrets.PERF_TESTRUNNER_ACCOUNT_B64 }}" | base64 -d > "integration/src/main/resources/rendered/testrunner-sa.json"
+          echo "${{ secrets.PERF_TESTRUNNER_ACCOUNT_B64 }}" | base64 -d > "integration/src/main/resources/rendered/testrunner-perf.json"
 
       - name: Run perf test suite
         run: |
-          ./gradlew --build-cache :integration:runTest --scan --args="suites/FullPerf.json build/reports"
+          ./gradlew --build-cache runTest --args="suites/${{ needs.test-env.outputs.test-env }}/FullIntegration.json build/reports"
 
-      - name: Upload Test Reports
+      - name: Upload Test Reports for QA
+        if: always()
+        run: |
+          ./gradlew --build-cache uploadResults --args="CompressDirectoryToTerraKernelK8S.json build/reports"
+
+      - name: Upload Test Reports for GitHub
         if: always()
         uses: actions/upload-artifact@v1
         with:
           name: Test Reports
           path: integration/build/reports
 
-  notify-slack-failure:
-    needs: [ build, jib, test-runner ]
+  notify-de-slack:
+    needs: [ build, jib, test-env, test-runner ]
     runs-on: ubuntu-latest
-
     if: failure()
 
     steps:
@@ -92,19 +140,21 @@ jobs:
         uses: broadinstitute/action-slack@v3.8.0
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          STATUS: failure
         with:
           channel: '#jade-data-explorer'
-          status: failure
-          author_name: Nightly test
-          fields: workflow,message
-          text: 'Nightly test failed :sadpanda:'
-          username: 'Data Explorer GitHub Action'
-          
+          author_name: ${{ github.actor }}
+          status: ${{ env.STATUS }}
+          fields: workflow,ref
+          text: >
+            ${{ format('Catalog test *{0}* in *{1}* {2}',
+            env.STATUS, needs.test-env.outputs.test-env,
+            env.STATUS == 'success' && ':check_green:' || ':sadpanda:') }}
+          username: 'Data Explorer Tests'
 
-  notify-slack-always:
-    needs: [ build, jib, test-runner ]
+  notify-qa-slack:
+    needs: [ build, jib, test-env, test-runner ]
     runs-on: ubuntu-latest
-    
     if: always()
 
     steps:
@@ -112,10 +162,18 @@ jobs:
         uses: broadinstitute/action-slack@v3.8.0
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          STATUS: >-
+            ${{ needs.build.result == 'success'
+            && needs.jib.result == 'success'
+            && needs.test-runner.result == 'success'
+            && 'success' || 'failure' }}
         with:
           channel: '#dsde-qa'
-          status: ${{ job.status }}
-          author_name: Nightly test
-          fields: workflow,message
-          text: 'Nightly performance test results'
-          username: 'Data Explorer GitHub Action'
+          author_name: ${{ github.actor }}
+          status: ${{ env.STATUS }}
+          fields: workflow,ref
+          text: >
+            ${{ format('Catalog test *{0}* in *{1}* {2}',
+            env.STATUS, needs.test-env.outputs.test-env,
+            env.STATUS == 'success' && ':check_green:' || ':sadpanda:') }}
+          username: 'Data Explorer Tests'

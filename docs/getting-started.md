@@ -26,9 +26,15 @@ permission error, it is likely because you are missing appropriate access.
 the channel header, and select `Join DataBiosphere`.  Once you've been granted
 access to DataBiosphere, ask a team member to add your GitHub user to the
 [jadeteam](https://github.com/orgs/DataBiosphere/teams/jadeteam) group. This
-will give you access to our repositories.
+will give you access to our repositories. You should also be a member of
+[broadwrite](https://github.com/orgs/DataBiosphere/teams/broadwrite); this should be done
+automatically when you're added to the DataBiosphere organization.
 - Google Groups: Ask a team member for access to Google Groups including
-`jade-internal` and `dsde-engineering`.
+`jade-internal` and `jade-data-explorer`, and check that you're a member of
+`dsde-engineering` and `dsp-engineering`. These google groups are used for scheduling, email and
+google drive document sharing, and are also used to control membership in GitHub teams
+in the broadinstitute organization, such as
+[jade-internal](https://github.com/orgs/broadinstitute/teams/jade-internal).
 
 ## 3. Connect accounts
 
@@ -106,8 +112,6 @@ and **Community** (open-source). We recommend the Ultimate Edition to Broad
 employees for its database navigation capabilities. Alternatively, the Community
 Edition has all the features needed for development, and this version can be
 installed by switching `intellij-idea` with `intellij-idea-ce` in the Brewfile.
-8. [Temurin](https://adoptium.net/) is the code name for the free and
-open-source version of Java 17 provided by the Eclipse Adoptium Working Group.
 
 Unfortunately, some manual configuration is also necessary:
 
@@ -128,7 +132,13 @@ git clone https://github.com/broadinstitute/dsp-appsec-gitsecrets-client.git
 ./dsp-appsec-gitsecrets-client/gitsecrets.sh
 ```
 
-## 6. Install Postgres 12
+## 6. Install Java 17
+
+Java 17 is required to run the Terra Data Catalog. The latest release can be
+found on the [Adoptium releases](https://adoptium.net/temurin/releases/) page.
+Ensure you install the latest JDK 17 package ending in `.pkg`.
+
+## 7. Install Postgres 12
 
 [Postgres](https://www.postgresql.org/) is an advanced open-source database.
 **Postgres.app** is used to manage a local installation of Postgres. The latest
@@ -143,10 +153,10 @@ create a new version 12 database as follows:
 3. Add `/Applications/Postgres.app/Contents/Versions/latest/bin` to your path
 (there are multiple ways to achieve this)
 
-## 7. Create GitHub token
+## 8. Create GitHub token
 
 The GitHub token verifies team permissions. This token is necessary for the next
-step, [Login to Vault](#8-login-to-vault). To create a token:
+step, [Login to Vault](#9-login-to-vault). To create a token:
 
 1. Go to the [GitHub Personal Access Token](https://github.com/settings/tokens)
 page and click **Generate new token**.
@@ -161,7 +171,7 @@ GITHUB_TOKEN=<<GITHUB TOKEN VALUE>>
 echo $GITHUB_TOKEN > ~/.github-token
 ```
 
-## 8. Login to Vault
+## 9. Login to Vault
 
 Vault access tokens can be obtained using the GitHub token from earlier as
 follows:
@@ -173,7 +183,7 @@ vault login -method=github token=$(cat ~/.github-token)
 > Vault access tokens expire after 30 days, so if you get a `403` error trying
 to use `vault`, re-run the `vault login` command to refresh your access token.
 
-## 9. Code Checkout
+## 10. Code Checkout
 
 > It may be useful to create a folder for Broad projects in your home directory.
 
@@ -184,3 +194,16 @@ git clone git@github.com:DataBiosphere/terra-data-catalog
 git clone git@github.com:broadinstitute/terraform-ap-deployments
 git clone git@github.com:broadinstitute/terra-helmfile
 ```
+
+## Resources
+
+### Team Resources
+
+1. [Google Drive](https://drive.google.com/drive/folders/1T-_Qgqo6eyF1suhQBfA9odVm15Kh_3iG)
+2. [Team Norms](https://docs.google.com/document/d/1ht5-Tf671Q-pJymAI3hpbU3MS-FOJmpaICrpfBnRVyw/edit?usp=sharing)
+3. [Service Design](https://docs.google.com/document/d/1dzWT7n3mZlW4A_B__NMyaqqC_pVLN90ZXxdKHQXmzew/edit?usp=sharing)
+4. [Architecture Diagram](https://docs.google.com/drawings/d/1u3unWQIzuAWeZKkiQ_YqVMoStpreRuW29vww1bNWVSo/edit?usp=sharing)
+
+### DevOps Resources
+
+1. [How to Onboard](https://docs.google.com/document/d/11pZE-GqeZFeSOG0UpGg_xyTDQpgBRfr0MLxpxvvQgEw/edit?usp=sharing)

@@ -1,12 +1,15 @@
 openapi: 3.0.3
 info:
   title: Terra Data Catalog
-  description: An indexed catalog of data for use in Terra
+  description: |
+    An indexed catalog of data for use in Terra.
+
+    ⚠️ Do not add sensitive data. All catalog entries are publicly accessible to all Terra users. ⚠️
   version: 0.0.1
 paths:
   /status:
     get:
-      summary: Check status of the service.
+      summary: Check status of the service
       tags: [ public ]
       operationId: getStatus
       security: [ ]
@@ -20,7 +23,7 @@ paths:
 
   /version:
     get:
-      summary: Get version info of the deployed service.
+      summary: Get version info of the deployed service
       tags: [ public ]
       operationId: getVersion
       security: [ ]
@@ -38,7 +41,7 @@ paths:
 
   /api/v1/datasets:
     get:
-      summary: Lists the available catalog datasets.
+      summary: Lists the available catalog datasets
       tags: [ datasets ]
       operationId: listDatasets
       responses:
@@ -50,8 +53,175 @@ paths:
                 $ref: '#/components/schemas/DatasetsListResponse'
         '500':
           $ref: '#/components/responses/ServerError'
+    post:
+      summary: Create a new dataset
+      tags: [ datasets ]
+      description: |
+        ⚠️ Do not add sensitive data. All catalog entries are publicly accessible to all Terra users. ⚠️
+      operationId: createDataset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDatasetRequest'
+        required: true
+      responses:
+        200:
+          $ref: '#/components/responses/DatasetResponse'
+        403:
+          description: No permission to modify metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorReport'
+  /api/v1/datasets/{id}:
+    get:
+      summary: Given a dataset ID, return its catalog entry
+      tags: [ datasets ]
+      operationId: getDataset
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: A JSON object of the dataset
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: "Dataset not found"
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      summary: Update the catalog entry for a dataset
+      tags: [ datasets ]
+      description: |
+        ⚠️ Do not add sensitive data. All catalog entries are publicly accessible to all Terra users. ⚠️
+      operationId: updateDataset
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        description: The catalog entry to replace existing entry for this dataset
+        content:
+          application/json:
+            schema:
+              type: string
+        required: true
+      responses:
+        204:
+          description: The catalog entry was updated successfully
+          content: { }
+        403:
+          description: No permission to modify metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorReport'
+        404:
+          description: Not found - dataset id does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorReport'
+    delete:
+      summary: Delete the catalog entry for a dataset
+      tags: [ datasets ]
+      operationId: deleteDataset
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        204:
+          description: The catalog entry was deleted successfully
+          content: { }
+        403:
+          description: No permission to modify metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorReport'
+        404:
+          description: Not found - dataset id does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorReport'
+  /api/v1/datasets/{id}/export/{workspaceId}:
+    post:
+      summary: Export the dataset data into a workspace
+      tags: [ datasets ]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/WorkspaceId'
+      operationId: exportDataset
+      responses:
+        '204':
+          description: The data was successfully exported into a workspace
+          content: { }
+        '403':
+          description: User does not have permission to export workspace
+        '404':
+          description: Unable to export data into a workspace
+  /api/v1/datasets/{id}/tables:
+    get:
+      summary: Given a dataset ID, return its preview metadata
+      tags: [ datasets ]
+      operationId: listDatasetPreviewTables
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: A JSON object of the preview metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatasetPreviewTablesResponse'
+        '404':
+          description: "Dataset not found"
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /api/v1/datasets/{id}/tables/{tableName}:
+    get:
+      summary: Given a dataset ID and a table name, return a table preview
+      tags: [ datasets ]
+      operationId: getDatasetPreviewTable
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - in: path
+          name: tableName
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: A JSON object of the table preview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatasetPreviewTable'
+        '404':
+          description: "Dataset not found"
+        '500':
+          $ref: '#/components/responses/ServerError'
 
 components:
+  parameters:
+    Id:
+      name: id
+      in: path
+      description: A UUID to used to identify an object in the catalog
+      required: true
+      schema:
+        type: string
+        format: uuid
+    WorkspaceId:
+      name: workspaceId
+      in: path
+      description: A UUID to used to identify a workspace object
+      required: true
+      schema:
+        type: string
+        format: uuid
 
   responses:
     SystemStatusResponse:
@@ -60,6 +230,13 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/SystemStatus'
+    DatasetResponse:
+      description: The created dataset's ID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CreatedDatasetId'
+
 
     # Error Responses
     BadRequest:
@@ -116,8 +293,17 @@ components:
                 items:
                   type: string
 
+    CreatedDatasetId:
+      type: object
+      required: [ id ]
+      properties:
+        id:
+          type: string
+          format: uuid
+
     DatasetsListResponse:
       type: object
+      required: [ result ]
       properties:
         result:
           type: array
@@ -136,6 +322,62 @@ components:
           type: string
         build:
           type: string
+
+    CreateDatasetRequest:
+      description: |
+        ⚠️ Do not add sensitive data. All catalog entries are publicly accessible to all Terra users. ⚠️
+      type: object
+      required: [storageSystem, storageSourceId]
+      properties:
+        storageSystem:
+          $ref: '#/components/schemas/StorageSystem'
+        storageSourceId:
+          type: string
+        catalogEntry:
+          type: string
+
+    DatasetPreviewTablesResponse:
+      type: object
+      properties:
+        tables:
+          type: array
+          items:
+            $ref: '#/components/schemas/TableMetadata'
+      description: >
+        DatasetPreviewTablesResponse returns information about the table structure of a dataset.
+
+    DatasetPreviewTable:
+      type: object
+      properties:
+        columns:
+          type: array
+          items:
+            $ref: '#/components/schemas/ColumnModel'
+        rows:
+          type: array
+          items:
+            type: object
+
+    ColumnModel:
+      type: object
+      properties:
+        name:
+          type: string
+
+    TableMetadata:
+      required:
+        - name
+      type: object
+      properties:
+        name:
+          type: string
+        hasData:
+          type: boolean
+
+    StorageSystem:
+      type: string
+      description: The storage system for this dataset
+      enum: ['tdr', 'wks', 'ext']
 
   securitySchemes:
     authorization:

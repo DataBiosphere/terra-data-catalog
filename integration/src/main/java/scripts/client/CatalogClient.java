@@ -6,14 +6,9 @@ import bio.terra.testrunner.runner.config.ServerSpecification;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
 import com.google.auth.oauth2.GoogleCredentials;
 import java.io.IOException;
-import java.util.List;
 import java.util.Objects;
 
 public class CatalogClient extends ApiClient {
-
-  // Required scopes for client tests include the usual login scopes and GCP scope.
-  public static final List<String> TEST_USER_SCOPES =
-      List.of("openid", "email", "profile", "https://www.googleapis.com/auth/cloud-platform");
 
   /**
    * Build the no-auth API client object for the catalog server. No access token is needed for this
@@ -39,7 +34,8 @@ public class CatalogClient extends ApiClient {
 
     if (testUser != null) {
       GoogleCredentials userCredential =
-          AuthenticationUtils.getDelegatedUserCredential(testUser, TEST_USER_SCOPES);
+          AuthenticationUtils.getDelegatedUserCredential(
+              testUser, AuthenticationUtils.userLoginScopes);
       var accessToken = AuthenticationUtils.getAccessToken(userCredential);
       if (accessToken != null) {
         setAccessToken(accessToken.getTokenValue());

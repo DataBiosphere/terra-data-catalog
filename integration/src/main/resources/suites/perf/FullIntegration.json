@@ -1,0 +1,11 @@
+{
+  "name": "FullIntegration",
+  "description": "All perf tests",
+  "serverSpecificationFile": "catalog-perf.json",
+  "testConfigurationFiles": [
+    "perf/GetStatus.json",
+    "perf/GetVersion.json",
+    "perf/DatasetPermissionOperations.json",
+    "perf/DatasetOperations.json"
+  ]
+}
