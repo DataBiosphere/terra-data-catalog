@@ -9,9 +9,12 @@ dependencies {
 }
 
 def artifactGroup = "${group}.catalog"
+// TODO should be able to use the default openapi output directory instead of needing to override it
+def openapiTargetDir = "${buildDir}/generated"
 
 openApiGenerate {
     inputSpec = "$rootDir/common/openapi.yml"
+    outputDir = "${openapiTargetDir}"
     generatorName = 'spring'
 
     generateApiDocumentation = false
@@ -22,9 +25,18 @@ openApiGenerate {
     apiPackage = "${artifactGroup}.api"
     modelPackage = "${artifactGroup}.model"
 
+    /*
+        interfaceOnly    : 'true',
+        useTags          : 'true',
+        springBootVersion: dependencyManagement.managedVersions['org.springframework.boot:spring-boot']
+
+     */
     configOptions = [
         dateLibrary      : 'java11',
-        java8            : 'true'
+        java8            : 'true',
+        interfaceOnly    : 'true',
+        library : "spring-boot",
+        useTags : "true",
     ]
 }
 
@@ -34,8 +46,8 @@ openApiGenerate {
 //sourceSets.main.java.srcDir swaggerOutputSrc
 //compileJava.dependsOn generateSwaggerCode
 
-idea.module.generatedSourceDirs = [file("${openApiGenerate.outputDir}/main/src/main/java")]
-sourceSets.main.java.srcDir "${openApiGenerate.outputDir}/main/src/main/java"
+sourceSets.main.java.srcDir "${openapiTargetDir}/src/main/java"
+ideaModule.dependsOn tasks.openApiGenerate
 compileJava.dependsOn tasks.openApiGenerate
 
 // see https://github.com/n0mer/gradle-git-properties
