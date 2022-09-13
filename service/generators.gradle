@@ -1,5 +1,4 @@
 dependencies {
-    implementation 'io.swagger.core.v3:swagger-annotations'
     runtimeOnly 'org.webjars.npm:swagger-ui-dist:4.9.0'
 
     // Versioned by Spring:
@@ -9,29 +8,35 @@ dependencies {
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 }
 
-//def artifactGroup = "${group}.catalog"
-//
-//generateSwaggerCode {
-//    inputFile = file('../common/openapi.yml')
-//    language = 'spring'
-//    components = ['models', 'apis']
-//    jvmArgs = ['--add-opens=java.base/java.util=ALL-UNNAMED']
-//    additionalProperties = [
-//        modelPackage     : "${artifactGroup}.model",
-//        apiPackage       : "${artifactGroup}.api",
-//        dateLibrary      : 'java11',
-//        java8            : true,
-//        interfaceOnly    : 'true',
-//        useTags          : 'true',
-//        springBootVersion: dependencyManagement.managedVersions['org.springframework.boot:spring-boot']
-//    ]
-//}
-//
+def artifactGroup = "${group}.catalog"
+
+openApiGenerate {
+    inputSpec = "$rootDir/common/openapi.yml"
+    generatorName = 'spring'
+
+    generateApiDocumentation = false
+    generateApiTests = false
+    generateModelDocumentation = false
+    generateModelTests = false
+
+    apiPackage = "${artifactGroup}.api"
+    modelPackage = "${artifactGroup}.model"
+
+    configOptions = [
+        dateLibrary      : 'java11',
+        java8            : 'true'
+    ]
+}
+
 //String swaggerOutputSrc = "${generateSwaggerCode.outputDir}/src/main/java"
 //
 //idea.module.generatedSourceDirs = [file(swaggerOutputSrc)]
 //sourceSets.main.java.srcDir swaggerOutputSrc
 //compileJava.dependsOn generateSwaggerCode
+
+idea.module.generatedSourceDirs = [file("${openApiGenerate.outputDir}/main/src/main/java")]
+sourceSets.main.java.srcDir "${openApiGenerate.outputDir}/main/src/main/java"
+compileJava.dependsOn tasks.openApiGenerate
 
 // see https://github.com/n0mer/gradle-git-properties
 gitProperties {
