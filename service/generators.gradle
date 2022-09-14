@@ -9,12 +9,9 @@ dependencies {
 }
 
 def artifactGroup = "${group}.catalog"
-// TODO should be able to use the default openapi output directory instead of needing to override it
-def openapiTargetDir = "${buildDir}/generated"
 
 openApiGenerate {
     inputSpec = "$rootDir/common/openapi.yml"
-    outputDir = "${openapiTargetDir}"
     generatorName = 'spring'
 
     generateApiDocumentation = false
@@ -39,6 +36,8 @@ openApiGenerate {
         useTags : 'true',
     ]
 }
+
+def openapiTargetDir = "${openApiGenerate.outputDir.get()}"
 
 sourceSets.main.java.srcDir "${openapiTargetDir}/src/main/java"
 ideaModule.dependsOn tasks.openApiGenerate
