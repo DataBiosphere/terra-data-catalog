@@ -67,6 +67,13 @@ public class DatasetService {
     private final Dataset dataset;
     private final DatasetAccessLevel accessLevel;
 
+    // This is used for the get case where we don't care about access level
+    public DatasetWithAccessLevel(Dataset dataset) {
+      this.dataset = dataset;
+      this.accessLevel = null;
+    }
+
+    // This is used for the list case where we want to include access level
     public DatasetWithAccessLevel(Dataset dataset, DatasetAccessLevel accessLevel) {
       this.dataset = dataset;
       this.accessLevel = accessLevel;
@@ -78,7 +85,17 @@ public class DatasetService {
 
     public Object convertToObject() {
       ObjectNode node = toJsonNode(dataset.metadata());
-      node.set("accessLevel", TextNode.valueOf(String.valueOf(accessLevel)));
+      if (node.get("phsId") != null && node.get("requestAccessUrl") == null) {
+        node.set(
+            "requestAccessUrl",
+            TextNode.valueOf(
+                String.format(
+                    "https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=%s",
+                    node.get("phsId").asText())));
+      }
+      if (this.accessLevel != null) {
+        node.set("accessLevel", TextNode.valueOf(String.valueOf(accessLevel)));
+      }
       node.set("id", TextNode.valueOf(dataset.id().toValue()));
       return node;
     }
@@ -245,7 +262,8 @@ public class DatasetService {
   public String getMetadata(AuthenticatedUserRequest user, DatasetId datasetId) {
     var dataset = datasetDao.retrieve(datasetId);
     ensureActionPermission(user, dataset, SamAction.READ_ANY_METADATA);
-    return dataset.metadata();
+    //    return dataset.metadata();
+    return new DatasetWithAccessLevel(dataset).convertToObject().toString();
   }
 
   public void updateMetadata(AuthenticatedUserRequest user, DatasetId datasetId, String metadata) {
