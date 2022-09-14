@@ -19,8 +19,8 @@ openApiGenerate {
     ]
 }
 
-//idea.module.generatedSourceDirs = [file("${openApiGenerate.outputDir}/main/src/main/java")]
-//sourceSets.main.java.srcDir "${openApiGenerate.outputDir}/main/src/main/java"
+idea.module.generatedSourceDirs = [file("${openApiGenerate.outputDir}/main/src/main/java")]
+sourceSets.main.java.srcDir "${openApiGenerate.outputDir}/main/src/main/java"
 
 compileJava.dependsOn tasks.openApiGenerate
 sourcesJar.dependsOn tasks.openApiGenerate
