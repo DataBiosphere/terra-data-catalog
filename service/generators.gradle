@@ -37,9 +37,9 @@ openApiGenerate {
     ]
 }
 
-def openapiTargetDir = "${openApiGenerate.outputDir.get()}"
+def openapiTargetDir = "${openApiGenerate.outputDir.get()}/src/main/java"
 
-sourceSets.main.java.srcDir "${openapiTargetDir}/src/main/java"
+sourceSets.main.java.srcDir "${openapiTargetDir}"
 ideaModule.dependsOn tasks.openApiGenerate
 compileJava.dependsOn tasks.openApiGenerate
 
