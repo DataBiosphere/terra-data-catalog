@@ -1,3 +1,8 @@
+dependencies {
+    // Version controlled by dependency management plugin
+    implementation 'com.google.code.gson:gson'
+}
+
 def artifactGroup = "${group}.catalog"
 
 openApiGenerate {
