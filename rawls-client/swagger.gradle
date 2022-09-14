@@ -4,6 +4,7 @@ dependencies {
     implementation 'org.glassfish.jersey.core:jersey-client'
     implementation 'org.glassfish.jersey.media:jersey-media-json-jackson'
     implementation 'org.glassfish.jersey.media:jersey-media-multipart'
+    implementation 'com.google.code.gson:gson'
 }
 
 task downloadRawlsYaml(type: Download) {
@@ -13,9 +14,11 @@ task downloadRawlsYaml(type: Download) {
 }
 
 def artifactGroup = "${group}.rawls"
+def openapiTargetDir = "${buildDir}/generated"
 
 openApiGenerate {
     inputSpec = "${buildDir}/rawls-api-docs.yaml"
+    outputDir = "${buildDir}/generated"
     generatorName = "java"
 
     apiPackage = "${artifactGroup}.api"
@@ -28,7 +31,9 @@ openApiGenerate {
     ]
 }
 
-idea.module.generatedSourceDirs = [file("${openApiGenerate.outputDir}/main/src/main/java")]
-sourceSets.main.java.srcDir "${openApiGenerate.outputDir}/main/src/main/java"
+// get intellij to recognize openapi generated directory
+idea.module.generatedSourceDirs = [ file("${openapiTargetDir}/src/main/java") ]
+sourceSets.main.java.srcDir "${openapiTargetDir}/src/main/java"
+
 tasks.openApiGenerate.dependsOn tasks.downloadRawlsYaml
 compileJava.dependsOn tasks.openApiGenerate
