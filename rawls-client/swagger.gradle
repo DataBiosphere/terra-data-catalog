@@ -27,3 +27,8 @@ openApiGenerate {
         java8         : 'true'
     ]
 }
+
+idea.module.generatedSourceDirs = [file("${openApiGenerate.outputDir}/main/src/main/java")]
+sourceSets.main.java.srcDir "${openApiGenerate.outputDir}/main/src/main/java"
+tasks.openApiGenerate.dependsOn tasks.downloadRawlsYaml
+compileJava.dependsOn tasks.openApiGenerate

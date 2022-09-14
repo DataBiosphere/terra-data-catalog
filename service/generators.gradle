@@ -40,12 +40,6 @@ openApiGenerate {
     ]
 }
 
-//String swaggerOutputSrc = "${generateSwaggerCode.outputDir}/src/main/java"
-//
-//idea.module.generatedSourceDirs = [file(swaggerOutputSrc)]
-//sourceSets.main.java.srcDir swaggerOutputSrc
-//compileJava.dependsOn generateSwaggerCode
-
 sourceSets.main.java.srcDir "${openapiTargetDir}/src/main/java"
 ideaModule.dependsOn tasks.openApiGenerate
 compileJava.dependsOn tasks.openApiGenerate
