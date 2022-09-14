@@ -35,8 +35,8 @@ openApiGenerate {
         dateLibrary      : 'java11',
         java8            : 'true',
         interfaceOnly    : 'true',
-        library : "spring-boot",
-        useTags : "true",
+        library : 'spring-boot',
+        useTags : 'true',
     ]
 }
 
