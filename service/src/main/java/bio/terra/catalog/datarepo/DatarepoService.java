@@ -1,6 +1,6 @@
 package bio.terra.catalog.datarepo;
 
-import bio.terra.catalog.model.SystemStatusSystems;
+import bio.terra.catalog.model.SystemStatusSystemsValue;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
@@ -105,14 +105,14 @@ public class DatarepoService {
     }
   }
 
-  public SystemStatusSystems status() {
-    var result = new SystemStatusSystems();
+  public SystemStatusSystemsValue status() {
+    var result = new SystemStatusSystemsValue();
     try {
       // Don't retry status check
       RepositoryStatusModel status = datarepoClient.unauthenticatedApi().serviceStatus();
       result.ok(status.isOk());
       // Populate error message if system status is non-ok
-      if (result.isOk() == null || !result.isOk()) {
+      if (result.getOk() == null || !result.getOk()) {
         String errorMsg = "Data repo status check failed. Messages = " + status.getSystems();
         logger.error(errorMsg);
         result.addMessagesItem(errorMsg);

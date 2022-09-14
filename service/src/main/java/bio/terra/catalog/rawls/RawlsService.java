@@ -1,6 +1,6 @@
 package bio.terra.catalog.rawls;
 
-import bio.terra.catalog.model.SystemStatusSystems;
+import bio.terra.catalog.model.SystemStatusSystemsValue;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.rawls.client.ApiException;
@@ -108,8 +108,8 @@ public class RawlsService {
     }
   }
 
-  public SystemStatusSystems status() {
-    var result = new SystemStatusSystems();
+  public SystemStatusSystemsValue status() {
+    var result = new SystemStatusSystemsValue();
     try {
       // If the status is down then this method will throw
       rawlsClient.statusApi().systemStatus();
