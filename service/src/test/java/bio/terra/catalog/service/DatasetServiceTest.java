@@ -109,8 +109,8 @@ class DatasetServiceTest {
         new DatasetService(datarepoService, rawlsService, samService, datasetDao, objectMapper);
   }
 
-  private void mockDataset(Dataset datasetToMock) {
-    when(datasetDao.retrieve(datasetId)).thenReturn(datasetToMock);
+  private void mockDataset() {
+    when(datasetDao.retrieve(datasetId)).thenReturn(dataset);
   }
 
   @Test
@@ -175,13 +175,13 @@ class DatasetServiceTest {
 
   @Test()
   void testDeleteMetadataWithInvalidUser() {
-    mockDataset(dataset);
+    mockDataset();
     assertThrows(UnauthorizedException.class, () -> datasetService.deleteMetadata(user, datasetId));
   }
 
   @Test()
   void testDeleteMetadata() {
-    mockDataset(dataset);
+    mockDataset();
     when(samService.hasGlobalAction(user, SamAction.DELETE_ANY_METADATA)).thenReturn(true);
     datasetService.deleteMetadata(user, datasetId);
     verify(datasetDao).delete(dataset);
@@ -189,13 +189,13 @@ class DatasetServiceTest {
 
   @Test
   void testGetMetadataWithInvalidUser() {
-    mockDataset(dataset);
+    mockDataset();
     assertThrows(UnauthorizedException.class, () -> datasetService.getMetadata(user, datasetId));
   }
 
   @Test
   void testGetMetadata() {
-    mockDataset(dataset);
+    mockDataset();
     when(samService.hasGlobalAction(user, SamAction.READ_ANY_METADATA)).thenReturn(true);
     datasetService.getMetadata(user, datasetId);
     verify(datasetDao).retrieve(datasetId);
@@ -203,10 +203,11 @@ class DatasetServiceTest {
 
   @Test
   void testGetMetadataWithPhsId() {
-    mockDataset(tdrDatasetWithPhsId);
+    when(datasetDao.retrieve(tdrDataset.id())).thenReturn(tdrDataset);
     when(samService.hasGlobalAction(user, SamAction.READ_ANY_METADATA)).thenReturn(true);
-    String datasetMetadata = datasetService.getMetadata(user, datasetId);
-    verify(datasetDao).retrieve(datasetId);
+    when(datarepoService.getSnapshotPhsId(user, tdrDataset.storageSourceId())).thenReturn("1234");
+    String datasetMetadata = datasetService.getMetadata(user, tdrDataset.id());
+    verify(datasetDao).retrieve(tdrDataset.id());
     assertThat(datasetMetadata, containsString("requestAccessUrl"));
   }
 
@@ -221,7 +222,7 @@ class DatasetServiceTest {
 
   @Test
   void testUpdateMetadataWithInvalidUser() {
-    mockDataset(dataset);
+    mockDataset();
     assertThrows(
         UnauthorizedException.class,
         () -> datasetService.updateMetadata(user, datasetId, metadata));
@@ -229,7 +230,7 @@ class DatasetServiceTest {
 
   @Test
   void testUpdateMetadata() {
-    mockDataset(dataset);
+    mockDataset();
     when(samService.hasGlobalAction(user, SamAction.UPDATE_ANY_METADATA)).thenReturn(true);
     datasetService.updateMetadata(user, datasetId, metadata);
     verify(datasetDao).update(dataset.withMetadata(metadata));

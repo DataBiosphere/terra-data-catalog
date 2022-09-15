@@ -19,9 +19,11 @@ import bio.terra.datarepo.model.RepositoryStatusModel;
 import bio.terra.datarepo.model.SnapshotModel;
 import bio.terra.datarepo.model.SnapshotPreviewModel;
 import bio.terra.datarepo.model.SnapshotRetrieveIncludeModel;
+import bio.terra.datarepo.model.SnapshotSummaryModel;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,12 +56,32 @@ class DatarepoServiceTest {
   @Test
   void getSnapshots() throws Exception {
     mockSnapshots();
-    var items = Map.of("id", List.of("steward"));
-    var expectedItems = Map.of("id", DatasetAccessLevel.OWNER);
-    var esm = new EnumerateSnapshotModel().roleMap(items);
+    UUID snapshotId = UUID.randomUUID();
+    var items = Map.of(snapshotId.toString(), List.of("steward"));
+    var expectedItems =
+        Map.of(snapshotId.toString(), new RoleAndPhsId(DatasetAccessLevel.OWNER, "1234"));
+    var esm =
+        new EnumerateSnapshotModel()
+            .items(List.of(new SnapshotSummaryModel().id(snapshotId).phsId("1234")))
+            .roleMap(items);
     when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any()))
         .thenReturn(esm);
-    assertThat(datarepoService.getSnapshotIdsAndRoles(user), is(expectedItems));
+    var returnedItems = datarepoService.getSnapshotIdsAndRoles(user);
+    assertThat(returnedItems.keySet(), is(expectedItems.keySet()));
+    assertThat(
+        returnedItems.values().stream()
+            .map(RoleAndPhsId::getDatasetAccessLevel)
+            .collect(Collectors.toList()),
+        is(
+            expectedItems.values().stream()
+                .map(RoleAndPhsId::getDatasetAccessLevel)
+                .collect(Collectors.toList())));
+    assertThat(
+        returnedItems.values().stream().map(RoleAndPhsId::getPhsId).collect(Collectors.toList()),
+        is(
+            expectedItems.values().stream()
+                .map(RoleAndPhsId::getPhsId)
+                .collect(Collectors.toList())));
   }
 
   @Test
