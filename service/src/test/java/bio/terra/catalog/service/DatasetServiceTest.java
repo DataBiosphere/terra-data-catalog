@@ -20,6 +20,7 @@ import static org.mockito.Mockito.when;
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.config.BeanConfig;
 import bio.terra.catalog.datarepo.DatarepoService;
+import bio.terra.catalog.datarepo.RoleAndPhsId;
 import bio.terra.catalog.iam.SamAction;
 import bio.terra.catalog.iam.SamService;
 import bio.terra.catalog.model.DatasetPreviewTable;
@@ -115,7 +116,7 @@ class DatasetServiceTest {
   @Test
   void listDatasets() {
     var workspaces = Map.of(workspaceSourceId, DatasetAccessLevel.OWNER);
-    var idToRole = Map.of(sourceId, DatasetAccessLevel.OWNER);
+    var idToRole = Map.of(sourceId, new RoleAndPhsId(DatasetAccessLevel.OWNER, null));
     when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(idToRole);
     when(rawlsService.getWorkspaceIdsAndRoles(user)).thenReturn(workspaces);
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, workspaces.keySet()))
@@ -135,7 +136,7 @@ class DatasetServiceTest {
 
   @Test
   void listDatasetsWithPhsId() {
-    var idToRole = Map.of(sourceId, DatasetAccessLevel.OWNER);
+    var idToRole = Map.of(sourceId, new RoleAndPhsId(DatasetAccessLevel.OWNER, "1234"));
     when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(idToRole);
     when(rawlsService.getWorkspaceIdsAndRoles(user)).thenReturn(Map.of());
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, Set.of())).thenReturn(List.of());
@@ -153,7 +154,7 @@ class DatasetServiceTest {
   @Test
   void listDatasetsUsingAdminPermissions() {
     Map<String, DatasetAccessLevel> workspaces = Map.of();
-    var datasets = Map.of(sourceId, DatasetAccessLevel.OWNER);
+    var datasets = Map.of(sourceId, new RoleAndPhsId(DatasetAccessLevel.OWNER, null));
     when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(datasets);
     when(rawlsService.getWorkspaceIdsAndRoles(user)).thenReturn(workspaces);
     when(samService.hasGlobalAction(user, SamAction.READ_ANY_METADATA)).thenReturn(true);

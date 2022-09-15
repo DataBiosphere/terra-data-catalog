@@ -5,6 +5,7 @@ import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.client.ApiException;
+import bio.terra.datarepo.model.EnumerateSnapshotModel;
 import bio.terra.datarepo.model.RepositoryStatusModel;
 import bio.terra.datarepo.model.SnapshotModel;
 import bio.terra.datarepo.model.SnapshotPreviewModel;
@@ -56,17 +57,23 @@ public class DatarepoService {
     return DatasetAccessLevel.NO_ACCESS;
   }
 
-  public Map<String, DatasetAccessLevel> getSnapshotIdsAndRoles(AuthenticatedUserRequest user) {
+  public Map<String, RoleAndPhsId> getSnapshotIdsAndRoles(AuthenticatedUserRequest user) {
     try {
-      Map<String, List<String>> response =
+      EnumerateSnapshotModel response =
           datarepoClient
               .snapshotsApi(user)
-              .enumerateSnapshots(null, MAX_DATASETS, null, null, null, null, null)
-              .getRoleMap();
-      return response.entrySet().stream()
+              .enumerateSnapshots(null, MAX_DATASETS, null, null, null, null, null);
+      Map<String, List<String>> roleMap = response.getRoleMap();
+
+      return response.getItems().stream()
           .collect(
               Collectors.toMap(
-                  Map.Entry::getKey, entry -> getHighestAccessFromRoleList(entry.getValue())));
+                  snapshotSummaryModel -> snapshotSummaryModel.getId().toString(),
+                  snapshotSummaryModel ->
+                      new RoleAndPhsId(
+                          getHighestAccessFromRoleList(
+                              roleMap.get(snapshotSummaryModel.getId().toString())),
+                          snapshotSummaryModel.getPhsId())));
     } catch (ApiException e) {
       throw new DatarepoException("Enumerate snapshots failed", e);
     }
@@ -102,6 +109,22 @@ public class DatarepoService {
       return getHighestAccessFromRoleList(roles);
     } catch (ApiException e) {
       throw new DatarepoException("Get snapshot roles failed", e);
+    }
+  }
+
+  public String getSnapshotPhsId(AuthenticatedUserRequest user, String snapshotId) {
+    try {
+      UUID id = UUID.fromString(snapshotId);
+      return datarepoClient
+          .snapshotsApi(user)
+          .retrieveSnapshot(id, List.of(SnapshotRetrieveIncludeModel.SOURCES))
+          .getSource()
+          .stream()
+          .findFirst()
+          .map(snapshotSourceModel -> snapshotSourceModel.getDataset().getPhsId())
+          .orElse(null);
+    } catch (ApiException e) {
+      throw new DatarepoException("Get snapshot failed", e);
     }
   }
 

@@ -22,6 +22,8 @@ import bio.terra.datarepo.model.DatasetModel;
 import bio.terra.rawls.model.WorkspaceDetails;
 import bio.terra.testrunner.runner.TestScript;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.api.client.http.HttpStatusCodes;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +45,7 @@ import scripts.client.RawlsClient;
 public class DatasetOperations extends TestScript {
 
   private static final Logger log = LoggerFactory.getLogger(DatasetOperations.class);
+  private static final ObjectMapper objectMapper = new ObjectMapper();
 
   // TDR APIs
   private SnapshotsApi snapshotsApi;
@@ -78,11 +81,9 @@ public class DatasetOperations extends TestScript {
     snapshotId = snapshotsApi.createTestSnapshot(tdrDataset);
   }
 
-  private static final String METADATA_1 = """
-      {"name": "test"}""";
+  private static final ObjectNode METADATA_1 = objectMapper.createObjectNode().put("name", "test");
 
-  private static final String METADATA_2 = """
-      {"name": "test2"}""";
+  private static final ObjectNode METADATA_2 = objectMapper.createObjectNode().put("name", "test2").put("phsId", 123);
 
   @Override
   public void userJourney(TestUserSpecification testUser) throws Exception {
@@ -104,7 +105,7 @@ public class DatasetOperations extends TestScript {
     // Create workspace dataset
     var request =
         new CreateDatasetRequest()
-            .catalogEntry(METADATA_1)
+            .catalogEntry(METADATA_1.toString())
             .storageSourceId(workspaceSource.getWorkspaceId())
             .storageSystem(storageSystem);
     datasetId = datasetsApi.createDataset(request).getId();
@@ -129,7 +130,7 @@ public class DatasetOperations extends TestScript {
     // Given a snapshot, create a catalog entry.
     var request =
         new CreateDatasetRequest()
-            .catalogEntry(METADATA_1)
+            .catalogEntry(METADATA_1.toString())
             .storageSourceId(sourceId)
             .storageSystem(storageSystem);
     datasetId = datasetsApi.createDataset(request).getId();
@@ -166,7 +167,7 @@ public class DatasetOperations extends TestScript {
     // Given a snapshot, create a catalog entry.
     var request =
         new CreateDatasetRequest()
-            .catalogEntry(METADATA_1)
+            .catalogEntry(METADATA_1.toString())
             .storageSourceId(sourceId)
             .storageSystem(storageSystem);
     datasetId = datasetsApi.createDataset(request).getId();
@@ -184,11 +185,11 @@ public class DatasetOperations extends TestScript {
     resultHasDatasetWithRoles(datasets.getResult());
 
     // Modify the entry
-    datasetsApi.updateDataset(METADATA_2, datasetId);
+    datasetsApi.updateDataset(METADATA_2.toString(), datasetId);
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_NO_CONTENT));
 
     // Verify modify success
-    assertThat(datasetsApi.getDataset(datasetId), is(METADATA_2));
+    assertThat(datasetsApi.getDataset(datasetId), is(METADATA_2.deepCopy().put("requestAccessUrl", "https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=123")));
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
 
     // Delete the entry
