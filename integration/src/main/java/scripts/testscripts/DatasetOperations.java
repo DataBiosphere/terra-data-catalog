@@ -22,6 +22,7 @@ import bio.terra.datarepo.model.DatasetModel;
 import bio.terra.rawls.model.WorkspaceDetails;
 import bio.terra.testrunner.runner.TestScript;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.api.client.http.HttpStatusCodes;
@@ -163,8 +164,22 @@ public class DatasetOperations extends TestScript {
     datasetId = null;
   }
 
+  private ObjectNode expectedMetadataResponse(ObjectNode metadata, StorageSystem storageSystem) {
+    ObjectNode expectedMetadata = metadata.deepCopy().put("id", datasetId.toString());
+    if (storageSystem.equals(StorageSystem.TDR)) {
+      expectedMetadata
+          .put("phsId", "1234")
+          .put(
+              "dcat:accessURL",
+              String.format(
+                  "https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=%s",
+                  "1234"));
+    }
+    return expectedMetadata;
+  }
+
   private void crudUserJourney(CatalogClient client, StorageSystem storageSystem, String sourceId)
-      throws ApiException {
+      throws ApiException, JsonProcessingException {
     // Given a snapshot, create a catalog entry.
     var request =
         new CreateDatasetRequest()
@@ -177,38 +192,22 @@ public class DatasetOperations extends TestScript {
     log.info("created dataset " + datasetId);
 
     // Retrieve the entry
-    String expectedMetadata =
-        METADATA_1
-            .deepCopy()
-            .put("phsId", "1234")
-            .put(
-                "dcat:accessURL",
-                String.format(
-                    "https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=%s",
-                    "1234"))
-            .put("id", datasetId.toString())
-            .toString();
-    assertThat(datasetsApi.getDataset(datasetId), is(expectedMetadata));
+    ObjectNode expectedMetadata = expectedMetadataResponse(METADATA_1, storageSystem);
+    assertEquals(objectMapper.readTree(datasetsApi.getDataset(datasetId)), expectedMetadata);
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
 
     // Retrieve all datasets
     var datasets = datasetsApi.listDatasets();
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
-    resultHasDatasetWithRoles(datasets.getResult());
+    resultHasDatasetWithRoles(datasets.getResult(), storageSystem);
 
     // Modify the entry
     datasetsApi.updateDataset(METADATA_2.toString(), datasetId);
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_NO_CONTENT));
 
+    ObjectNode expectedMetadataTwo = expectedMetadataResponse(METADATA_2, storageSystem);
     // Verify modify success
-    assertThat(
-        datasetsApi.getDataset(datasetId),
-        is(
-            METADATA_2
-                .deepCopy()
-                .put(
-                    "requestAccessUrl",
-                    "https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=123")));
+    assertEquals(objectMapper.readTree(datasetsApi.getDataset(datasetId)), expectedMetadataTwo);
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
 
     // Delete the entry
@@ -222,7 +221,7 @@ public class DatasetOperations extends TestScript {
     datasetId = null;
   }
 
-  private void resultHasDatasetWithRoles(List<Object> datasets) {
+  private void resultHasDatasetWithRoles(List<Object> datasets, StorageSystem storageSystem) {
     for (Object datasetObj : datasets) {
       @SuppressWarnings("unchecked")
       Map<Object, Object> dataset = (Map<Object, Object>) datasetObj;
@@ -230,6 +229,14 @@ public class DatasetOperations extends TestScript {
         assertThat(dataset, hasEntry(is("name"), is("test")));
         assertThat(dataset, hasEntry(is("id"), is(datasetId.toString())));
         assertThat(dataset, hasEntry(is("accessLevel"), is("owner")));
+        if (storageSystem.equals(StorageSystem.TDR)) {
+          assertThat(dataset, hasEntry(is("phsId"), is("1234")));
+          assertThat(
+              dataset,
+              hasEntry(
+                  is("dcat:accessURL"),
+                  is("https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=1234")));
+        }
         return;
       }
     }
