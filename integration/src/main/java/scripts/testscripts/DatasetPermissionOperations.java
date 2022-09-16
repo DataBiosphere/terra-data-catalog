@@ -186,8 +186,7 @@ public class DatasetPermissionOperations extends TestScript {
     // But admin cannot access the underlying preview data
     assertThrows(Exception.class, () -> adminDatasetsApi.listDatasetPreviewTables(datasetId));
     assertThat(
-        adminDatasetsApi.getApiClient().getStatusCode(),
-        is(HttpStatusCodes.STATUS_CODE_UNAUTHORIZED));
+        adminDatasetsApi.getApiClient().getStatusCode(), is(HttpStatusCodes.STATUS_CODE_FORBIDDEN));
   }
 
   private void setTestSnapshotPermissionForRegularUser(String policy) throws Exception {
