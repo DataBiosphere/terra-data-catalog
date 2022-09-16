@@ -83,7 +83,8 @@ public class DatasetOperations extends TestScript {
 
   private static final ObjectNode METADATA_1 = objectMapper.createObjectNode().put("name", "test");
 
-  private static final ObjectNode METADATA_2 = objectMapper.createObjectNode().put("name", "test2").put("phsId", 123);
+  private static final ObjectNode METADATA_2 =
+      objectMapper.createObjectNode().put("name", "test2").put("phsId", 123);
 
   @Override
   public void userJourney(TestUserSpecification testUser) throws Exception {
@@ -189,7 +190,14 @@ public class DatasetOperations extends TestScript {
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_NO_CONTENT));
 
     // Verify modify success
-    assertThat(datasetsApi.getDataset(datasetId), is(METADATA_2.deepCopy().put("requestAccessUrl", "https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=123")));
+    assertThat(
+        datasetsApi.getDataset(datasetId),
+        is(
+            METADATA_2
+                .deepCopy()
+                .put(
+                    "requestAccessUrl",
+                    "https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=123")));
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
 
     // Delete the entry
