@@ -77,7 +77,8 @@ public class DatasetService {
     }
 
     // This is used for the list case where we want to include access level
-    public DatasetWithPhsIdAndAccessLevel(Dataset dataset, String phsId, DatasetAccessLevel accessLevel) {
+    public DatasetWithPhsIdAndAccessLevel(
+        Dataset dataset, String phsId, DatasetAccessLevel accessLevel) {
       this.dataset = dataset;
       this.phsId = phsId;
       this.accessLevel = accessLevel;
@@ -141,18 +142,21 @@ public class DatasetService {
     return datasets.stream()
         .map(
             dataset ->
-                new DatasetWithPhsIdAndAccessLevel(dataset, null, roleMap.get(dataset.storageSourceId())))
+                new DatasetWithPhsIdAndAccessLevel(
+                    dataset, null, roleMap.get(dataset.storageSourceId())))
         .toList();
   }
 
-  private List<DatasetWithPhsIdAndAccessLevel> collectDatarepoDatasets(AuthenticatedUserRequest user) {
+  private List<DatasetWithPhsIdAndAccessLevel> collectDatarepoDatasets(
+      AuthenticatedUserRequest user) {
     // For this storage system, get the collection of visible datasets and the user's roles for
     // each dataset.
     var roleMap = datarepoService.getSnapshotIdsAndRoles(user);
     return convertTdrSnapshotsToDatasetsWithAccessLevel(roleMap);
   }
 
-  private List<DatasetWithPhsIdAndAccessLevel> collectWorkspaceDatasets(AuthenticatedUserRequest user) {
+  private List<DatasetWithPhsIdAndAccessLevel> collectWorkspaceDatasets(
+      AuthenticatedUserRequest user) {
     var roleMap = rawlsService.getWorkspaceIdsAndRoles(user);
     return convertWorkspacesToDatasetsWithAccessLevel(roleMap);
   }
@@ -164,7 +168,9 @@ public class DatasetService {
     if (samService.hasGlobalAction(user, SamAction.READ_ANY_METADATA)) {
       datasets.addAll(
           datasetDao.listAllDatasets().stream()
-              .map(dataset -> new DatasetWithPhsIdAndAccessLevel(dataset, null, DatasetAccessLevel.READER))
+              .map(
+                  dataset ->
+                      new DatasetWithPhsIdAndAccessLevel(dataset, null, DatasetAccessLevel.READER))
               .filter(
                   datasetWithAccessLevel ->
                       !datasets.stream()
@@ -175,7 +181,8 @@ public class DatasetService {
     }
     var response = new DatasetsListResponse();
 
-    response.setResult(datasets.stream().map(DatasetWithPhsIdAndAccessLevel::convertToObject).toList());
+    response.setResult(
+        datasets.stream().map(DatasetWithPhsIdAndAccessLevel::convertToObject).toList());
     return response;
   }
 

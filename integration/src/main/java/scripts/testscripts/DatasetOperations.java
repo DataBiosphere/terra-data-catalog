@@ -177,7 +177,18 @@ public class DatasetOperations extends TestScript {
     log.info("created dataset " + datasetId);
 
     // Retrieve the entry
-    assertThat(datasetsApi.getDataset(datasetId), is(METADATA_1));
+    String expectedMetadata =
+        METADATA_1
+            .deepCopy()
+            .put("phsId", "1234")
+            .put(
+                "dcat:accessURL",
+                String.format(
+                    "https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=%s",
+                    "1234"))
+            .put("id", datasetId.toString())
+            .toString();
+    assertThat(datasetsApi.getDataset(datasetId), is(expectedMetadata));
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
 
     // Retrieve all datasets
