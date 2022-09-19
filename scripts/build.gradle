@@ -14,7 +14,7 @@ shellcheck {
 spotless {
     python {
         target '**/*.py'
-        black()
+        black('22.6.0')
     }
 }
 
