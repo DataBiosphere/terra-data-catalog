@@ -36,6 +36,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class DatasetService {
+  public static final String REQUEST_ACCESS_URL_PROPERTY_NAME = "requestAccessURL";
+  public static final String PHS_ID_PROPERTY_NAME = "phsId";
   private final DatarepoService datarepoService;
   private final RawlsService rawlsService;
   private final SamService samService;
@@ -100,14 +102,14 @@ public class DatasetService {
 
     private void maybeSetNodeAccessUrlBasedOnPhsId(ObjectNode node) {
       if (phsId != null) {
-        node.set("phsId", TextNode.valueOf(phsId));
-        if (node.get("dcat:accessURL") == null) {
+        node.set(PHS_ID_PROPERTY_NAME, TextNode.valueOf(phsId));
+        if (node.get(REQUEST_ACCESS_URL_PROPERTY_NAME) == null) {
           node.set(
-              "dcat:accessURL",
+              REQUEST_ACCESS_URL_PROPERTY_NAME,
               TextNode.valueOf(
                   String.format(
                       "https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=%s",
-                      node.get("phsId").asText())));
+                      node.get(PHS_ID_PROPERTY_NAME).asText())));
         }
       }
     }

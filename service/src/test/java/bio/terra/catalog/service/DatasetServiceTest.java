@@ -145,7 +145,7 @@ class DatasetServiceTest {
     ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets(user).getResult().get(0);
     assertThat(tdrJson.get("name").asText(), is("name"));
     assertThat(
-        tdrJson.get("requestAccessUrl").asText(),
+        tdrJson.get("requestAccessURL").asText(),
         is("https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=1234"));
     assertThat(tdrJson.get("id").asText(), is(tdrDatasetWithPhsId.id().toValue()));
     assertThat(tdrJson.get("accessLevel").asText(), is(String.valueOf(DatasetAccessLevel.OWNER)));
@@ -208,7 +208,7 @@ class DatasetServiceTest {
     when(datarepoService.getSnapshotPhsId(user, tdrDataset.storageSourceId())).thenReturn("1234");
     String datasetMetadata = datasetService.getMetadata(user, tdrDataset.id());
     verify(datasetDao).retrieve(tdrDataset.id());
-    assertThat(datasetMetadata, containsString("requestAccessUrl"));
+    assertThat(datasetMetadata, containsString("requestAccessURL"));
   }
 
   @Test

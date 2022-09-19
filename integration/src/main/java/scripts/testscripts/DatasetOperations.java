@@ -170,7 +170,7 @@ public class DatasetOperations extends TestScript {
       expectedMetadata
           .put("phsId", "1234")
           .put(
-              "dcat:accessURL",
+              "requestAccessURL",
               String.format(
                   "https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=%s",
                   "1234"));
@@ -234,7 +234,7 @@ public class DatasetOperations extends TestScript {
           assertThat(
               dataset,
               hasEntry(
-                  is("dcat:accessURL"),
+                  is("requestAccessURL"),
                   is("https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=1234")));
         }
         return;
