@@ -18,6 +18,8 @@ env:
     basePath: ${DATAREPO_ADDRESS:https://jade.datarepo-dev.broadinstitute.org}
   rawls:
     basePath: ${RAWLS_ADDRESS:https://rawls.dsde-dev.broadinstitute.org}
+  schema:
+    basePath: ${SCHEMA_ADDRESS:https://github.com}
 
 # Below here is non-deployment-specific
 
@@ -73,6 +75,9 @@ catalog:
 
   rawls:
     basePath: ${env.rawls.basePath}
+
+  schema:
+    basePath: ${env.schema.basePath}
 
 terra.common:
   kubernetes:

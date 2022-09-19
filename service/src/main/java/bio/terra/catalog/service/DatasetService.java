@@ -23,16 +23,26 @@ import bio.terra.datarepo.model.TableModel;
 import bio.terra.rawls.model.Entity;
 import bio.terra.rawls.model.EntityTypeMetadata;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import com.networknt.schema.JsonSchema;
+import com.networknt.schema.JsonSchemaFactory;
+import com.networknt.schema.SpecVersion;
+import com.networknt.schema.ValidationMessage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
 
 @Service
 public class DatasetService {
@@ -43,7 +53,8 @@ public class DatasetService {
   private final SamService samService;
   private final DatasetDao datasetDao;
   private final ObjectMapper objectMapper;
-
+  @Value("${catalog.schema.basePath}")
+  private String CATALOG_SCHEMA_PATH;
   private static final int MAX_ROWS = 30;
 
   @Autowired
@@ -306,9 +317,23 @@ public class DatasetService {
     var tableMetadataList = generateDatasetTables(user, dataset);
     return new DatasetPreviewTablesResponse().tables(tableMetadataList);
   }
+  private JsonSchema getJsonSchemaFromUrl(String uri) throws URISyntaxException {
+    JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4);
+    return factory.getSchema(new URI(uri));
+  }
 
-  private void validateMetadata(String metadata) {
-    toJsonNode(metadata);
+  private ObjectNode validateMetadata(String metadata) {
+    JsonSchema schema;
+    try {
+      schema = getJsonSchemaFromUrl(CATALOG_SCHEMA_PATH);
+    } catch(URISyntaxException e){
+      throw new BadRequestException("Catalog URL is invalid", e);
+    }
+    Set<ValidationMessage> errors = schema.validate(toJsonNode(metadata));
+    if(errors.size() > 0){
+      throw new BadRequestException("Catalog entry is invalid: " + errors);
+    }
+    return toJsonNode(metadata);
   }
 
   private static List<TableMetadata> convertDatarepoTablesToCatalogTables(
