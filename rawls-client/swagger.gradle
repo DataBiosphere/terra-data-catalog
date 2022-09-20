@@ -1,6 +1,13 @@
 dependencies {
     // Version controlled by dependency management plugin
     implementation 'com.google.code.gson:gson'
+    implementation 'javax.ws.rs:javax.ws.rs-api:2.1.1'
+    implementation 'io.swagger:swagger-annotations:1.6.2'
+    implementation 'com.squareup.okio:okio:2.8.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.9.3'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.9.3'
+    implementation 'org.apache.oltu.oauth2:org.apache.oltu.oauth2.client:1.0.1'
+    implementation 'io.gsonfire:gson-fire:1.8.4'
 }
 
 java {
