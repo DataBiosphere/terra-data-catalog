@@ -179,7 +179,7 @@ public class DatasetOperations extends TestScript {
   }
 
   private void crudUserJourney(CatalogClient client, StorageSystem storageSystem, String sourceId)
-      throws ApiException, JsonProcessingException {
+      throws Exception {
     // Given a snapshot, create a catalog entry.
     var request =
         new CreateDatasetRequest()

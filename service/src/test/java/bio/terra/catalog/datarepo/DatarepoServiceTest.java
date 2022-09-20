@@ -59,7 +59,7 @@ class DatarepoServiceTest {
     UUID snapshotId = UUID.randomUUID();
     var items = Map.of(snapshotId.toString(), List.of("steward"));
     var expectedItems =
-        Map.of(snapshotId.toString(), new RoleAndPhsId(DatasetAccessLevel.OWNER, "1234"));
+        Map.of(snapshotId.toString(), new RoleAndPhsId().datasetAccessLevel(DatasetAccessLevel.OWNER).phsId("1234"));
     var esm =
         new EnumerateSnapshotModel()
             .items(List.of(new SnapshotSummaryModel().id(snapshotId).phsId("1234")))
@@ -81,7 +81,7 @@ class DatarepoServiceTest {
         is(
             expectedItems.values().stream()
                 .map(RoleAndPhsId::getPhsId)
-                .collect(Collectors.toList())));
+                .toList()));
   }
 
   @Test

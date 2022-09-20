@@ -86,14 +86,6 @@ class DatasetServiceTest {
           StorageSystem.TERRA_DATA_REPO,
           metadata,
           null);
-  private static final Dataset tdrDatasetWithPhsId =
-      new Dataset(
-          new DatasetId(UUID.randomUUID()),
-          sourceId,
-          StorageSystem.TERRA_DATA_REPO,
-          """
-      {"name":"name", "phsId": 1234}""",
-          null);
 
   private static final Dataset workspaceDataset =
       new Dataset(
@@ -116,7 +108,7 @@ class DatasetServiceTest {
   @Test
   void listDatasets() {
     var workspaces = Map.of(workspaceSourceId, DatasetAccessLevel.OWNER);
-    var idToRole = Map.of(sourceId, new RoleAndPhsId(DatasetAccessLevel.OWNER, null));
+    var idToRole = Map.of(sourceId, new RoleAndPhsId().datasetAccessLevel(DatasetAccessLevel.OWNER));
     when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(idToRole);
     when(rawlsService.getWorkspaceIdsAndRoles(user)).thenReturn(workspaces);
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, workspaces.keySet()))
@@ -136,25 +128,25 @@ class DatasetServiceTest {
 
   @Test
   void listDatasetsWithPhsId() {
-    var idToRole = Map.of(sourceId, new RoleAndPhsId(DatasetAccessLevel.OWNER, "1234"));
+    var idToRole = Map.of(sourceId, new RoleAndPhsId().datasetAccessLevel(DatasetAccessLevel.OWNER).phsId("1234"));
     when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(idToRole);
     when(rawlsService.getWorkspaceIdsAndRoles(user)).thenReturn(Map.of());
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, Set.of())).thenReturn(List.of());
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
-        .thenReturn(List.of(tdrDatasetWithPhsId));
+        .thenReturn(List.of(tdrDataset));
     ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets(user).getResult().get(0);
     assertThat(tdrJson.get("name").asText(), is("name"));
     assertThat(
         tdrJson.get("requestAccessURL").asText(),
         is("https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=1234"));
-    assertThat(tdrJson.get("id").asText(), is(tdrDatasetWithPhsId.id().toValue()));
+    assertThat(tdrJson.get("id").asText(), is(tdrDataset.id().toValue()));
     assertThat(tdrJson.get("accessLevel").asText(), is(String.valueOf(DatasetAccessLevel.OWNER)));
   }
 
   @Test
   void listDatasetsUsingAdminPermissions() {
     Map<String, DatasetAccessLevel> workspaces = Map.of();
-    var datasets = Map.of(sourceId, new RoleAndPhsId(DatasetAccessLevel.OWNER, null));
+    var datasets = Map.of(sourceId, new RoleAndPhsId().datasetAccessLevel(DatasetAccessLevel.OWNER));
     when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(datasets);
     when(rawlsService.getWorkspaceIdsAndRoles(user)).thenReturn(workspaces);
     when(samService.hasGlobalAction(user, SamAction.READ_ANY_METADATA)).thenReturn(true);
@@ -207,7 +199,6 @@ class DatasetServiceTest {
     when(samService.hasGlobalAction(user, SamAction.READ_ANY_METADATA)).thenReturn(true);
     when(datarepoService.getSnapshotPhsId(user, tdrDataset.storageSourceId())).thenReturn("1234");
     String datasetMetadata = datasetService.getMetadata(user, tdrDataset.id());
-    verify(datasetDao).retrieve(tdrDataset.id());
     assertThat(datasetMetadata, containsString("requestAccessURL"));
   }
 
