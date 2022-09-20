@@ -70,10 +70,11 @@ public class DatarepoService {
               Collectors.toMap(
                   snapshotSummaryModel -> snapshotSummaryModel.getId().toString(),
                   snapshotSummaryModel ->
-                      new RoleAndPhsId().datasetAccessLevel(
-                          getHighestAccessFromRoleList(
-                              roleMap.get(snapshotSummaryModel.getId().toString()))).phsId(
-                          snapshotSummaryModel.getPhsId())));
+                      new RoleAndPhsId()
+                          .datasetAccessLevel(
+                              getHighestAccessFromRoleList(
+                                  roleMap.get(snapshotSummaryModel.getId().toString())))
+                          .phsId(snapshotSummaryModel.getPhsId())));
     } catch (ApiException e) {
       throw new DatarepoException("Enumerate snapshots failed", e);
     }

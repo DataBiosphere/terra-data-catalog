@@ -84,7 +84,9 @@ public class DatasetService {
       ObjectNode node = toJsonNode(dataset.metadata());
       addPhsProperties(node);
       if (this.roleAndPhsId.getDatasetAccessLevel() != null) {
-        node.set("accessLevel", TextNode.valueOf(String.valueOf(this.roleAndPhsId.getDatasetAccessLevel())));
+        node.set(
+            "accessLevel",
+            TextNode.valueOf(String.valueOf(this.roleAndPhsId.getDatasetAccessLevel())));
       }
       node.set("id", TextNode.valueOf(dataset.id().toValue()));
       return node;
@@ -119,11 +121,7 @@ public class DatasetService {
       Map<String, RoleAndPhsId> roleMap) {
     List<Dataset> datasets = datasetDao.find(StorageSystem.TERRA_DATA_REPO, roleMap.keySet());
     return datasets.stream()
-        .map(
-            dataset ->
-                new DatasetResponse(
-                    dataset,
-                    roleMap.get(dataset.storageSourceId())))
+        .map(dataset -> new DatasetResponse(dataset, roleMap.get(dataset.storageSourceId())))
         .toList();
   }
 
@@ -134,20 +132,19 @@ public class DatasetService {
         .map(
             dataset ->
                 new DatasetResponse(
-                    dataset, new RoleAndPhsId().datasetAccessLevel(roleMap.get(dataset.storageSourceId()))))
+                    dataset,
+                    new RoleAndPhsId().datasetAccessLevel(roleMap.get(dataset.storageSourceId()))))
         .toList();
   }
 
-  private List<DatasetResponse> collectDatarepoDatasets(
-      AuthenticatedUserRequest user) {
+  private List<DatasetResponse> collectDatarepoDatasets(AuthenticatedUserRequest user) {
     // For this storage system, get the collection of visible datasets and the user's roles for
     // each dataset.
     var roleMap = datarepoService.getSnapshotIdsAndRoles(user);
     return convertTdrSnapshotsToDatasetsWithAccessLevel(roleMap);
   }
 
-  private List<DatasetResponse> collectWorkspaceDatasets(
-      AuthenticatedUserRequest user) {
+  private List<DatasetResponse> collectWorkspaceDatasets(AuthenticatedUserRequest user) {
     var roleMap = rawlsService.getWorkspaceIdsAndRoles(user);
     return convertWorkspacesToDatasetsWithAccessLevel(roleMap);
   }
@@ -161,7 +158,9 @@ public class DatasetService {
           datasetDao.listAllDatasets().stream()
               .map(
                   dataset ->
-                      new DatasetResponse(dataset, new RoleAndPhsId().datasetAccessLevel(DatasetAccessLevel.READER)))
+                      new DatasetResponse(
+                          dataset,
+                          new RoleAndPhsId().datasetAccessLevel(DatasetAccessLevel.READER)))
               .filter(
                   datasetWithAccessLevel ->
                       !datasets.stream()
@@ -172,8 +171,7 @@ public class DatasetService {
     }
     var response = new DatasetsListResponse();
 
-    response.setResult(
-        datasets.stream().map(DatasetResponse::convertToObject).toList());
+    response.setResult(datasets.stream().map(DatasetResponse::convertToObject).toList());
     return response;
   }
 
@@ -290,7 +288,9 @@ public class DatasetService {
     if (dataset.storageSystem().equals(StorageSystem.TERRA_DATA_REPO)) {
       phsId = datarepoService.getSnapshotPhsId(user, dataset.storageSourceId());
     }
-    return new DatasetResponse(dataset, new RoleAndPhsId().phsId(phsId)).convertToObject().toString();
+    return new DatasetResponse(dataset, new RoleAndPhsId().phsId(phsId))
+        .convertToObject()
+        .toString();
   }
 
   public void updateMetadata(AuthenticatedUserRequest user, DatasetId datasetId, String metadata) {

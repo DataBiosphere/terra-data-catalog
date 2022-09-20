@@ -3,6 +3,7 @@ package bio.terra.catalog.datarepo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -14,11 +15,13 @@ import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.api.SnapshotsApi;
 import bio.terra.datarepo.api.UnauthenticatedApi;
 import bio.terra.datarepo.client.ApiException;
+import bio.terra.datarepo.model.DatasetSummaryModel;
 import bio.terra.datarepo.model.EnumerateSnapshotModel;
 import bio.terra.datarepo.model.RepositoryStatusModel;
 import bio.terra.datarepo.model.SnapshotModel;
 import bio.terra.datarepo.model.SnapshotPreviewModel;
 import bio.terra.datarepo.model.SnapshotRetrieveIncludeModel;
+import bio.terra.datarepo.model.SnapshotSourceModel;
 import bio.terra.datarepo.model.SnapshotSummaryModel;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +62,9 @@ class DatarepoServiceTest {
     UUID snapshotId = UUID.randomUUID();
     var items = Map.of(snapshotId.toString(), List.of("steward"));
     var expectedItems =
-        Map.of(snapshotId.toString(), new RoleAndPhsId().datasetAccessLevel(DatasetAccessLevel.OWNER).phsId("1234"));
+        Map.of(
+            snapshotId.toString(),
+            new RoleAndPhsId().datasetAccessLevel(DatasetAccessLevel.OWNER).phsId("1234"));
     var esm =
         new EnumerateSnapshotModel()
             .items(List.of(new SnapshotSummaryModel().id(snapshotId).phsId("1234")))
@@ -78,10 +83,7 @@ class DatarepoServiceTest {
                 .collect(Collectors.toList())));
     assertThat(
         returnedItems.values().stream().map(RoleAndPhsId::getPhsId).collect(Collectors.toList()),
-        is(
-            expectedItems.values().stream()
-                .map(RoleAndPhsId::getPhsId)
-                .toList()));
+        is(expectedItems.values().stream().map(RoleAndPhsId::getPhsId).toList()));
   }
 
   @Test
@@ -90,6 +92,30 @@ class DatarepoServiceTest {
     when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any()))
         .thenThrow(new ApiException());
     assertThrows(DatarepoException.class, () -> datarepoService.getSnapshotIdsAndRoles(user));
+  }
+
+  @Test
+  void getSnapshotPhsId() throws Exception {
+    String expectedPhsId = "1234";
+    mockSnapshots();
+    when(snapshotsApi.retrieveSnapshot(any(), any()))
+        .thenReturn(
+            new SnapshotModel()
+                .addSourceItem(
+                    new SnapshotSourceModel()
+                        .dataset(new DatasetSummaryModel().phsId(expectedPhsId))));
+    assertThat(
+        datarepoService.getSnapshotPhsId(user, UUID.randomUUID().toString()), is(expectedPhsId));
+  }
+
+  @Test
+  void getSnapshotPhsIdWhenNoPhsId() throws Exception {
+    mockSnapshots();
+    when(snapshotsApi.retrieveSnapshot(any(), any()))
+        .thenReturn(
+            new SnapshotModel()
+                .addSourceItem(new SnapshotSourceModel().dataset(new DatasetSummaryModel())));
+    assertNull(datarepoService.getSnapshotPhsId(user, UUID.randomUUID().toString()));
   }
 
   @Test
