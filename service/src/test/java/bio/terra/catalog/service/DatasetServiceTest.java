@@ -146,7 +146,7 @@ class DatasetServiceTest {
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
         .thenReturn(List.of(tdrDataset));
     ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets(user).getResult().get(0);
-    assertThat(tdrJson.get("phsId"), is(phsId));
+    assertThat(tdrJson.get("phsId").asText(), is(phsId));
     assertTrue(tdrJson.has("requestAccessURL"));
   }
 
