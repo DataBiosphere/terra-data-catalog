@@ -8,8 +8,8 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import bio.terra.catalog.api.DatasetsApi;
@@ -170,7 +170,7 @@ public class DatasetOperations extends TestScript {
     if (storageSystem.equals(StorageSystem.TDR)) {
       expectedMetadata.put("phsId", "1234");
     }
-    keys.forEach(key -> assertEquals(jsonOne.get(key), expectedMetadata.get(key)));
+    keys.forEach(key -> assertThat(jsonOne.get(key), is(expectedMetadata.get(key))));
   }
 
   private void crudUserJourney(CatalogClient client, StorageSystem storageSystem, String sourceId)
@@ -188,8 +188,9 @@ public class DatasetOperations extends TestScript {
 
     // Retrieve the entry
     JsonNode datasetResponse = objectMapper.readTree(datasetsApi.getDataset(datasetId));
-    assertDatasetValues(List.of("name", "phsId", "id"), datasetResponse, "crud", storageSystem);
-    assertNotNull(datasetResponse.get("requestAccessURL"));
+    // We do not expect phsId or requestAccessURL here because our getDataset doesn't return storage
+    // system information
+    assertDatasetValues(List.of("name", "id"), datasetResponse, "crud", storageSystem);
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
 
     // Retrieve all datasets
@@ -203,8 +204,7 @@ public class DatasetOperations extends TestScript {
 
     // Verify modify success
     JsonNode datasetResponseTwo = objectMapper.readTree(datasetsApi.getDataset(datasetId));
-    assertDatasetValues(List.of("name", "phsId", "id"), datasetResponseTwo, "crud2", storageSystem);
-    assertNotNull(datasetResponseTwo.get("requestAccessURL"));
+    assertDatasetValues(List.of("name", "id"), datasetResponseTwo, "crud2", storageSystem);
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
 
     // Delete the entry
@@ -223,12 +223,11 @@ public class DatasetOperations extends TestScript {
       @SuppressWarnings("unchecked")
       Map<Object, Object> dataset = (Map<Object, Object>) datasetObj;
       if (dataset.get("id").equals(datasetId.toString())) {
-        assertThat(dataset, hasEntry(is("name"), is("test")));
-        assertThat(dataset, hasEntry(is("id"), is(datasetId.toString())));
+        assertThat(dataset, hasEntry(is("name"), is("crud")));
         assertThat(dataset, hasEntry(is("accessLevel"), is("owner")));
         if (storageSystem.equals(StorageSystem.TDR)) {
           assertThat(dataset, hasEntry(is("phsId"), is("1234")));
-          assertNotNull(dataset.get("requestAccessURL"));
+          assertTrue(dataset.containsKey("requestAccessURL"));
         }
         return;
       }
