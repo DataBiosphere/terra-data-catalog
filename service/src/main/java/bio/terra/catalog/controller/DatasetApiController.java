@@ -53,7 +53,6 @@ public class DatasetApiController implements DatasetsApi {
   }
 
   @Override
-  @Deprecated
   public ResponseEntity<String> getDataset(UUID id) {
     return ResponseEntity.ok()
         .cacheControl(CacheControl.noStore())
