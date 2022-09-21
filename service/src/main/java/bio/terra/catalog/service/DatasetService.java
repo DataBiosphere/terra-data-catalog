@@ -87,11 +87,9 @@ public class DatasetService {
     public Object convertToObject() {
       ObjectNode node = toJsonNode(dataset.metadata());
       addPhsProperties(node);
-      if (storageSystemInformation.datasetAccessLevel() != null) {
-        node.set(
-            "accessLevel",
-            TextNode.valueOf(String.valueOf(storageSystemInformation.datasetAccessLevel())));
-      }
+      node.set(
+          "accessLevel",
+          TextNode.valueOf(String.valueOf(storageSystemInformation.datasetAccessLevel())));
       node.set("id", TextNode.valueOf(dataset.id().toValue()));
       return node;
     }
