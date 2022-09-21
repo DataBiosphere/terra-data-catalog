@@ -3,11 +3,11 @@ package bio.terra.catalog.datarepo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import bio.terra.catalog.common.StorageSystemInformation;
 import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.common.exception.BadRequestException;
@@ -15,18 +15,15 @@ import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.api.SnapshotsApi;
 import bio.terra.datarepo.api.UnauthenticatedApi;
 import bio.terra.datarepo.client.ApiException;
-import bio.terra.datarepo.model.DatasetSummaryModel;
 import bio.terra.datarepo.model.EnumerateSnapshotModel;
 import bio.terra.datarepo.model.RepositoryStatusModel;
 import bio.terra.datarepo.model.SnapshotModel;
 import bio.terra.datarepo.model.SnapshotPreviewModel;
 import bio.terra.datarepo.model.SnapshotRetrieveIncludeModel;
-import bio.terra.datarepo.model.SnapshotSourceModel;
 import bio.terra.datarepo.model.SnapshotSummaryModel;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,7 +61,9 @@ class DatarepoServiceTest {
     var expectedItems =
         Map.of(
             snapshotId.toString(),
-            new RoleAndPhsId().datasetAccessLevel(DatasetAccessLevel.OWNER).phsId("1234"));
+            new StorageSystemInformation()
+                .datasetAccessLevel(DatasetAccessLevel.OWNER)
+                .phsId("1234"));
     var esm =
         new EnumerateSnapshotModel()
             .items(List.of(new SnapshotSummaryModel().id(snapshotId).phsId("1234")))
@@ -72,18 +71,7 @@ class DatarepoServiceTest {
     when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any()))
         .thenReturn(esm);
     var returnedItems = datarepoService.getSnapshotIdsAndRoles(user);
-    assertThat(returnedItems.keySet(), is(expectedItems.keySet()));
-    assertThat(
-        returnedItems.values().stream()
-            .map(RoleAndPhsId::getDatasetAccessLevel)
-            .collect(Collectors.toList()),
-        is(
-            expectedItems.values().stream()
-                .map(RoleAndPhsId::getDatasetAccessLevel)
-                .collect(Collectors.toList())));
-    assertThat(
-        returnedItems.values().stream().map(RoleAndPhsId::getPhsId).collect(Collectors.toList()),
-        is(expectedItems.values().stream().map(RoleAndPhsId::getPhsId).toList()));
+    assertThat(returnedItems, is(expectedItems));
   }
 
   @Test
@@ -92,30 +80,6 @@ class DatarepoServiceTest {
     when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any()))
         .thenThrow(new ApiException());
     assertThrows(DatarepoException.class, () -> datarepoService.getSnapshotIdsAndRoles(user));
-  }
-
-  @Test
-  void getSnapshotPhsId() throws Exception {
-    String expectedPhsId = "1234";
-    mockSnapshots();
-    when(snapshotsApi.retrieveSnapshot(any(), any()))
-        .thenReturn(
-            new SnapshotModel()
-                .addSourceItem(
-                    new SnapshotSourceModel()
-                        .dataset(new DatasetSummaryModel().phsId(expectedPhsId))));
-    assertThat(
-        datarepoService.getSnapshotPhsId(user, UUID.randomUUID().toString()), is(expectedPhsId));
-  }
-
-  @Test
-  void getSnapshotPhsIdWhenNoPhsId() throws Exception {
-    mockSnapshots();
-    when(snapshotsApi.retrieveSnapshot(any(), any()))
-        .thenReturn(
-            new SnapshotModel()
-                .addSourceItem(new SnapshotSourceModel().dataset(new DatasetSummaryModel())));
-    assertNull(datarepoService.getSnapshotPhsId(user, UUID.randomUUID().toString()));
   }
 
   @Test

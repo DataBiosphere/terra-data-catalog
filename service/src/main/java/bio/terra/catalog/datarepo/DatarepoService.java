@@ -1,5 +1,6 @@
 package bio.terra.catalog.datarepo;
 
+import bio.terra.catalog.common.StorageSystemInformation;
 import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.common.exception.BadRequestException;
@@ -57,7 +58,8 @@ public class DatarepoService {
     return DatasetAccessLevel.NO_ACCESS;
   }
 
-  public Map<String, RoleAndPhsId> getSnapshotIdsAndRoles(AuthenticatedUserRequest user) {
+  public Map<String, StorageSystemInformation> getSnapshotIdsAndRoles(
+      AuthenticatedUserRequest user) {
     try {
       EnumerateSnapshotModel response =
           datarepoClient
@@ -70,7 +72,7 @@ public class DatarepoService {
               Collectors.toMap(
                   snapshotSummaryModel -> snapshotSummaryModel.getId().toString(),
                   snapshotSummaryModel ->
-                      new RoleAndPhsId()
+                      new StorageSystemInformation()
                           .datasetAccessLevel(
                               getHighestAccessFromRoleList(
                                   roleMap.get(snapshotSummaryModel.getId().toString())))
@@ -110,22 +112,6 @@ public class DatarepoService {
       return getHighestAccessFromRoleList(roles);
     } catch (ApiException e) {
       throw new DatarepoException("Get snapshot roles failed", e);
-    }
-  }
-
-  public String getSnapshotPhsId(AuthenticatedUserRequest user, String snapshotId) {
-    try {
-      UUID id = UUID.fromString(snapshotId);
-      return datarepoClient
-          .snapshotsApi(user)
-          .retrieveSnapshot(id, List.of(SnapshotRetrieveIncludeModel.SOURCES))
-          .getSource()
-          .stream()
-          .findFirst()
-          .map(snapshotSourceModel -> snapshotSourceModel.getDataset().getPhsId())
-          .orElse(null);
-    } catch (ApiException e) {
-      throw new DatarepoException("Get snapshot failed", e);
     }
   }
 

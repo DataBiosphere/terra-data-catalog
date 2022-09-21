@@ -11,6 +11,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import bio.terra.catalog.common.StorageSystemInformation;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.rawls.api.EntitiesApi;
@@ -82,7 +83,8 @@ class RawlsServiceTest {
   @Test
   void getWorkspaces() throws Exception {
     mockWorkspaces();
-    var items = Map.of("id", DatasetAccessLevel.OWNER);
+    var items =
+        Map.of("id", new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.OWNER));
     var workspaceResponses =
         List.of(
             new WorkspaceListResponse()

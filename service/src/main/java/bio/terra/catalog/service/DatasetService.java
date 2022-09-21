@@ -1,8 +1,8 @@
 package bio.terra.catalog.service;
 
 import bio.terra.catalog.common.StorageSystem;
+import bio.terra.catalog.common.StorageSystemInformation;
 import bio.terra.catalog.datarepo.DatarepoService;
-import bio.terra.catalog.datarepo.RoleAndPhsId;
 import bio.terra.catalog.iam.SamAction;
 import bio.terra.catalog.iam.SamService;
 import bio.terra.catalog.model.ColumnModel;
@@ -68,12 +68,16 @@ public class DatasetService {
 
   private class DatasetResponse {
     private final Dataset dataset;
-    private final RoleAndPhsId roleAndPhsId;
+    private final StorageSystemInformation storageSystemInformation;
 
-    // This is used for the get case where we don't care about access level
-    public DatasetResponse(Dataset dataset, RoleAndPhsId roleAndPhsId) {
+    public DatasetResponse(Dataset dataset) {
+      this(
+          dataset, new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.NO_ACCESS));
+    }
+
+    public DatasetResponse(Dataset dataset, StorageSystemInformation storageSystemInformation) {
       this.dataset = dataset;
-      this.roleAndPhsId = roleAndPhsId;
+      this.storageSystemInformation = storageSystemInformation;
     }
 
     public Dataset getDataset() {
@@ -83,25 +87,25 @@ public class DatasetService {
     public Object convertToObject() {
       ObjectNode node = toJsonNode(dataset.metadata());
       addPhsProperties(node);
-      if (this.roleAndPhsId.getDatasetAccessLevel() != null) {
+      if (storageSystemInformation.datasetAccessLevel() != null) {
         node.set(
             "accessLevel",
-            TextNode.valueOf(String.valueOf(this.roleAndPhsId.getDatasetAccessLevel())));
+            TextNode.valueOf(String.valueOf(storageSystemInformation.datasetAccessLevel())));
       }
       node.set("id", TextNode.valueOf(dataset.id().toValue()));
       return node;
     }
 
     private void addPhsProperties(ObjectNode node) {
-      if (this.roleAndPhsId.getPhsId() != null) {
-        node.set(PHS_ID_PROPERTY_NAME, TextNode.valueOf(this.roleAndPhsId.getPhsId()));
+      if (storageSystemInformation.phsId() != null) {
+        node.set(PHS_ID_PROPERTY_NAME, TextNode.valueOf(storageSystemInformation.phsId()));
         if (!node.has(REQUEST_ACCESS_URL_PROPERTY_NAME)) {
           node.set(
               REQUEST_ACCESS_URL_PROPERTY_NAME,
               TextNode.valueOf(
                   String.format(
                       "https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=%s",
-                      roleAndPhsId.getPhsId())));
+                      storageSystemInformation.phsId())));
         }
       }
     }
@@ -117,23 +121,15 @@ public class DatasetService {
     }
   }
 
-  private List<DatasetResponse> convertTdrSnapshotsToDatasetsWithAccessLevel(
-      Map<String, RoleAndPhsId> roleMap) {
-    List<Dataset> datasets = datasetDao.find(StorageSystem.TERRA_DATA_REPO, roleMap.keySet());
-    return datasets.stream()
-        .map(dataset -> new DatasetResponse(dataset, roleMap.get(dataset.storageSourceId())))
-        .toList();
-  }
-
-  private List<DatasetResponse> convertWorkspacesToDatasetsWithAccessLevel(
-      Map<String, DatasetAccessLevel> roleMap) {
-    List<Dataset> datasets = datasetDao.find(StorageSystem.TERRA_WORKSPACE, roleMap.keySet());
+  private List<DatasetResponse> createDatasetResponses(
+      Map<String, StorageSystemInformation> datasetStorageInformation,
+      StorageSystem storageSystem) {
+    List<Dataset> datasets = datasetDao.find(storageSystem, datasetStorageInformation.keySet());
     return datasets.stream()
         .map(
             dataset ->
                 new DatasetResponse(
-                    dataset,
-                    new RoleAndPhsId().datasetAccessLevel(roleMap.get(dataset.storageSourceId()))))
+                    dataset, datasetStorageInformation.get(dataset.storageSourceId())))
         .toList();
   }
 
@@ -141,12 +137,12 @@ public class DatasetService {
     // For this storage system, get the collection of visible datasets and the user's roles for
     // each dataset.
     var roleMap = datarepoService.getSnapshotIdsAndRoles(user);
-    return convertTdrSnapshotsToDatasetsWithAccessLevel(roleMap);
+    return createDatasetResponses(roleMap, StorageSystem.TERRA_DATA_REPO);
   }
 
   private List<DatasetResponse> collectWorkspaceDatasets(AuthenticatedUserRequest user) {
     var roleMap = rawlsService.getWorkspaceIdsAndRoles(user);
-    return convertWorkspacesToDatasetsWithAccessLevel(roleMap);
+    return createDatasetResponses(roleMap, StorageSystem.TERRA_WORKSPACE);
   }
 
   public DatasetsListResponse listDatasets(AuthenticatedUserRequest user) {
@@ -160,7 +156,8 @@ public class DatasetService {
                   dataset ->
                       new DatasetResponse(
                           dataset,
-                          new RoleAndPhsId().datasetAccessLevel(DatasetAccessLevel.READER)))
+                          new StorageSystemInformation()
+                              .datasetAccessLevel(DatasetAccessLevel.READER)))
               .filter(
                   datasetWithAccessLevel ->
                       !datasets.stream()
@@ -284,13 +281,7 @@ public class DatasetService {
   public String getMetadata(AuthenticatedUserRequest user, DatasetId datasetId) {
     var dataset = datasetDao.retrieve(datasetId);
     ensureActionPermission(user, dataset, SamAction.READ_ANY_METADATA);
-    String phsId = null;
-    if (dataset.storageSystem().equals(StorageSystem.TERRA_DATA_REPO)) {
-      phsId = datarepoService.getSnapshotPhsId(user, dataset.storageSourceId());
-    }
-    return new DatasetResponse(dataset, new RoleAndPhsId().phsId(phsId))
-        .convertToObject()
-        .toString();
+    return new DatasetResponse(dataset).convertToObject().toString();
   }
 
   public void updateMetadata(AuthenticatedUserRequest user, DatasetId datasetId, String metadata) {

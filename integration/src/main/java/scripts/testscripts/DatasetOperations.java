@@ -8,6 +8,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -22,7 +23,7 @@ import bio.terra.datarepo.model.DatasetModel;
 import bio.terra.rawls.model.WorkspaceDetails;
 import bio.terra.testrunner.runner.TestScript;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.api.client.http.HttpStatusCodes;
@@ -82,10 +83,9 @@ public class DatasetOperations extends TestScript {
     snapshotId = snapshotsApi.createTestSnapshot(tdrDataset);
   }
 
-  private static final ObjectNode METADATA_1 = objectMapper.createObjectNode().put("name", "test");
-
-  private static final ObjectNode METADATA_2 =
-      objectMapper.createObjectNode().put("name", "test2").put("phsId", 123);
+  private ObjectNode createMetadata(String name) {
+    return objectMapper.createObjectNode().put("name", name);
+  }
 
   @Override
   public void userJourney(TestUserSpecification testUser) throws Exception {
@@ -107,7 +107,7 @@ public class DatasetOperations extends TestScript {
     // Create workspace dataset
     var request =
         new CreateDatasetRequest()
-            .catalogEntry(METADATA_1.toString())
+            .catalogEntry(createMetadata("export-test-dataset").toString())
             .storageSourceId(workspaceSource.getWorkspaceId())
             .storageSystem(storageSystem);
     datasetId = datasetsApi.createDataset(request).getId();
@@ -132,7 +132,7 @@ public class DatasetOperations extends TestScript {
     // Given a snapshot, create a catalog entry.
     var request =
         new CreateDatasetRequest()
-            .catalogEntry(METADATA_1.toString())
+            .catalogEntry(createMetadata("preview").toString())
             .storageSourceId(sourceId)
             .storageSystem(storageSystem);
     datasetId = datasetsApi.createDataset(request).getId();
@@ -164,18 +164,13 @@ public class DatasetOperations extends TestScript {
     datasetId = null;
   }
 
-  private ObjectNode expectedMetadataResponse(ObjectNode metadata, StorageSystem storageSystem) {
-    ObjectNode expectedMetadata = metadata.deepCopy().put("id", datasetId.toString());
+  private void assertDatasetValues(
+      List<String> keys, JsonNode jsonOne, String name, StorageSystem storageSystem) {
+    ObjectNode expectedMetadata = createMetadata(name).put("id", datasetId.toString());
     if (storageSystem.equals(StorageSystem.TDR)) {
-      expectedMetadata
-          .put("phsId", "1234")
-          .put(
-              "requestAccessURL",
-              String.format(
-                  "https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=%s",
-                  "1234"));
+      expectedMetadata.put("phsId", "1234");
     }
-    return expectedMetadata;
+    keys.forEach(key -> assertEquals(jsonOne.get(key), expectedMetadata.get(key)));
   }
 
   private void crudUserJourney(CatalogClient client, StorageSystem storageSystem, String sourceId)
@@ -183,7 +178,7 @@ public class DatasetOperations extends TestScript {
     // Given a snapshot, create a catalog entry.
     var request =
         new CreateDatasetRequest()
-            .catalogEntry(METADATA_1.toString())
+            .catalogEntry(createMetadata("crud").toString())
             .storageSourceId(sourceId)
             .storageSystem(storageSystem);
     datasetId = datasetsApi.createDataset(request).getId();
@@ -192,8 +187,9 @@ public class DatasetOperations extends TestScript {
     log.info("created dataset " + datasetId);
 
     // Retrieve the entry
-    ObjectNode expectedMetadata = expectedMetadataResponse(METADATA_1, storageSystem);
-    assertEquals(objectMapper.readTree(datasetsApi.getDataset(datasetId)), expectedMetadata);
+    JsonNode datasetResponse = objectMapper.readTree(datasetsApi.getDataset(datasetId));
+    assertDatasetValues(List.of("name", "phsId", "id"), datasetResponse, "crud", storageSystem);
+    assertNotNull(datasetResponse.get("requestAccessURL"));
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
 
     // Retrieve all datasets
@@ -202,12 +198,13 @@ public class DatasetOperations extends TestScript {
     resultHasDatasetWithRoles(datasets.getResult(), storageSystem);
 
     // Modify the entry
-    datasetsApi.updateDataset(METADATA_2.toString(), datasetId);
+    datasetsApi.updateDataset(createMetadata("crud2").toString(), datasetId);
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_NO_CONTENT));
 
-    ObjectNode expectedMetadataTwo = expectedMetadataResponse(METADATA_2, storageSystem);
     // Verify modify success
-    assertEquals(objectMapper.readTree(datasetsApi.getDataset(datasetId)), expectedMetadataTwo);
+    JsonNode datasetResponseTwo = objectMapper.readTree(datasetsApi.getDataset(datasetId));
+    assertDatasetValues(List.of("name", "phsId", "id"), datasetResponseTwo, "crud2", storageSystem);
+    assertNotNull(datasetResponseTwo.get("requestAccessURL"));
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
 
     // Delete the entry
@@ -231,11 +228,7 @@ public class DatasetOperations extends TestScript {
         assertThat(dataset, hasEntry(is("accessLevel"), is("owner")));
         if (storageSystem.equals(StorageSystem.TDR)) {
           assertThat(dataset, hasEntry(is("phsId"), is("1234")));
-          assertThat(
-              dataset,
-              hasEntry(
-                  is("requestAccessURL"),
-                  is("https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=1234")));
+          assertNotNull(dataset.get("requestAccessURL"));
         }
         return;
       }

@@ -1,7 +1,6 @@
 package bio.terra.catalog.service;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -18,9 +17,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import bio.terra.catalog.common.StorageSystem;
+import bio.terra.catalog.common.StorageSystemInformation;
 import bio.terra.catalog.config.BeanConfig;
 import bio.terra.catalog.datarepo.DatarepoService;
-import bio.terra.catalog.datarepo.RoleAndPhsId;
 import bio.terra.catalog.iam.SamAction;
 import bio.terra.catalog.iam.SamService;
 import bio.terra.catalog.model.DatasetPreviewTable;
@@ -107,9 +106,13 @@ class DatasetServiceTest {
 
   @Test
   void listDatasets() {
-    var workspaces = Map.of(workspaceSourceId, DatasetAccessLevel.OWNER);
+    var workspaces =
+        Map.of(
+            workspaceSourceId,
+            new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.OWNER));
     var idToRole =
-        Map.of(sourceId, new RoleAndPhsId().datasetAccessLevel(DatasetAccessLevel.OWNER));
+        Map.of(
+            sourceId, new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.OWNER));
     when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(idToRole);
     when(rawlsService.getWorkspaceIdsAndRoles(user)).thenReturn(workspaces);
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, workspaces.keySet()))
@@ -132,7 +135,9 @@ class DatasetServiceTest {
     var idToRole =
         Map.of(
             sourceId,
-            new RoleAndPhsId().datasetAccessLevel(DatasetAccessLevel.OWNER).phsId("1234"));
+            new StorageSystemInformation()
+                .datasetAccessLevel(DatasetAccessLevel.OWNER)
+                .phsId("1234"));
     when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(idToRole);
     when(rawlsService.getWorkspaceIdsAndRoles(user)).thenReturn(Map.of());
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, Set.of())).thenReturn(List.of());
@@ -149,9 +154,10 @@ class DatasetServiceTest {
 
   @Test
   void listDatasetsUsingAdminPermissions() {
-    Map<String, DatasetAccessLevel> workspaces = Map.of();
+    Map<String, StorageSystemInformation> workspaces = Map.of();
     var datasets =
-        Map.of(sourceId, new RoleAndPhsId().datasetAccessLevel(DatasetAccessLevel.OWNER));
+        Map.of(
+            sourceId, new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.OWNER));
     when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(datasets);
     when(rawlsService.getWorkspaceIdsAndRoles(user)).thenReturn(workspaces);
     when(samService.hasGlobalAction(user, SamAction.READ_ANY_METADATA)).thenReturn(true);
@@ -196,15 +202,6 @@ class DatasetServiceTest {
     when(samService.hasGlobalAction(user, SamAction.READ_ANY_METADATA)).thenReturn(true);
     datasetService.getMetadata(user, datasetId);
     verify(datasetDao).retrieve(datasetId);
-  }
-
-  @Test
-  void testGetMetadataWithPhsId() {
-    when(datasetDao.retrieve(tdrDataset.id())).thenReturn(tdrDataset);
-    when(samService.hasGlobalAction(user, SamAction.READ_ANY_METADATA)).thenReturn(true);
-    when(datarepoService.getSnapshotPhsId(user, tdrDataset.storageSourceId())).thenReturn("1234");
-    String datasetMetadata = datasetService.getMetadata(user, tdrDataset.id());
-    assertThat(datasetMetadata, containsString("requestAccessURL"));
   }
 
   @Test
