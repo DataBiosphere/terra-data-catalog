@@ -134,12 +134,12 @@ public class DatasetService {
   private List<DatasetResponse> collectDatarepoDatasets(AuthenticatedUserRequest user) {
     // For this storage system, get the collection of visible datasets and the user's roles for
     // each dataset.
-    var roleMap = datarepoService.getSnapshotIdsAndRoles(user);
+    var roleMap = datarepoService.getSnapshotInformation(user);
     return createDatasetResponses(roleMap, StorageSystem.TERRA_DATA_REPO);
   }
 
   private List<DatasetResponse> collectWorkspaceDatasets(AuthenticatedUserRequest user) {
-    var roleMap = rawlsService.getWorkspaceIdsAndRoles(user);
+    var roleMap = rawlsService.getWorkspaceInformation(user);
     return createDatasetResponses(roleMap, StorageSystem.TERRA_WORKSPACE);
   }
 

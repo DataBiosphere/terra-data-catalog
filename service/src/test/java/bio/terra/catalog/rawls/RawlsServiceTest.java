@@ -92,7 +92,7 @@ class RawlsServiceTest {
                 .accessLevel(WorkspaceAccessLevel.OWNER));
     when(workspacesApi.listWorkspaces(RawlsService.ACCESS_LEVEL_AND_ID))
         .thenReturn(workspaceResponses);
-    assertThat(rawlsService.getWorkspaceIdsAndRoles(user), is(items));
+    assertThat(rawlsService.getWorkspaceInformation(user), is(items));
   }
 
   @Test
@@ -100,7 +100,7 @@ class RawlsServiceTest {
     mockWorkspaces();
     when(workspacesApi.listWorkspaces(RawlsService.ACCESS_LEVEL_AND_ID))
         .thenThrow(new ApiException());
-    assertThrows(RawlsException.class, () -> rawlsService.getWorkspaceIdsAndRoles(user));
+    assertThrows(RawlsException.class, () -> rawlsService.getWorkspaceInformation(user));
   }
 
   @Test

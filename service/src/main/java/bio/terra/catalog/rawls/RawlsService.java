@@ -41,7 +41,7 @@ public class RawlsService {
     this.rawlsClient = rawlsClient;
   }
 
-  public Map<String, StorageSystemInformation> getWorkspaceIdsAndRoles(
+  public Map<String, StorageSystemInformation> getWorkspaceInformation(
       AuthenticatedUserRequest user) {
     try {
       return rawlsClient.workspacesApi(user).listWorkspaces(ACCESS_LEVEL_AND_ID).stream()

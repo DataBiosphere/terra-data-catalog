@@ -58,7 +58,7 @@ public class DatarepoService {
     return DatasetAccessLevel.NO_ACCESS;
   }
 
-  public Map<String, StorageSystemInformation> getSnapshotIdsAndRoles(
+  public Map<String, StorageSystemInformation> getSnapshotInformation(
       AuthenticatedUserRequest user) {
     try {
       EnumerateSnapshotModel response =

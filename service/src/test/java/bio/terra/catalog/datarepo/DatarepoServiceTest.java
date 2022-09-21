@@ -70,7 +70,7 @@ class DatarepoServiceTest {
             .roleMap(items);
     when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any()))
         .thenReturn(esm);
-    var returnedItems = datarepoService.getSnapshotIdsAndRoles(user);
+    var returnedItems = datarepoService.getSnapshotInformation(user);
     assertThat(returnedItems, is(expectedItems));
   }
 
@@ -79,7 +79,7 @@ class DatarepoServiceTest {
     mockSnapshots();
     when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any()))
         .thenThrow(new ApiException());
-    assertThrows(DatarepoException.class, () -> datarepoService.getSnapshotIdsAndRoles(user));
+    assertThrows(DatarepoException.class, () -> datarepoService.getSnapshotInformation(user));
   }
 
   @Test
