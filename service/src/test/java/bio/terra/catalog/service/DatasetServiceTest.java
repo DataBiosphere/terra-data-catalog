@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isA;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -132,24 +133,21 @@ class DatasetServiceTest {
 
   @Test
   void listDatasetsWithPhsId() {
+    String phsId = "1234";
     var idToRole =
         Map.of(
             sourceId,
             new StorageSystemInformation()
                 .datasetAccessLevel(DatasetAccessLevel.OWNER)
-                .phsId("1234"));
+                .phsId(phsId));
     when(datarepoService.getSnapshotIdsAndRoles(user)).thenReturn(idToRole);
     when(rawlsService.getWorkspaceIdsAndRoles(user)).thenReturn(Map.of());
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, Set.of())).thenReturn(List.of());
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
         .thenReturn(List.of(tdrDataset));
     ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets(user).getResult().get(0);
-    assertThat(tdrJson.get("name").asText(), is("name"));
-    assertThat(
-        tdrJson.get("requestAccessURL").asText(),
-        is("https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=1234"));
-    assertThat(tdrJson.get("id").asText(), is(tdrDataset.id().toValue()));
-    assertThat(tdrJson.get("accessLevel").asText(), is(String.valueOf(DatasetAccessLevel.OWNER)));
+    assertThat(tdrJson.get("phsId"), is(phsId));
+    assertTrue(tdrJson.has("requestAccessURL"));
   }
 
   @Test
