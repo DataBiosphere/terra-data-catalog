@@ -5,7 +5,7 @@ import static org.hamcrest.Matchers.is;
 
 import bio.terra.catalog.config.StatusCheckConfiguration;
 import bio.terra.catalog.model.SystemStatus;
-import bio.terra.catalog.model.SystemStatusSystems;
+import bio.terra.catalog.model.SystemStatusSystemsValue;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -15,7 +15,7 @@ class BaseStatusServiceTest {
   void getCurrentStatus() {
     var config = new StatusCheckConfiguration(true, 0, 0, 10);
     BaseStatusService service = new BaseStatusService(config);
-    var status = new SystemStatusSystems().ok(true);
+    var status = new SystemStatusSystemsValue().ok(true);
     service.registerStatusCheck("test", () -> status);
     assertThat(service.getCurrentStatus(), is(new SystemStatus().ok(false)));
     service.checkStatus();

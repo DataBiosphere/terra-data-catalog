@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import bio.terra.catalog.model.SystemStatusSystems;
+import bio.terra.catalog.model.SystemStatusSystemsValue;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
@@ -101,7 +101,7 @@ class DatarepoServiceTest {
   void statusOk() throws Exception {
     mockStatus();
     when(unauthenticatedApi.serviceStatus()).thenReturn(new RepositoryStatusModel().ok(true));
-    assertThat(datarepoService.status(), is(new SystemStatusSystems().ok(true)));
+    assertThat(datarepoService.status(), is(new SystemStatusSystemsValue().ok(true)));
   }
 
   @Test
@@ -109,7 +109,7 @@ class DatarepoServiceTest {
     mockStatus();
     when(unauthenticatedApi.serviceStatus()).thenReturn(new RepositoryStatusModel().ok(false));
     var status = datarepoService.status();
-    assertFalse(status.isOk());
+    assertFalse(status.getOk());
   }
 
   @Test
@@ -117,7 +117,7 @@ class DatarepoServiceTest {
     mockStatus();
     when(unauthenticatedApi.serviceStatus()).thenThrow(new ApiException());
     var status = datarepoService.status();
-    assertFalse(status.isOk());
+    assertFalse(status.getOk());
   }
 
   @Test

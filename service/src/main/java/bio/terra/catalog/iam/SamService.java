@@ -1,7 +1,7 @@
 package bio.terra.catalog.iam;
 
 import bio.terra.catalog.config.SamConfiguration;
-import bio.terra.catalog.model.SystemStatusSystems;
+import bio.terra.catalog.model.SystemStatusSystemsValue;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.common.sam.SamRetry;
 import bio.terra.common.sam.exception.SamExceptionFactory;
@@ -75,15 +75,15 @@ public class SamService {
     }
   }
 
-  public SystemStatusSystems status() {
+  public SystemStatusSystemsValue status() {
     // No access token needed since this is an unauthenticated API.
     try {
       // Don't retry status check
       SystemStatus samStatus = samClient.statusApi().getSystemStatus();
-      var result = new SystemStatusSystems().ok(samStatus.getOk());
+      var result = new SystemStatusSystemsValue().ok(samStatus.getOk());
       var samSystems = samStatus.getSystems();
       // Populate error message if Sam status is non-ok
-      if (result.isOk() == null || !result.isOk()) {
+      if (result.getOk() == null || !result.getOk()) {
         String errorMsg = "Sam status check failed. Messages = " + samSystems;
         logger.error(errorMsg);
         result.addMessagesItem(errorMsg);
@@ -92,7 +92,7 @@ public class SamService {
     } catch (Exception e) {
       String errorMsg = "Sam status check failed";
       logger.error(errorMsg, e);
-      return new SystemStatusSystems().ok(false).messages(List.of(errorMsg));
+      return new SystemStatusSystemsValue().ok(false).messages(List.of(errorMsg));
     }
   }
 }

@@ -79,7 +79,7 @@ class DatasetApiControllerTest {
     when(datasetService.listDatasets(user)).thenReturn(response);
     mockMvc
         .perform(get(API))
-        .andExpect(status().isOk())
+        .andExpect(status().getOk())
         .andExpect(header().string("Cache-Control", "no-store"))
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.result[0].id").value("id"));
@@ -91,7 +91,7 @@ class DatasetApiControllerTest {
     when(datasetService.listDatasets(user)).thenReturn(response);
     mockMvc
         .perform(get(API))
-        .andExpect(status().isOk())
+        .andExpect(status().getOk())
         .andExpect(header().string("Cache-Control", "no-store"))
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.result").isArray());
@@ -109,7 +109,7 @@ class DatasetApiControllerTest {
     var datasetId = new DatasetId(UUID.randomUUID());
     mockMvc
         .perform(get(API_ID, datasetId.uuid()))
-        .andExpect(status().isOk())
+        .andExpect(status().getOk())
         .andExpect(header().string("Cache-Control", "no-store"));
     verify(datasetService).getMetadata(user, datasetId);
   }
@@ -146,7 +146,7 @@ class DatasetApiControllerTest {
     var postBody = new ObjectMapper().writeValueAsString(request);
     mockMvc
         .perform(post(API).contentType(MediaType.APPLICATION_JSON).content(postBody))
-        .andExpect(status().isOk())
+        .andExpect(status().getOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.id").value(uuid.toString()));
     verify(datasetService).createDataset(user, storageSystem, id, METADATA);
@@ -162,7 +162,7 @@ class DatasetApiControllerTest {
     when(datasetService.listDatasetPreviewTables(user, datasetId)).thenReturn(response);
     mockMvc
         .perform(get(PREVIEW_TABLES_API, datasetId.uuid()))
-        .andExpect(status().isOk())
+        .andExpect(status().getOk())
         .andExpect(header().string("Cache-Control", "no-store"))
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.tables[0].name").value(tableName));
@@ -187,7 +187,7 @@ class DatasetApiControllerTest {
     when(datasetService.getDatasetPreview(user, datasetId, tableName)).thenReturn(response);
     mockMvc
         .perform(get(PREVIEW_TABLES_API_TABLE_NAME, datasetId.uuid(), tableName))
-        .andExpect(status().isOk())
+        .andExpect(status().getOk())
         .andExpect(header().string("Cache-Control", "no-store"))
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.columns[0].name").value(columnName));

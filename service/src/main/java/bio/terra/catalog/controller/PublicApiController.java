@@ -41,7 +41,7 @@ public class PublicApiController implements PublicApi {
   @Override
   public ResponseEntity<SystemStatus> getStatus() {
     SystemStatus systemStatus = statusService.getCurrentStatus();
-    HttpStatus httpStatus = systemStatus.isOk() ? HttpStatus.OK : HttpStatus.SERVICE_UNAVAILABLE;
+    HttpStatus httpStatus = systemStatus.getOk() ? HttpStatus.OK : HttpStatus.SERVICE_UNAVAILABLE;
     return new ResponseEntity<>(systemStatus, httpStatus);
   }
 

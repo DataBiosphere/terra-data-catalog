@@ -75,7 +75,7 @@ class SamServiceTest {
     SystemStatus status = new SystemStatus().ok(true);
     when(statusApi.getSystemStatus()).thenReturn(status);
     var samStatus = samService.status();
-    assertTrue(samStatus.isOk());
+    assertTrue(samStatus.getOk());
   }
 
   @Test
@@ -84,7 +84,7 @@ class SamServiceTest {
     SystemStatus status = new SystemStatus().ok(false);
     when(statusApi.getSystemStatus()).thenReturn(status);
     var samStatus = samService.status();
-    assertFalse(samStatus.isOk());
+    assertFalse(samStatus.getOk());
   }
 
   @Test
@@ -92,6 +92,6 @@ class SamServiceTest {
     mockStatus();
     when(statusApi.getSystemStatus()).thenThrow(new ApiException());
     var samStatus = samService.status();
-    assertFalse(samStatus.isOk());
+    assertFalse(samStatus.getOk());
   }
 }

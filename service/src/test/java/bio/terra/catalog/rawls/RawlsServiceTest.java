@@ -68,7 +68,7 @@ class RawlsServiceTest {
   void status() {
     mockStatus();
     var rawlsStatus = rawlsService.status();
-    assertTrue(rawlsStatus.isOk());
+    assertTrue(rawlsStatus.getOk());
   }
 
   @Test
@@ -76,7 +76,7 @@ class RawlsServiceTest {
     mockStatus();
     doThrow(new ApiException()).when(statusApi).systemStatus();
     var rawlsStatus = rawlsService.status();
-    assertFalse(rawlsStatus.isOk());
+    assertFalse(rawlsStatus.getOk());
   }
 
   @Test

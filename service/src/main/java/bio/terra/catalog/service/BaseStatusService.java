@@ -2,7 +2,7 @@ package bio.terra.catalog.service;
 
 import bio.terra.catalog.config.StatusCheckConfiguration;
 import bio.terra.catalog.model.SystemStatus;
-import bio.terra.catalog.model.SystemStatusSystems;
+import bio.terra.catalog.model.SystemStatusSystemsValue;
 import com.google.common.annotations.VisibleForTesting;
 import java.time.Instant;
 import java.util.Map;
@@ -24,7 +24,7 @@ public class BaseStatusService {
   /** configuration parameters */
   private final StatusCheckConfiguration configuration;
   /** set of status methods to check */
-  private final ConcurrentHashMap<String, Supplier<SystemStatusSystems>> statusCheckMap;
+  private final ConcurrentHashMap<String, Supplier<SystemStatusSystemsValue>> statusCheckMap;
   /** scheduler */
   private final ScheduledExecutorService scheduler;
   /** last time cache was updated */
@@ -49,7 +49,7 @@ public class BaseStatusService {
     }
   }
 
-  void registerStatusCheck(String name, Supplier<SystemStatusSystems> checkFn) {
+  void registerStatusCheck(String name, Supplier<SystemStatusSystemsValue> checkFn) {
     statusCheckMap.put(name, checkFn);
   }
 
@@ -61,7 +61,7 @@ public class BaseStatusService {
         var systems =
             statusCheckMap.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get()));
-        newStatus.setOk(systems.values().stream().allMatch(SystemStatusSystems::isOk));
+        newStatus.setOk(systems.values().stream().allMatch(SystemStatusSystemsValue::getOk));
         newStatus.setSystems(systems);
       } catch (Exception e) {
         logger.warn("Status check exception", e);
