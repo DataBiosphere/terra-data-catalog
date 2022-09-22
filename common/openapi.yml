@@ -145,14 +145,35 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorReport'
-  /api/v1/datasets/{id}/export/{workspaceId}:
+  /api/v1/datasets/{id}/export:
     post:
       summary: Export the dataset data into a workspace
       tags: [ datasets ]
       parameters:
         - $ref: '#/components/parameters/Id'
-        - $ref: '#/components/parameters/WorkspaceId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DatasetExportRequest'
       operationId: exportDataset
+      responses:
+        '204':
+          description: The data was successfully exported into a workspace
+          content: { }
+        '403':
+          description: User does not have permission to export workspace
+        '404':
+          description: Unable to export data into a workspace
+  /api/v1/datasets/{id}/export/{workspaceId}:
+    post:
+      summary: Export the dataset data into a workspace
+      tags: [ datasets ]
+      deprecated: true
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/WorkspaceIdPath'
+      operationId: exportDatasetDeprecated
       responses:
         '204':
           description: The data was successfully exported into a workspace
@@ -214,7 +235,7 @@ components:
       schema:
         type: string
         format: uuid
-    WorkspaceId:
+    WorkspaceIdPath:
       name: workspaceId
       in: path
       description: A UUID to used to identify a workspace object
@@ -301,6 +322,11 @@ components:
           type: string
           format: uuid
 
+    WorkspaceId:
+      description: A UUID to used to identify a workspace object
+      type: string
+      format: uuid
+
     DatasetsListResponse:
       type: object
       required: [ result ]
@@ -335,6 +361,13 @@ components:
           type: string
         catalogEntry:
           type: string
+
+    DatasetExportRequest:
+      type: object
+      required: workspaceId
+      properties:
+        workspaceId:
+          $ref: '#/components/schemas/WorkspaceId'
 
     DatasetPreviewTablesResponse:
       type: object

@@ -15,6 +15,7 @@ import bio.terra.catalog.api.DatasetsApi;
 import bio.terra.catalog.client.ApiException;
 import bio.terra.catalog.model.ColumnModel;
 import bio.terra.catalog.model.CreateDatasetRequest;
+import bio.terra.catalog.model.DatasetExportRequest;
 import bio.terra.catalog.model.StorageSystem;
 import bio.terra.catalog.model.TableMetadata;
 import bio.terra.datarepo.model.DatasetModel;
@@ -42,7 +43,6 @@ import scripts.client.RawlsClient;
 public class DatasetOperations extends TestScript {
 
   private static final Logger log = LoggerFactory.getLogger(DatasetOperations.class);
-  private static final String TEST_DATASET_NAME = "CatalogTestDataset";
 
   // TDR APIs
   private SnapshotsApi snapshotsApi;
@@ -67,6 +67,7 @@ public class DatasetOperations extends TestScript {
   private void setupWorkspace(TestUserSpecification user) throws Exception {
     rawlsClient = new RawlsClient(server, user);
     workspaceSource = rawlsClient.createTestWorkspace();
+    rawlsClient.ingestData(workspaceSource);
     workspaceDest = rawlsClient.createTestWorkspace();
   }
 
@@ -94,9 +95,7 @@ public class DatasetOperations extends TestScript {
     previewUserJourney(StorageSystem.TDR, snapshotId.toString());
     previewUserJourney(StorageSystem.WKS, workspaceSource.getWorkspaceId());
 
-    // Test disabled as it is returning a Content-Length not set error
-    // When exportDataset is manually tested from swagger-ui, the test passes
-    // exportUserJourney(StorageSystem.WKS, workspaceSource, workspaceDest);
+    exportUserJourney(StorageSystem.WKS, workspaceSource, workspaceDest);
   }
 
   private void exportUserJourney(
@@ -112,7 +111,7 @@ public class DatasetOperations extends TestScript {
 
     // Export workspace dataset to workspace
     var workspaceId = UUID.fromString(workspaceDest.getWorkspaceId());
-    datasetsApi.exportDataset(datasetId, workspaceId);
+    datasetsApi.exportDataset(datasetId, new DatasetExportRequest().workspaceId(workspaceId));
 
     // Extract workspace entity names
     Set<String> entitiesSource = rawlsClient.getWorkspaceEntities(workspaceSource);

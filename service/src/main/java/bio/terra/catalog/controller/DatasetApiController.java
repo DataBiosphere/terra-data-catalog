@@ -4,6 +4,7 @@ import bio.terra.catalog.api.DatasetsApi;
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.CreatedDatasetId;
+import bio.terra.catalog.model.DatasetExportRequest;
 import bio.terra.catalog.model.DatasetPreviewTable;
 import bio.terra.catalog.model.DatasetPreviewTablesResponse;
 import bio.terra.catalog.model.DatasetsListResponse;
@@ -20,22 +21,22 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 public class DatasetApiController implements DatasetsApi {
-  private final HttpServletRequest request;
+  private final HttpServletRequest servletRequest;
   private final DatasetService datasetService;
   private final AuthenticatedUserRequestFactory authenticatedUserRequestFactory;
 
   @Autowired
   public DatasetApiController(
-      HttpServletRequest request,
+      HttpServletRequest servletRequest,
       DatasetService datasetService,
       AuthenticatedUserRequestFactory authenticatedUserRequestFactory) {
-    this.request = request;
+    this.servletRequest = servletRequest;
     this.datasetService = datasetService;
     this.authenticatedUserRequestFactory = authenticatedUserRequestFactory;
   }
 
   private AuthenticatedUserRequest getUser() {
-    return authenticatedUserRequestFactory.from(request);
+    return authenticatedUserRequestFactory.from(servletRequest);
   }
 
   @Override
@@ -91,7 +92,13 @@ public class DatasetApiController implements DatasetsApi {
   }
 
   @Override
-  public ResponseEntity<Void> exportDataset(UUID datasetId, UUID workspaceId) {
+  public ResponseEntity<Void> exportDataset(UUID datasetId, DatasetExportRequest body) {
+    datasetService.exportDataset(getUser(), new DatasetId(datasetId), body.getWorkspaceId());
+    return ResponseEntity.noContent().build();
+  }
+
+  @Override
+  public ResponseEntity<Void> exportDatasetDeprecated(UUID datasetId, UUID workspaceId) {
     datasetService.exportDataset(getUser(), new DatasetId(datasetId), workspaceId);
     return ResponseEntity.noContent().build();
   }
