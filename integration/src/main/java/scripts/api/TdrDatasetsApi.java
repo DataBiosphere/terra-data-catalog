@@ -21,6 +21,7 @@ import scripts.client.DatarepoClient;
 public class TdrDatasetsApi {
   private static final Logger log = LoggerFactory.getLogger(TdrDatasetsApi.class);
   private static final String TEST_BILLING_PROFILE_PREFIX = "catalog_test_profile";
+  public static final String PHS_ID = "1234";
   private static TdrDatasetsApi theApi;
   private DatasetModel testDataset;
 
@@ -100,7 +101,7 @@ public class TdrDatasetsApi {
         .name(DatarepoClient.randomName())
         .defaultProfileId(billingProfileId)
         .schema(schema)
-        .phsId("1234");
+        .phsId(PHS_ID);
   }
 
   /**

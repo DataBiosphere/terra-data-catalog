@@ -34,6 +34,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scripts.api.SnapshotsApi;
+import scripts.api.TdrDatasetsApi;
 import scripts.client.CatalogClient;
 import scripts.client.DatarepoClient;
 import scripts.client.RawlsClient;
@@ -168,7 +169,7 @@ public class DatasetOperations extends TestScript {
       List<String> keys, JsonNode jsonOne, String name, StorageSystem storageSystem) {
     ObjectNode expectedMetadata = createMetadata(name).put("id", datasetId.toString());
     if (storageSystem.equals(StorageSystem.TDR)) {
-      expectedMetadata.put("phsId", "1234");
+      expectedMetadata.put("phsId", TdrDatasetsApi.PHS_ID);
     }
     keys.forEach(key -> assertThat(jsonOne.get(key), is(expectedMetadata.get(key))));
   }
@@ -226,7 +227,7 @@ public class DatasetOperations extends TestScript {
         assertThat(dataset, hasEntry(is("name"), is("crud")));
         assertThat(dataset, hasEntry(is("accessLevel"), is("owner")));
         if (storageSystem.equals(StorageSystem.TDR)) {
-          assertThat(dataset, hasEntry(is("phsId"), is("1234")));
+          assertThat(dataset, hasEntry(is("phsId"), is(TdrDatasetsApi.PHS_ID)));
           assertTrue(dataset.containsKey("requestAccessURL"));
         }
         return;

@@ -58,15 +58,16 @@ class DatarepoServiceTest {
     mockSnapshots();
     UUID snapshotId = UUID.randomUUID();
     var items = Map.of(snapshotId.toString(), List.of("steward"));
+    String phsId = "1234";
     var expectedItems =
         Map.of(
             snapshotId.toString(),
             new StorageSystemInformation()
                 .datasetAccessLevel(DatasetAccessLevel.OWNER)
-                .phsId("1234"));
+                .phsId(phsId));
     var esm =
         new EnumerateSnapshotModel()
-            .items(List.of(new SnapshotSummaryModel().id(snapshotId).phsId("1234")))
+            .items(List.of(new SnapshotSummaryModel().id(snapshotId).phsId(phsId)))
             .roleMap(items);
     when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any()))
         .thenReturn(esm);
