@@ -25,6 +25,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import com.google.common.annotations.VisibleForTesting;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion;
@@ -50,8 +51,10 @@ public class DatasetService {
   private final ObjectMapper objectMapper;
 
   @Value("${catalog.schema.basePath}")
+  @VisibleForTesting
   private String CATALOG_SCHEMA_PATH;
 
+  private JsonSchema schema;
   private static final int MAX_ROWS = 30;
 
   @Autowired
@@ -60,12 +63,14 @@ public class DatasetService {
       RawlsService rawlsService,
       SamService samService,
       DatasetDao datasetDao,
-      ObjectMapper objectMapper) {
+      ObjectMapper objectMapper) throws URISyntaxException {
     this.datarepoService = datarepoService;
     this.rawlsService = rawlsService;
     this.samService = samService;
     this.datasetDao = datasetDao;
     this.objectMapper = objectMapper;
+      this.schema = getJsonSchemaFromUrl(CATALOG_SCHEMA_PATH);
+
   }
 
   public static class IllegalMetadataException extends RuntimeException {
