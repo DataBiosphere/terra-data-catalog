@@ -27,7 +27,7 @@ public class ExternalSystemService implements StorageSystemService {
   @Override
   public List<TableMetadata> getPreviewTables(
       AuthenticatedUserRequest user, String storageSourceId) {
-    return List.of();
+    throw new UnsupportedOperationException("preview not supported for external datasets");
   }
 
   @Override
@@ -37,11 +37,14 @@ public class ExternalSystemService implements StorageSystemService {
 
   @Override
   public void exportToWorkspace(
-      AuthenticatedUserRequest user, String storageSourceId, String workspaceIdDest) {}
+      AuthenticatedUserRequest user, String storageSourceId, String workspaceIdDest) {
+    throw new UnsupportedOperationException(
+        "export to workspace not supported for external datasets");
+  }
 
   @Override
   public DatasetPreviewTable previewTable(
       AuthenticatedUserRequest user, String storageSourceId, String tableName, int maxRows) {
-    return new DatasetPreviewTable();
+    throw new UnsupportedOperationException("preview not supported for external datasets");
   }
 }

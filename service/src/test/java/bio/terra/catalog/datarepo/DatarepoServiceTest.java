@@ -208,9 +208,10 @@ class DatarepoServiceTest {
 
     when(snapshotsApi.retrieveSnapshot(id, List.of(SnapshotRetrieveIncludeModel.TABLES)))
         .thenReturn(new SnapshotModel().tables(List.of()));
+    String snaphsotId = id.toString();
     assertThrows(
         NotFoundException.class,
-        () -> datarepoService.previewTable(user, id.toString(), "missing", 10));
+        () -> datarepoService.previewTable(user, snaphsotId, "missing", 10));
   }
 
   @Test
@@ -225,17 +226,17 @@ class DatarepoServiceTest {
     when(snapshotsApi.lookupSnapshotPreviewById(id, tableName, null, 10, null, null))
         .thenThrow(new ApiException(HttpStatus.NOT_FOUND.value(), errorMessage));
 
-    String idString = id.toString();
+    String snapshotId = id.toString();
     DatarepoException t =
         assertThrows(
             DatarepoException.class,
-            () -> datarepoService.previewTable(user, idString, tableName, 10));
+            () -> datarepoService.previewTable(user, snapshotId, tableName, 10));
 
     assertThat(t.getStatusCode(), is(HttpStatus.NOT_FOUND));
     assertThat(t.getMessage(), is("bio.terra.datarepo.client.ApiException: " + errorMessage));
     assertThrows(
         NotFoundException.class,
-        () -> datarepoService.previewTable(user, id.toString(), "missing", 10));
+        () -> datarepoService.previewTable(user, snapshotId, "missing", 10));
   }
 
   @Test

@@ -48,6 +48,8 @@ class DatasetServiceTest {
 
   @Mock private RawlsService rawlsService;
 
+  @Mock private ExternalSystemService externalSystemService;
+
   @Mock private DatasetDao datasetDao;
 
   @Mock private SamService samService;
@@ -59,7 +61,7 @@ class DatasetServiceTest {
   private static final String sourceId = "sourceId";
   private static final String workspaceSourceId = "abc-def-workspace-id";
   private static final String metadata = """
-        {"name":"name"}""";
+      {"name":"name"}""";
   private static final Dataset dataset =
       new Dataset(datasetId, sourceId, StorageSystem.EXTERNAL, metadata, null);
   private static final Dataset tdrDataset =
@@ -84,7 +86,7 @@ class DatasetServiceTest {
         new DatasetService(
             datarepoService,
             rawlsService,
-            new ExternalSystemService(),
+            externalSystemService,
             samService,
             datasetDao,
             objectMapper);
@@ -140,6 +142,8 @@ class DatasetServiceTest {
   @Test()
   void testDeleteMetadataWithInvalidUser() {
     mockDataset();
+    when(externalSystemService.getRole(user, dataset.storageSourceId()))
+        .thenReturn(DatasetAccessLevel.NO_ACCESS);
     assertThrows(UnauthorizedException.class, () -> datasetService.deleteMetadata(user, datasetId));
   }
 
@@ -153,21 +157,23 @@ class DatasetServiceTest {
 
   @Test
   void testGetMetadataWithInvalidUser() {
-    // External datasets can be read by anyone.
     mockDataset();
-    assertThat(datasetService.getMetadata(user, datasetId), is(metadata));
+    when(externalSystemService.getRole(user, dataset.storageSourceId()))
+        .thenReturn(DatasetAccessLevel.NO_ACCESS);
+    assertThrows(UnauthorizedException.class, () -> datasetService.getMetadata(user, datasetId));
 
-    when(datasetDao.retrieve(tdrDataset.id())).thenReturn(tdrDataset);
+    DatasetId tdrDatasetId = tdrDataset.id();
+    when(datasetDao.retrieve(tdrDatasetId)).thenReturn(tdrDataset);
     when(datarepoService.getRole(user, tdrDataset.storageSourceId()))
         .thenReturn(DatasetAccessLevel.NO_ACCESS);
-    assertThrows(
-        UnauthorizedException.class, () -> datasetService.getMetadata(user, tdrDataset.id()));
+    assertThrows(UnauthorizedException.class, () -> datasetService.getMetadata(user, tdrDatasetId));
 
-    when(datasetDao.retrieve(workspaceDataset.id())).thenReturn(workspaceDataset);
+    DatasetId workspaceDatasetId = workspaceDataset.id();
+    when(datasetDao.retrieve(workspaceDatasetId)).thenReturn(workspaceDataset);
     when(rawlsService.getRole(user, workspaceDataset.storageSourceId()))
         .thenReturn(DatasetAccessLevel.NO_ACCESS);
     assertThrows(
-        UnauthorizedException.class, () -> datasetService.getMetadata(user, workspaceDataset.id()));
+        UnauthorizedException.class, () -> datasetService.getMetadata(user, workspaceDatasetId));
   }
 
   @Test
@@ -190,6 +196,8 @@ class DatasetServiceTest {
   @Test
   void testUpdateMetadataWithInvalidUser() {
     mockDataset();
+    when(externalSystemService.getRole(user, dataset.storageSourceId()))
+        .thenReturn(DatasetAccessLevel.NO_ACCESS);
     assertThrows(
         UnauthorizedException.class,
         () -> datasetService.updateMetadata(user, datasetId, metadata));
@@ -287,9 +295,9 @@ class DatasetServiceTest {
         datasetService.getDatasetPreview(user, workspaceDataset.id(), tableName), is(previewTable));
 
     mockDataset();
-    assertThat(
-        datasetService.getDatasetPreview(user, datasetId, tableName),
-        is(new DatasetPreviewTable()));
+    when(externalSystemService.previewTable(user, dataset.storageSourceId(), tableName, 30))
+        .thenReturn(previewTable);
+    assertThat(datasetService.getDatasetPreview(user, datasetId, tableName), is(previewTable));
   }
 
   @Test
@@ -308,6 +316,7 @@ class DatasetServiceTest {
 
     mockDataset();
     datasetService.exportDataset(user, datasetId, workspaceId);
-    // To verify calls to the external service, it must be mocked.
+    verify(externalSystemService)
+        .exportToWorkspace(user, dataset.storageSourceId(), workspaceId.toString());
   }
 }
