@@ -44,6 +44,7 @@ import bio.terra.rawls.model.EntityQueryResponse;
 import bio.terra.rawls.model.EntityTypeMetadata;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -59,7 +60,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class DatasetServiceTest {
 
+
   private DatasetService datasetService;
+
 
   @Mock private DatarepoService datarepoService;
 
@@ -96,7 +99,7 @@ class DatasetServiceTest {
           null);
 
   @BeforeEach
-  public void beforeEach() {
+  public void beforeEach() throws URISyntaxException {
     datasetService =
         new DatasetService(datarepoService, rawlsService, samService, datasetDao, objectMapper);
   }
