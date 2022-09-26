@@ -13,7 +13,7 @@ import bio.terra.catalog.service.dataset.exception.DatasetNotFoundException;
 import bio.terra.catalog.service.dataset.exception.InvalidDatasetException;
 import java.util.List;
 import java.util.UUID;
-import javax.servlet.http.HttpServletRequest;
+import javax.servlet.ServletContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +31,7 @@ class DatasetDaoTest {
 
   @Autowired private DatasetDao datasetDao;
 
-  @MockBean HttpServletRequest httpServletRequest;
+  @MockBean ServletContext servletContext;
 
   private static final String METADATA =
       """
