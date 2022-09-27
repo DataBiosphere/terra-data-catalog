@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scripts.api.SnapshotsApi;
@@ -87,7 +86,7 @@ public class DatasetOperations extends TestScript {
   @Override
   public void userJourney(TestUserSpecification testUser) throws Exception {
     var client = new CatalogClient(server, testUser);
-    datasetsApi = new DatasetsApi(client);
+    datasetsApi = client.datasetsApi();
 
     crudUserJourney(client, StorageSystem.TDR, snapshotId.toString());
     crudUserJourney(client, StorageSystem.WKS, workspaceSource.getWorkspaceId());
@@ -172,32 +171,30 @@ public class DatasetOperations extends TestScript {
             .storageSourceId(sourceId)
             .storageSystem(storageSystem);
     datasetId = datasetsApi.createDataset(request).getId();
-    AtomicInteger httpStatus = new AtomicInteger();
-    client.setResponseInterceptor(response -> httpStatus.set(response.statusCode()));
-    assertThat(httpStatus.get(), is(HttpStatusCodes.STATUS_CODE_OK));
+    assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
     assertThat(datasetId, notNullValue());
     log.info("created dataset " + datasetId);
 
     // Retrieve the entry
     assertThat(datasetsApi.getDataset(datasetId), is(METADATA_1));
-    assertThat(httpStatus.get(), is(HttpStatusCodes.STATUS_CODE_OK));
+    assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
 
     // Retrieve all datasets
     var datasets = datasetsApi.listDatasets();
-    assertThat(httpStatus.get(), is(HttpStatusCodes.STATUS_CODE_OK));
+    assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
     resultHasDatasetWithRoles(datasets.getResult());
 
     // Modify the entry
     datasetsApi.updateDataset(datasetId, METADATA_2);
-    assertThat(httpStatus.get(), is(HttpStatusCodes.STATUS_CODE_NO_CONTENT));
+    assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_NO_CONTENT));
 
     // Verify modify success
     assertThat(datasetsApi.getDataset(datasetId), is(METADATA_2));
-    assertThat(httpStatus.get(), is(HttpStatusCodes.STATUS_CODE_OK));
+    assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
 
     // Delete the entry
     datasetsApi.deleteDataset(datasetId);
-    assertThat(httpStatus.get(), is(HttpStatusCodes.STATUS_CODE_NO_CONTENT));
+    assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_NO_CONTENT));
 
     // Verify delete success.
     var apiException = assertThrows(ApiException.class, () -> datasetsApi.getDataset(datasetId));
