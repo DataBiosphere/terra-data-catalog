@@ -44,7 +44,7 @@ public class CatalogClient extends ApiClient {
       var accessToken = AuthenticationUtils.getAccessToken(userCredential);
       if (accessToken != null) {
         setRequestInterceptor(
-            builder -> builder.header("Authorization", accessToken.getTokenValue()));
+            builder -> builder.header("Authorization", "Bearer " + accessToken.getTokenValue()));
       }
     }
 
