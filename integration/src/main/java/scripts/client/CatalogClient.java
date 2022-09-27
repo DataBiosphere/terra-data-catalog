@@ -4,12 +4,12 @@ import bio.terra.catalog.client.ApiClient;
 import bio.terra.testrunner.common.utils.AuthenticationUtils;
 import bio.terra.testrunner.runner.config.ServerSpecification;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
-import com.google.api.client.http.HttpStatusCodes;
 import com.google.auth.oauth2.GoogleCredentials;
-import org.springframework.http.HttpStatus;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.springframework.http.HttpStatus;
+import scripts.api.DatasetsApi;
 
 public class CatalogClient extends ApiClient {
 
@@ -43,14 +43,19 @@ public class CatalogClient extends ApiClient {
               testUser, AuthenticationUtils.userLoginScopes);
       var accessToken = AuthenticationUtils.getAccessToken(userCredential);
       if (accessToken != null) {
-        setRequestInterceptor(builder -> builder.header("Authorization", accessToken.getTokenValue()));
+        setRequestInterceptor(
+            builder -> builder.header("Authorization", accessToken.getTokenValue()));
       }
     }
 
     setResponseInterceptor(response -> lastHttpStatus.set(response.statusCode()));
   }
 
-  public int getLastStatus() {
+  public DatasetsApi datasetsApi() {
+    return new DatasetsApi(this);
+  }
+
+  public int getStatusCode() {
     return lastHttpStatus.get();
   }
 }

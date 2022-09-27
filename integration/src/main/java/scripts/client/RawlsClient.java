@@ -23,8 +23,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.jdk.connector.JdkConnectorProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,26 +55,25 @@ public class RawlsClient {
 
   private WorkspacesApi createWorkspacesApi(String basePath, TestUserSpecification testUser)
       throws IOException {
-    var workspaceApiClient =
-        new ApiClient() {
-      /*
-          @Override
-          protected void performAdditionalClientConfiguration(ClientConfig clientConfig) {
-            super.performAdditionalClientConfiguration(clientConfig);
-            clientConfig.connectorProvider(new JdkConnectorProvider());
-          }
+    var workspaceApiClient = new ApiClient() {
+          /*
+             @Override
+             protected void performAdditionalClientConfiguration(ClientConfig clientConfig) {
+               super.performAdditionalClientConfiguration(clientConfig);
+               clientConfig.connectorProvider(new JdkConnectorProvider());
+             }
 
-          @Override
-          public String selectHeaderAccept(String[] accepts) {
-            // This workaround is necessary because the rawls openAPI spec doesn't match the
-            // endpoint's  behavior. Without this change, calling deleteWorkspace() will fail
-            // with a 406 status.
-            if (deleteWorkspaceWorkaround) {
-              return "text/plain";
-            }
-            return super.selectHeaderAccept(accepts);
-          }
-       */
+             @Override
+             public String selectHeaderAccept(String[] accepts) {
+               // This workaround is necessary because the rawls openAPI spec doesn't match the
+               // endpoint's  behavior. Without this change, calling deleteWorkspace() will fail
+               // with a 406 status.
+               if (deleteWorkspaceWorkaround) {
+                 return "text/plain";
+               }
+               return super.selectHeaderAccept(accepts);
+             }
+          */
         };
 
     return new WorkspacesApi(
