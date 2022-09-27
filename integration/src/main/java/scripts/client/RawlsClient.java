@@ -45,7 +45,7 @@ public class RawlsClient {
   private static ApiClient setUserAndScopes(
       ApiClient apiClient, String basePath, TestUserSpecification testUser, List<String> scopes)
       throws IOException {
-    apiClient.setBasePath(basePath);
+    apiClient.updateBaseUri(basePath);
     GoogleCredentials userCredentials =
         AuthenticationUtils.getDelegatedUserCredential(testUser, scopes);
     String accessToken = AuthenticationUtils.getAccessToken(userCredentials).getTokenValue();

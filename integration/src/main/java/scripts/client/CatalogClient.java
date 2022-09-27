@@ -35,7 +35,7 @@ public class CatalogClient extends ApiClient {
    */
   public CatalogClient(ServerSpecification server, TestUserSpecification testUser)
       throws IOException {
-    setBasePath(Objects.requireNonNull(server.catalogUri, "Catalog URI required"));
+    updateBaseUri(Objects.requireNonNull(server.catalogUri, "Catalog URI required"));
 
     if (testUser != null) {
       GoogleCredentials userCredential =

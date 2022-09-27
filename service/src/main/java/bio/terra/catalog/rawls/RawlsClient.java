@@ -25,7 +25,9 @@ public class RawlsClient {
   }
 
   private ApiClient getApiClient() {
-    return new ApiClient().setBasePath(rawlsConfig.basePath());
+    var apiClient = new ApiClient();
+    apiClient.updateBaseUri(rawlsConfig.basePath());
+    return apiClient;
   }
 
   WorkspacesApi workspacesApi(AuthenticatedUserRequest user) {

@@ -17,7 +17,7 @@ dependencies {
     implementation 'de.undercouch.download:de.undercouch.download.gradle.plugin:5.1.0'
     implementation 'com.github.spotbugs.snom:spotbugs-gradle-plugin:5.0.10'
     implementation 'io.spring.dependency-management:io.spring.dependency-management.gradle.plugin:1.0.11.RELEASE'
-    implementation 'org.openapitools:openapi-generator-gradle-plugin:6.1.0'
+    implementation 'org.openapitools:openapi-generator-gradle-plugin:6.2.0'
     implementation 'org.sonarqube:org.sonarqube.gradle.plugin:3.4.0.2513'
     implementation 'org.springframework.boot:spring-boot-gradle-plugin:2.7.0'
     implementation 'bio.terra:terra-test-runner:0.1.5-SNAPSHOT'
