@@ -364,7 +364,7 @@ components:
 
     DatasetExportRequest:
       type: object
-      required: workspaceId
+      required: [ workspaceId ]
       properties:
         workspaceId:
           $ref: '#/components/schemas/WorkspaceId'
