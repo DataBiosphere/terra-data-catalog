@@ -6,13 +6,11 @@ import bio.terra.rawls.api.EntitiesApi;
 import bio.terra.rawls.api.StatusApi;
 import bio.terra.rawls.api.WorkspacesApi;
 import bio.terra.rawls.client.ApiClient;
-import java.net.http.HttpClient;
 import org.springframework.stereotype.Component;
 
 @Component
 public class RawlsClient {
   private final RawlsConfiguration rawlsConfig;
-  private final HttpClient commonHttpClient = new ApiClient().getHttpClient();
 
   public RawlsClient(RawlsConfiguration rawlsConfig) {
     this.rawlsConfig = rawlsConfig;
@@ -20,7 +18,7 @@ public class RawlsClient {
 
   private ApiClient getApiClient(AuthenticatedUserRequest user) {
     ApiClient apiClient = getApiClient();
-    apiClient.setRequestInterceptor(builder -> builder.header("Authorization", user.getToken()));
+    apiClient.setRequestInterceptor(builder -> builder.header("Authorization", "Bearer " + user.getToken()));
     return apiClient;
   }
 
