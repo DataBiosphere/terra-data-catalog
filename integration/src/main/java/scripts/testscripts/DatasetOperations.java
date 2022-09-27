@@ -9,18 +9,23 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import bio.terra.catalog.api.DatasetsApi;
 import bio.terra.catalog.client.ApiException;
 import bio.terra.catalog.model.ColumnModel;
 import bio.terra.catalog.model.CreateDatasetRequest;
+import bio.terra.catalog.model.DatasetExportRequest;
 import bio.terra.catalog.model.StorageSystem;
 import bio.terra.catalog.model.TableMetadata;
 import bio.terra.datarepo.model.DatasetModel;
 import bio.terra.rawls.model.WorkspaceDetails;
 import bio.terra.testrunner.runner.TestScript;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.api.client.http.HttpStatusCodes;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +47,7 @@ import scripts.client.RawlsClient;
 public class DatasetOperations extends TestScript {
 
   private static final Logger log = LoggerFactory.getLogger(DatasetOperations.class);
-  private static final String TEST_DATASET_NAME = "CatalogTestDataset";
+  private static final ObjectMapper objectMapper = new ObjectMapper();
 
   // TDR APIs
   private SnapshotsApi snapshotsApi;
@@ -67,6 +72,7 @@ public class DatasetOperations extends TestScript {
   private void setupWorkspace(TestUserSpecification user) throws Exception {
     rawlsClient = new RawlsClient(server, user);
     workspaceSource = rawlsClient.createTestWorkspace();
+    rawlsClient.ingestData(workspaceSource);
     workspaceDest = rawlsClient.createTestWorkspace();
   }
 
@@ -77,11 +83,9 @@ public class DatasetOperations extends TestScript {
     snapshotId = snapshotsApi.createTestSnapshot(tdrDataset);
   }
 
-  private static final String METADATA_1 = """
-      {"name": "test"}""";
-
-  private static final String METADATA_2 = """
-      {"name": "test2"}""";
+  private ObjectNode createMetadata(String name) {
+    return objectMapper.createObjectNode().put("name", name);
+  }
 
   @Override
   public void userJourney(TestUserSpecification testUser) throws Exception {
@@ -94,9 +98,7 @@ public class DatasetOperations extends TestScript {
     previewUserJourney(StorageSystem.TDR, snapshotId.toString());
     previewUserJourney(StorageSystem.WKS, workspaceSource.getWorkspaceId());
 
-    // Test disabled as it is returning a Content-Length not set error
-    // When exportDataset is manually tested from swagger-ui, the test passes
-    // exportUserJourney(StorageSystem.WKS, workspaceSource, workspaceDest);
+    exportUserJourney(StorageSystem.WKS, workspaceSource, workspaceDest);
   }
 
   private void exportUserJourney(
@@ -105,14 +107,14 @@ public class DatasetOperations extends TestScript {
     // Create workspace dataset
     var request =
         new CreateDatasetRequest()
-            .catalogEntry(METADATA_1)
+            .catalogEntry(createMetadata("export-test-dataset").toString())
             .storageSourceId(workspaceSource.getWorkspaceId())
             .storageSystem(storageSystem);
     datasetId = datasetsApi.createDataset(request).getId();
 
     // Export workspace dataset to workspace
     var workspaceId = UUID.fromString(workspaceDest.getWorkspaceId());
-    datasetsApi.exportDataset(datasetId, workspaceId);
+    datasetsApi.exportDataset(datasetId, new DatasetExportRequest().workspaceId(workspaceId));
 
     // Extract workspace entity names
     Set<String> entitiesSource = rawlsClient.getWorkspaceEntities(workspaceSource);
@@ -130,7 +132,7 @@ public class DatasetOperations extends TestScript {
     // Given a snapshot, create a catalog entry.
     var request =
         new CreateDatasetRequest()
-            .catalogEntry(METADATA_1)
+            .catalogEntry(createMetadata("preview").toString())
             .storageSourceId(sourceId)
             .storageSystem(storageSystem);
     datasetId = datasetsApi.createDataset(request).getId();
@@ -162,12 +164,21 @@ public class DatasetOperations extends TestScript {
     datasetId = null;
   }
 
+  private void assertDatasetValues(
+      List<String> keys, JsonNode jsonOne, String name, StorageSystem storageSystem) {
+    ObjectNode expectedMetadata = createMetadata(name).put("id", datasetId.toString());
+    if (storageSystem.equals(StorageSystem.TDR)) {
+      expectedMetadata.put("phsId", "1234");
+    }
+    keys.forEach(key -> assertThat(jsonOne.get(key), is(expectedMetadata.get(key))));
+  }
+
   private void crudUserJourney(CatalogClient client, StorageSystem storageSystem, String sourceId)
-      throws ApiException {
+      throws Exception {
     // Given a snapshot, create a catalog entry.
     var request =
         new CreateDatasetRequest()
-            .catalogEntry(METADATA_1)
+            .catalogEntry(createMetadata("crud").toString())
             .storageSourceId(sourceId)
             .storageSystem(storageSystem);
     datasetId = datasetsApi.createDataset(request).getId();
@@ -176,20 +187,24 @@ public class DatasetOperations extends TestScript {
     log.info("created dataset " + datasetId);
 
     // Retrieve the entry
-    assertThat(datasetsApi.getDataset(datasetId), is(METADATA_1));
+    JsonNode datasetResponse = objectMapper.readTree(datasetsApi.getDataset(datasetId));
+    // We do not expect phsId or requestAccessURL here because our getDataset doesn't return storage
+    // system information
+    assertDatasetValues(List.of("name", "id"), datasetResponse, "crud", storageSystem);
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
 
     // Retrieve all datasets
     var datasets = datasetsApi.listDatasets();
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
-    resultHasDatasetWithRoles(datasets.getResult());
+    resultHasDatasetWithRoles(datasets.getResult(), storageSystem);
 
     // Modify the entry
-    datasetsApi.updateDataset(datasetId, METADATA_2);
+    datasetsApi.updateDataset(datasetId, createMetadata("crud2").toString());
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_NO_CONTENT));
 
     // Verify modify success
-    assertThat(datasetsApi.getDataset(datasetId), is(METADATA_2));
+    JsonNode datasetResponseTwo = objectMapper.readTree(datasetsApi.getDataset(datasetId));
+    assertDatasetValues(List.of("name", "id"), datasetResponseTwo, "crud2", storageSystem);
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
 
     // Delete the entry
@@ -203,14 +218,17 @@ public class DatasetOperations extends TestScript {
     datasetId = null;
   }
 
-  private void resultHasDatasetWithRoles(List<Object> datasets) {
+  private void resultHasDatasetWithRoles(List<Object> datasets, StorageSystem storageSystem) {
     for (Object datasetObj : datasets) {
       @SuppressWarnings("unchecked")
       Map<Object, Object> dataset = (Map<Object, Object>) datasetObj;
       if (dataset.get("id").equals(datasetId.toString())) {
-        assertThat(dataset, hasEntry(is("name"), is("test")));
-        assertThat(dataset, hasEntry(is("id"), is(datasetId.toString())));
+        assertThat(dataset, hasEntry(is("name"), is("crud")));
         assertThat(dataset, hasEntry(is("accessLevel"), is("owner")));
+        if (storageSystem.equals(StorageSystem.TDR)) {
+          assertThat(dataset, hasEntry(is("phsId"), is("1234")));
+          assertTrue(dataset.containsKey("requestAccessURL"));
+        }
         return;
       }
     }
