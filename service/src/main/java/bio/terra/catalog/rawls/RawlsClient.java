@@ -18,7 +18,8 @@ public class RawlsClient {
 
   private ApiClient getApiClient(AuthenticatedUserRequest user) {
     ApiClient apiClient = getApiClient();
-    apiClient.setRequestInterceptor(builder -> builder.header("Authorization", "Bearer " + user.getToken()));
+    apiClient.setRequestInterceptor(
+        builder -> builder.header("Authorization", "Bearer " + user.getToken()));
     return apiClient;
   }
 

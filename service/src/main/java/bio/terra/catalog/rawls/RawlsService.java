@@ -15,6 +15,7 @@ import bio.terra.rawls.model.WorkspaceResponse;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -137,18 +138,20 @@ public class RawlsService {
     try {
       // build source name
       WorkspaceDetails workspaceDetailsSource =
-          rawlsClient
-              .workspacesApi(user)
-              .getWorkspaceById(workspaceIdSource, List.of())
-              .getWorkspace();
+          Objects.requireNonNull(
+              rawlsClient
+                  .workspacesApi(user)
+                  .getWorkspaceById(workspaceIdSource, List.of())
+                  .getWorkspace());
       WorkspaceName workspaceNameSource = getWorkspaceName(workspaceDetailsSource);
 
       // build destination name
       WorkspaceDetails workspaceDetailsDest =
-          rawlsClient
-              .workspacesApi(user)
-              .getWorkspaceById(workspaceIdDest, List.of())
-              .getWorkspace();
+          Objects.requireNonNull(
+              rawlsClient
+                  .workspacesApi(user)
+                  .getWorkspaceById(workspaceIdDest, List.of())
+                  .getWorkspace());
       WorkspaceName workspaceNameDest = getWorkspaceName(workspaceDetailsDest);
 
       // possible bug: empty entityType and entityNames copies all entities

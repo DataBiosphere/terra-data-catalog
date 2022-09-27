@@ -43,6 +43,8 @@ repositories {
 dependencies {
     compileOnly "com.google.code.findbugs:annotations:3.0.1"
     implementation 'io.swagger.core.v3:swagger-annotations:2.2.2'
+    implementation 'io.swagger:swagger-annotations:1.6.6'
+    implementation 'org.openapitools:jackson-databind-nullable:0.2.3'
 
     implementation 'org.slf4j:slf4j-api:1.7.35'
 
@@ -63,7 +65,7 @@ group = 'bio.terra'
 spotless {
     java {
         targetExclude "${buildDir}/**"
-        targetExclude "**/swagger-code/**"
+        targetExclude "**/generate-resources/**"
         googleJavaFormat()
     }
 }
