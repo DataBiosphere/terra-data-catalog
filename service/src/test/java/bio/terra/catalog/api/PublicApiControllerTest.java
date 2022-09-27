@@ -35,7 +35,7 @@ class PublicApiControllerTest {
   void testStatus() throws Exception {
     SystemStatus systemStatus = new SystemStatus().ok(true);
     when(statusService.getCurrentStatus()).thenReturn(systemStatus);
-    this.mockMvc.perform(get("/status")).andExpect(status().getOk());
+    this.mockMvc.perform(get("/status")).andExpect(status().isOk());
   }
 
   @Test
@@ -59,7 +59,7 @@ class PublicApiControllerTest {
 
     this.mockMvc
         .perform(get("/version"))
-        .andExpect(status().getOk())
+        .andExpect(status().isOk())
         .andExpect(jsonPath("$.gitTag").value(gitTag))
         .andExpect(jsonPath("$.gitHash").value(gitHash))
         .andExpect(jsonPath("$.github").value(github))
@@ -70,7 +70,7 @@ class PublicApiControllerTest {
   void testGetSwagger() throws Exception {
     this.mockMvc
         .perform(get("/swagger-ui.html"))
-        .andExpect(status().getOk())
+        .andExpect(status().isOk())
         .andExpect(model().attributeExists("clientId"));
   }
 

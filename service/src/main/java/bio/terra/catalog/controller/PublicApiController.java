@@ -7,6 +7,8 @@ import bio.terra.catalog.model.VersionProperties;
 import bio.terra.catalog.service.CatalogStatusService;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +20,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class PublicApiController implements PublicApi {
   private final CatalogStatusService statusService;
   private final VersionConfiguration versionConfiguration;
-
   private final String swaggerClientId;
+  private static final Logger logger = LoggerFactory.getLogger(PublicApiController.class);
 
   @Autowired
   public PublicApiController(
@@ -32,7 +34,7 @@ public class PublicApiController implements PublicApi {
     try (var stream = getClass().getResourceAsStream("/rendered/swagger-client-id")) {
       clientId = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
     } catch (IOException | NullPointerException e) {
-      log.error(
+      logger.error(
           "It doesn't look like configs have been rendered! Unable to parse swagger client id.", e);
     }
     swaggerClientId = clientId;

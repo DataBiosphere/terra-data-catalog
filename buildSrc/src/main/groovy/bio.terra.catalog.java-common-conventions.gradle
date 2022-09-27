@@ -5,7 +5,7 @@ plugins {
 
     id 'io.spring.dependency-management'
     id 'com.diffplug.spotless'
-    id 'com.github.spotbugs'
+//    id 'com.github.spotbugs'
     id 'org.openapi.generator'
 }
 
@@ -78,6 +78,7 @@ compileJava {
 }
 
 // Spotbugs configuration
+/*
 spotbugs {
     reportLevel = 'high'
     effort = 'max'
@@ -91,7 +92,7 @@ spotbugsMain {
         }
     }
 }
-
+*/
 jacocoTestReport {
     reports {
         // sonarqube requires XML coverage output to upload coverage data

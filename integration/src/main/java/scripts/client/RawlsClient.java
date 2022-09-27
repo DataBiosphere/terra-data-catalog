@@ -51,7 +51,7 @@ public class RawlsClient {
     GoogleCredentials userCredentials =
         AuthenticationUtils.getDelegatedUserCredential(testUser, scopes);
     String accessToken = AuthenticationUtils.getAccessToken(userCredentials).getTokenValue();
-    apiClient.setAccessToken(accessToken);
+    apiClient.setRequestInterceptor(builder -> builder.header("Authorization", accessToken));
     return apiClient;
   }
 
@@ -59,6 +59,7 @@ public class RawlsClient {
       throws IOException {
     var workspaceApiClient =
         new ApiClient() {
+      /*
           @Override
           protected void performAdditionalClientConfiguration(ClientConfig clientConfig) {
             super.performAdditionalClientConfiguration(clientConfig);
@@ -75,6 +76,7 @@ public class RawlsClient {
             }
             return super.selectHeaderAccept(accepts);
           }
+       */
         };
 
     return new WorkspacesApi(
@@ -140,13 +142,13 @@ public class RawlsClient {
       entity.setAttributes(
           Map.of(
               "files", List.of(1, 2, 3, 4, 5), "type", "bam", "participant_id", "participant" + i));
-      entitiesApi.createEntity(entity, namespace, name);
+      entitiesApi.createEntity(namespace, name, entity);
     }
     for (int i = 1; i <= 15; i++) {
       Entity entity = new Entity().entityType("participant").name("participant" + i);
       entity.setAttributes(
           Map.of("age", String.valueOf(i + 10), "biological_sex", i % 2 == 0 ? "male" : "female"));
-      entitiesApi.createEntity(entity, namespace, name);
+      entitiesApi.createEntity(namespace, name, entity);
     }
   }
 
@@ -173,9 +175,9 @@ public class RawlsClient {
       String email, WorkspaceAccessLevel accessLevel, WorkspaceDetails workspaceDetails)
       throws ApiException {
     workspacesApi.updateACL(
-        List.of(new WorkspaceACLUpdate().email(email).accessLevel(accessLevel.getValue())),
-        false,
         workspaceDetails.getNamespace(),
-        workspaceDetails.getName());
+        workspaceDetails.getName(),
+        false,
+        List.of(new WorkspaceACLUpdate().email(email).accessLevel(accessLevel.getValue())));
   }
 }

@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import bio.terra.catalog.api.DatasetsApi;
+import bio.terra.catalog.client.ApiClient;
 import bio.terra.catalog.client.ApiException;
 import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.StorageSystem;
@@ -18,6 +19,7 @@ import com.google.api.client.http.HttpStatusCodes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scripts.api.SnapshotsApi;
@@ -27,6 +29,19 @@ import scripts.client.DatarepoClient;
 import scripts.client.RawlsClient;
 
 public class DatasetPermissionOperations extends TestScript {
+
+  static class DatasetsApiWithStatus extends DatasetsApi {
+
+    private final CatalogClient catalogClient;
+    public DatasetsApiWithStatus(CatalogClient catalogClient) {
+      super(catalogClient);
+      this.catalogClient = catalogClient;
+    }
+
+    int getLastStatus() {
+      return catalogClient.getLastStatus();
+    }
+  }
 
   private static final Logger log = LoggerFactory.getLogger(DatasetPermissionOperations.class);
   private static final String ADMIN_EMAIL = "datacatalogadmin@test.firecloud.org";
@@ -118,6 +133,9 @@ public class DatasetPermissionOperations extends TestScript {
       String storageSourceId, StorageSystem storageSystem, UUID adminDatasetId)
       throws ApiException {
     CreateDatasetRequest request = datasetRequest(storageSourceId, storageSystem);
+    AtomicInteger status = new AtomicInteger();
+    userDatasetsApi(response -> status.set(response.statusCode()));
+
     // note if this assertion fails we'll leave behind a stray dataset in the db
     assertThrows(ApiException.class, () -> userDatasetsApi.createDataset(request));
     assertThat(

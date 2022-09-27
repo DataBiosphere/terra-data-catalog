@@ -6,11 +6,5 @@ plugins {
     id 'com.jfrog.artifactory' version '4.18.2'
 }
 
-dependencyManagement {
-    imports {
-        mavenBom(SpringBootPlugin.BOM_COORDINATES)
-    }
-}
-
 apply from: 'artifactory.gradle'
 apply from: 'swagger.gradle'

@@ -9,6 +9,7 @@ import bio.terra.testrunner.runner.TestScript;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
 import com.google.api.client.http.HttpStatusCodes;
 import scripts.client.CatalogClient;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class GetVersion extends TestScript {
   @Override
@@ -16,10 +17,12 @@ public class GetVersion extends TestScript {
     CatalogClient client = new CatalogClient(server);
     var publicApi = new PublicApi(client);
 
+    AtomicInteger status = new AtomicInteger();
+    client.setResponseInterceptor(response -> status.set(response.statusCode()));
     var versionProperties = publicApi.getVersion();
 
     // check the response code
-    assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
+    assertThat(status.get(), is(HttpStatusCodes.STATUS_CODE_OK));
 
     // check the response body
     assertThat(versionProperties.getGitHash(), notNullValue());

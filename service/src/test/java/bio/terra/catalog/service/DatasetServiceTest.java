@@ -265,7 +265,7 @@ class DatasetServiceTest {
     assertThat(results, isA(DatasetPreviewTablesResponse.class));
     assertThat(results.getTables().size(), is(1));
     assertThat(results.getTables().get(0), isA(TableMetadata.class));
-    assertThat(results.getTables().get(0).isHasData(), is(true));
+    assertThat(results.getTables().get(0).getHasData(), is(true));
   }
 
   @Test
@@ -280,7 +280,7 @@ class DatasetServiceTest {
         datasetService.listDatasetPreviewTables(user, tdrDataset.id());
     assertThat(results.getTables().size(), is(1));
     assertThat(results.getTables().get(0), isA(TableMetadata.class));
-    assertThat(results.getTables().get(0).isHasData(), is(true));
+    assertThat(results.getTables().get(0).getHasData(), is(true));
   }
 
   @Test
