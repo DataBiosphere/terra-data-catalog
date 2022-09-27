@@ -72,8 +72,8 @@ public class DatasetPermissionOperations extends TestScript {
     userSnapshotsApi = new SnapshotsApi(new DatarepoClient(server, regularUser));
     TdrDatasetsApi tdrDatasetsApi = adminDatarepoClient.datasetsApi();
     DatasetModel tdrDataset = tdrDatasetsApi.getTestDataset();
-    adminDatasetsApi = new CatalogClient(server, adminUser).datasetsApi();
-    userDatasetsApi = new CatalogClient(server, adminUser).datasetsApi();
+    adminDatasetsApi = new DatasetsApi(new CatalogClient(server, adminUser));
+    userDatasetsApi = new DatasetsApi(new CatalogClient(server, regularUser));
     adminTestSnapshotId = adminSnapshotsApi.createTestSnapshot(tdrDataset);
     tdrDatasetsApi.addDatasetPolicyMember(tdrDataset.getId(), "custodian", regularUser.userEmail);
     userTestSnapshotId = userSnapshotsApi.createTestSnapshot(tdrDataset);
@@ -118,7 +118,6 @@ public class DatasetPermissionOperations extends TestScript {
       String storageSourceId, StorageSystem storageSystem, UUID adminDatasetId)
       throws ApiException {
     CreateDatasetRequest request = datasetRequest(storageSourceId, storageSystem);
-
     // note if this assertion fails we'll leave behind a stray dataset in the db
     assertThrows(ApiException.class, () -> userDatasetsApi.createDataset(request));
     assertThat(

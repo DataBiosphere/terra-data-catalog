@@ -86,7 +86,7 @@ public class DatasetOperations extends TestScript {
   @Override
   public void userJourney(TestUserSpecification testUser) throws Exception {
     var client = new CatalogClient(server, testUser);
-    datasetsApi = client.datasetsApi();
+    datasetsApi = new DatasetsApi(client);
 
     crudUserJourney(client, StorageSystem.TDR, snapshotId.toString());
     crudUserJourney(client, StorageSystem.WKS, workspaceSource.getWorkspaceId());
