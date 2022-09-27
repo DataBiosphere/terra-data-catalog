@@ -49,7 +49,8 @@ public class RawlsClient {
     GoogleCredentials userCredentials =
         AuthenticationUtils.getDelegatedUserCredential(testUser, scopes);
     String accessToken = AuthenticationUtils.getAccessToken(userCredentials).getTokenValue();
-    apiClient.setRequestInterceptor(builder -> builder.header("Authorization", "Bearer " + accessToken));
+    apiClient.setRequestInterceptor(
+        builder -> builder.header("Authorization", "Bearer " + accessToken));
     return apiClient;
   }
 
