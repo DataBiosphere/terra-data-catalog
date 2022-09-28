@@ -13,6 +13,7 @@ def artifactGroup = "${group}.catalog"
 openApiGenerate {
     inputSpec = "$rootDir/common/openapi.yml"
     generatorName = 'spring'
+    library = 'spring-boot'
 
     generateApiDocumentation = false
     generateApiTests = false
@@ -22,18 +23,11 @@ openApiGenerate {
     apiPackage = "${artifactGroup}.api"
     modelPackage = "${artifactGroup}.model"
 
-    /*
-        interfaceOnly    : 'true',
-        useTags          : 'true',
-        springBootVersion: dependencyManagement.managedVersions['org.springframework.boot:spring-boot']
-
-     */
     configOptions = [
-        dateLibrary      : 'java11',
-        java8            : 'true',
-        interfaceOnly    : 'true',
-        library : 'spring-boot',
-        useTags : 'true',
+        dateLibrary  : 'java11',
+        java8        : 'true',
+        interfaceOnly: 'true',
+        useTags      : 'true',
     ]
 }
 

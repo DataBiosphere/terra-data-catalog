@@ -1,28 +1,30 @@
-java {
-    // Builds sources into the published package as part of the 'assemble' task.
-    withSourcesJar()
-}
-
 task downloadRawlsYaml(type: Download) {
     // this was the latest git commit hash at development time
     src "https://raw.githubusercontent.com/broadinstitute/rawls/874b2e1bc6d95f90e1cf0db7569cfbaae9da34bf/core/src/main/resources/swagger/api-docs.yaml"
     dest "${buildDir}/rawls-api-docs.yaml"
 }
 
+tasks.openApiGenerate.dependsOn tasks.downloadRawlsYaml
+
 def artifactGroup = "${group}.rawls"
 
 openApiGenerate {
     inputSpec = "${buildDir}/rawls-api-docs.yaml"
-    generatorName = "java"
+    generatorName = 'java'
+    library = 'native'
+
+    generateApiDocumentation = false
+    generateApiTests = false
+    generateModelDocumentation = false
+    generateModelTests = false
 
     apiPackage = "${artifactGroup}.api"
     modelPackage = "${artifactGroup}.model"
     invokerPackage = "${artifactGroup}.client"
 
     configOptions = [
-        dateLibrary   : 'java11',
-        java8         : 'true',
-        library       : 'native'
+        dateLibrary: 'java11',
+        java8      : 'true',
     ]
 }
 
@@ -32,6 +34,4 @@ String openapiTargetDir = "${openApiGenerate.outputDir.get()}/src/main/java"
 idea.module.generatedSourceDirs = [file("${openapiTargetDir}")]
 sourceSets.main.java.srcDir "${openapiTargetDir}"
 
-tasks.openApiGenerate.dependsOn tasks.downloadRawlsYaml
 compileJava.dependsOn tasks.openApiGenerate
-sourcesJar.dependsOn tasks.openApiGenerate

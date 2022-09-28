@@ -1,14 +1,6 @@
-import org.springframework.boot.gradle.plugin.SpringBootPlugin
-
 plugins {
     id 'bio.terra.catalog.java-library-conventions'
     id 'de.undercouch.download'
-}
-
-dependencyManagement {
-    imports {
-        mavenBom(SpringBootPlugin.BOM_COORDINATES)
-    }
 }
 
 apply from: 'swagger.gradle'

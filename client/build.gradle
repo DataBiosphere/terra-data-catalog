@@ -1,5 +1,3 @@
-import org.springframework.boot.gradle.plugin.SpringBootPlugin
-
 plugins {
     id 'bio.terra.catalog.java-library-conventions'
     id 'maven-publish'

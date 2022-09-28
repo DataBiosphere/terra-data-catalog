@@ -3,6 +3,7 @@ def artifactGroup = "${group}.catalog"
 openApiGenerate {
     inputSpec = "$rootDir/common/openapi.yml"
     generatorName = 'java'
+    library = 'native'
 
     generateApiDocumentation = false
     generateApiTests = false
@@ -14,9 +15,8 @@ openApiGenerate {
     invokerPackage = "${artifactGroup}.client"
 
     configOptions = [
-        dateLibrary   : 'java11',
-        java8         : 'true',
-        library       : 'native'
+        dateLibrary: 'java11',
+        java8      : 'true',
     ]
 }
 
