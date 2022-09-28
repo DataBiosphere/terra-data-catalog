@@ -71,7 +71,7 @@ public class RawlsClient {
           }
         };
     workspaceApiClient.setRequestInterceptor(newInterceptor.andThen(oldInterceptor));
-    return new WorkspacesApi();
+    return new WorkspacesApi(workspaceApiClient);
   }
 
   private BillingV2Api createBillingApi(String basePath, TestUserSpecification testUser)
