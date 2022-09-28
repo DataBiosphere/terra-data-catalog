@@ -12,6 +12,8 @@ import bio.terra.catalog.service.DatasetService;
 import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.common.iam.AuthenticatedUserRequestFactory;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,15 +55,20 @@ public class DatasetApiController implements DatasetsApi {
   }
 
   @Override
-  public ResponseEntity<String> getDataset(UUID id) {
+  public ResponseEntity<Object> getDataset(UUID id) {
     return ResponseEntity.ok()
         .cacheControl(CacheControl.noStore())
         .body(datasetService.getMetadata(getUser(), new DatasetId(id)));
   }
 
   @Override
-  public ResponseEntity<Void> updateDataset(UUID id, String metadata) {
-    datasetService.updateMetadata(getUser(), new DatasetId(id), metadata);
+  public ResponseEntity<Void> updateDataset(UUID id, Object metadata) {
+    try {
+      datasetService.updateMetadata(
+          getUser(), new DatasetId(id), new ObjectMapper().writeValueAsString(metadata));
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
     return ResponseEntity.noContent().build();
   }
 
