@@ -8,8 +8,8 @@ import com.google.auth.oauth2.GoogleCredentials;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import javax.ws.rs.core.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import scripts.api.DatasetsApi;
 
 public class CatalogClient extends ApiClient {
 
@@ -44,15 +44,12 @@ public class CatalogClient extends ApiClient {
       var accessToken = AuthenticationUtils.getAccessToken(userCredential);
       if (accessToken != null) {
         setRequestInterceptor(
-            builder -> builder.header("Authorization", "Bearer " + accessToken.getTokenValue()));
+            request ->
+                request.header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken.getTokenValue()));
       }
     }
 
     setResponseInterceptor(response -> lastHttpStatus.set(response.statusCode()));
-  }
-
-  public DatasetsApi datasetsApi() {
-    return new DatasetsApi(this);
   }
 
   public int getStatusCode() {

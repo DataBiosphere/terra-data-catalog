@@ -5,6 +5,7 @@ import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.common.iam.AuthenticatedUserRequestFactory;
 import bio.terra.common.iam.BearerTokenParser;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.HttpHeaders;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +19,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class SamAuthenticatedUserRequestFactory implements AuthenticatedUserRequestFactory {
   private static final String OAUTH2_ACCESS_TOKEN = "OAUTH2_CLAIM_access_token";
-  private static final String AUTHORIZATION = "Authorization";
   private final SamService samService;
 
   @Autowired
@@ -50,7 +50,7 @@ public class SamAuthenticatedUserRequestFactory implements AuthenticatedUserRequ
     if (oauth2Header != null) {
       return oauth2Header;
     } else {
-      String authHeader = servletRequest.getHeader(AUTHORIZATION);
+      String authHeader = servletRequest.getHeader(HttpHeaders.AUTHORIZATION);
       if (authHeader != null) {
         return BearerTokenParser.parse(authHeader);
       }
