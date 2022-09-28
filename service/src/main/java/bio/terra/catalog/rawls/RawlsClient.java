@@ -6,6 +6,7 @@ import bio.terra.rawls.api.EntitiesApi;
 import bio.terra.rawls.api.StatusApi;
 import bio.terra.rawls.api.WorkspacesApi;
 import bio.terra.rawls.client.ApiClient;
+import com.google.common.annotations.VisibleForTesting;
 import javax.ws.rs.core.HttpHeaders;
 import org.springframework.stereotype.Component;
 
@@ -17,14 +18,16 @@ public class RawlsClient {
     this.rawlsConfig = rawlsConfig;
   }
 
-  private ApiClient getApiClient(AuthenticatedUserRequest user) {
+  @VisibleForTesting
+  ApiClient getApiClient(AuthenticatedUserRequest user) {
     ApiClient apiClient = getApiClient();
     apiClient.setRequestInterceptor(
         request -> request.header(HttpHeaders.AUTHORIZATION, "Bearer " + user.getToken()));
     return apiClient;
   }
 
-  private ApiClient getApiClient() {
+  @VisibleForTesting
+  ApiClient getApiClient() {
     var apiClient = new ApiClient();
     apiClient.updateBaseUri(rawlsConfig.basePath());
     return apiClient;

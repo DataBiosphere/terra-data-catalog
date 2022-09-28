@@ -1,40 +1,40 @@
 package bio.terra.catalog.rawls;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+
 import bio.terra.catalog.config.RawlsConfiguration;
+import bio.terra.common.iam.AuthenticatedUserRequest;
+import java.net.http.HttpRequest;
+import javax.ws.rs.core.HttpHeaders;
+import org.junit.jupiter.api.Test;
 
 class RawlsClientTest {
 
-  private static final String BASE_PATH = "base path";
+  private static final String BASE_PATH = "http://some.host/path";
   private static final String TOKEN = "token";
-  private static final String AUTH_NAME = "googleoauth";
 
   private final RawlsClient client = new RawlsClient(new RawlsConfiguration(BASE_PATH));
-  /*
-   @Test
-   void testApis() {
-     var user =
-         new AuthenticatedUserRequest.Builder()
-             .setEmail("")
-             .setSubjectId("")
-             .setToken(TOKEN)
-             .build();
 
-     ApiClient workspacesClient = client.workspacesApi(user).getApiClient();
-     validateClient(workspacesClient, TOKEN);
+  @Test
+  void testApis() {
+    var user =
+        new AuthenticatedUserRequest.Builder()
+            .setEmail("")
+            .setSubjectId("")
+            .setToken(TOKEN)
+            .build();
 
-     ApiClient entitiesClient = client.entitiesApi(user).getApiClient();
-     validateClient(entitiesClient, TOKEN);
+    var apiClient = client.getApiClient(user);
+    assertThat(apiClient.getBaseUri(), is(BASE_PATH));
+    var requestBuilder = mock(HttpRequest.Builder.class);
+    apiClient.getRequestInterceptor().accept(requestBuilder);
+    verify(requestBuilder).header(HttpHeaders.AUTHORIZATION, "Bearer " + user.getToken());
 
-     var statusClient = client.statusApi().getApiClient();
-     validateClient(statusClient, null);
-
-     assertThat(statusClient.getHttpClient(), is(workspacesClient.getHttpClient()));
-   }
-
-   private static void validateClient(ApiClient client, String token) {
-     assertThat(client.getBasePath(), is(BASE_PATH));
-     OAuth oauth = (OAuth) client.getAuthentication(AUTH_NAME);
-     assertThat(oauth.getAccessToken(), is(token));
-   }
-  */
+    apiClient = client.getApiClient();
+    assertNull(apiClient.getRequestInterceptor());
+  }
 }
