@@ -15,6 +15,7 @@ import bio.terra.rawls.model.WorkspaceRequest;
 import bio.terra.testrunner.common.utils.AuthenticationUtils;
 import bio.terra.testrunner.runner.config.ServerSpecification;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.google.auth.oauth2.GoogleCredentials;
 import java.io.IOException;
 import java.util.List;
@@ -50,6 +51,12 @@ public class RawlsClient {
         AuthenticationUtils.getDelegatedUserCredential(testUser, scopes);
     String accessToken = AuthenticationUtils.getAccessToken(userCredentials).getTokenValue();
     apiClient.setAccessToken(accessToken);
+    // This is required as the default is `true` and any new fields will cause API calls to fail.
+    // Before this defaulted to `false` in the generated java client.
+    apiClient
+        .getJSON()
+        .getMapper()
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     return apiClient;
   }
 
@@ -122,7 +129,6 @@ public class RawlsClient {
             .attributes(Map.of());
     var workspaceDetails = workspacesApi.createWorkspace(request);
     log.info("created workspace {}", workspaceDetails.getWorkspaceId());
-    ingestData(workspaceDetails);
     return workspaceDetails;
   }
 
