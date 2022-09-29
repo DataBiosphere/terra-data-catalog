@@ -7,13 +7,8 @@ import bio.terra.testrunner.runner.config.TestUserSpecification;
 import com.google.auth.oauth2.GoogleCredentials;
 import java.io.IOException;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
-import javax.ws.rs.core.HttpHeaders;
-import org.springframework.http.HttpStatus;
 
 public class CatalogClient extends ApiClient {
-
-  private final AtomicInteger lastHttpStatus = new AtomicInteger(HttpStatus.I_AM_A_TEAPOT.value());
 
   /**
    * Build the no-auth API client object for the catalog server. No access token is needed for this
@@ -35,7 +30,7 @@ public class CatalogClient extends ApiClient {
    */
   public CatalogClient(ServerSpecification server, TestUserSpecification testUser)
       throws IOException {
-    updateBaseUri(Objects.requireNonNull(server.catalogUri, "Catalog URI required"));
+    setBasePath(Objects.requireNonNull(server.catalogUri, "Catalog URI required"));
 
     if (testUser != null) {
       GoogleCredentials userCredential =
@@ -43,16 +38,8 @@ public class CatalogClient extends ApiClient {
               testUser, AuthenticationUtils.userLoginScopes);
       var accessToken = AuthenticationUtils.getAccessToken(userCredential);
       if (accessToken != null) {
-        setRequestInterceptor(
-            request ->
-                request.header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken.getTokenValue()));
+        setAccessToken(accessToken.getTokenValue());
       }
     }
-
-    setResponseInterceptor(response -> lastHttpStatus.set(response.statusCode()));
-  }
-
-  public int getStatusCode() {
-    return lastHttpStatus.get();
   }
 }

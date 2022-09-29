@@ -6,12 +6,23 @@ task downloadRawlsYaml(type: Download) {
 
 tasks.openApiGenerate.dependsOn tasks.downloadRawlsYaml
 
+dependencies {
+    // Version controlled by dependency management plugin
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    implementation 'org.glassfish.jersey.core:jersey-client'
+    implementation 'org.glassfish.jersey.media:jersey-media-json-jackson'
+    implementation 'org.glassfish.jersey.media:jersey-media-multipart'
+
+    implementation 'com.github.scribejava:scribejava-core:8.3.1'
+    implementation 'io.swagger.core.v3:swagger-annotations'
+}
+
 def artifactGroup = "${group}.rawls"
 
 openApiGenerate {
     inputSpec = "${buildDir}/rawls-api-docs.yaml"
     generatorName = 'java'
-    library = 'native'
+    library = 'jersey2'
 
     generateApiDocumentation = false
     generateApiTests = false

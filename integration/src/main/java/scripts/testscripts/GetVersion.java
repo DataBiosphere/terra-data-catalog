@@ -16,10 +16,11 @@ public class GetVersion extends TestScript {
     CatalogClient client = new CatalogClient(server);
     var publicApi = new PublicApi(client);
 
-    var versionProperties = publicApi.getVersion();
+    var response = publicApi.getVersionWithHttpInfo();
+    var versionProperties = response.getData();
 
     // check the response code
-    assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
+    assertThat(response.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
 
     // check the response body
     assertThat(versionProperties.getGitHash(), notNullValue());

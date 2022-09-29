@@ -6,31 +6,27 @@ import bio.terra.rawls.api.EntitiesApi;
 import bio.terra.rawls.api.StatusApi;
 import bio.terra.rawls.api.WorkspacesApi;
 import bio.terra.rawls.client.ApiClient;
-import com.google.common.annotations.VisibleForTesting;
-import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.client.Client;
 import org.springframework.stereotype.Component;
 
 @Component
 public class RawlsClient {
   private final RawlsConfiguration rawlsConfig;
+  private final Client commonHttpClient = new ApiClient().getHttpClient();
 
   public RawlsClient(RawlsConfiguration rawlsConfig) {
     this.rawlsConfig = rawlsConfig;
   }
 
-  @VisibleForTesting
-  ApiClient getApiClient(AuthenticatedUserRequest user) {
+  private ApiClient getApiClient(AuthenticatedUserRequest user) {
     ApiClient apiClient = getApiClient();
-    apiClient.setRequestInterceptor(
-        request -> request.header(HttpHeaders.AUTHORIZATION, "Bearer " + user.getToken()));
+    apiClient.setAccessToken(user.getToken());
     return apiClient;
   }
 
-  @VisibleForTesting
-  ApiClient getApiClient() {
-    var apiClient = new ApiClient();
-    apiClient.updateBaseUri(rawlsConfig.basePath());
-    return apiClient;
+  private ApiClient getApiClient() {
+    // Share one api client across requests.
+    return new ApiClient().setHttpClient(commonHttpClient).setBasePath(rawlsConfig.basePath());
   }
 
   WorkspacesApi workspacesApi(AuthenticatedUserRequest user) {

@@ -92,8 +92,8 @@ public class DatasetOperations extends TestScript {
     var client = new CatalogClient(server, testUser);
     datasetsApi = new DatasetsApi(client);
 
-    crudUserJourney(client, StorageSystem.TDR, snapshotId.toString());
-    crudUserJourney(client, StorageSystem.WKS, workspaceSource.getWorkspaceId());
+    crudUserJourney(StorageSystem.TDR, snapshotId.toString());
+    crudUserJourney(StorageSystem.WKS, workspaceSource.getWorkspaceId());
 
     previewUserJourney(StorageSystem.TDR, snapshotId.toString());
     previewUserJourney(StorageSystem.WKS, workspaceSource.getWorkspaceId());
@@ -173,43 +173,46 @@ public class DatasetOperations extends TestScript {
     keys.forEach(key -> assertThat(jsonOne.get(key), is(expectedMetadata.get(key))));
   }
 
-  private void crudUserJourney(CatalogClient client, StorageSystem storageSystem, String sourceId)
-      throws Exception {
+  private void crudUserJourney(StorageSystem storageSystem, String sourceId) throws Exception {
     // Given a snapshot, create a catalog entry.
     var request =
         new CreateDatasetRequest()
             .catalogEntry(createMetadata("crud").toString())
             .storageSourceId(sourceId)
             .storageSystem(storageSystem);
-    datasetId = datasetsApi.createDataset(request).getId();
-    assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
+    var createResponse = datasetsApi.createDatasetWithHttpInfo(request);
+    datasetId = createResponse.getData().getId();
+    assertThat(createResponse.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
     assertThat(datasetId, notNullValue());
     log.info("created dataset " + datasetId);
 
     // Retrieve the entry
-    JsonNode datasetResponse = objectMapper.readTree(datasetsApi.getDataset(datasetId));
+    var getResponse = datasetsApi.getDatasetWithHttpInfo(datasetId);
+    JsonNode datasetResponse = objectMapper.readTree(getResponse.getData());
     // We do not expect phsId or requestAccessURL here because our getDataset doesn't return storage
     // system information
     assertDatasetValues(List.of("name", "id"), datasetResponse, "crud", storageSystem);
-    assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
+    assertThat(getResponse.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
 
     // Retrieve all datasets
-    var datasets = datasetsApi.listDatasets();
-    assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
-    resultHasDatasetWithRoles(datasets.getResult(), storageSystem);
+    var listResponse = datasetsApi.listDatasetsWithHttpInfo();
+    assertThat(listResponse.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
+    resultHasDatasetWithRoles(listResponse.getData().getResult(), storageSystem);
 
     // Modify the entry
-    datasetsApi.updateDataset(datasetId, createMetadata("crud2").toString());
-    assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_NO_CONTENT));
+    var updateResponse =
+        datasetsApi.updateDatasetWithHttpInfo(datasetId, createMetadata("crud2").toString());
+    assertThat(updateResponse.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_NO_CONTENT));
 
     // Verify modify success
-    JsonNode datasetResponseTwo = objectMapper.readTree(datasetsApi.getDataset(datasetId));
+    var getResponseTwo = datasetsApi.getDatasetWithHttpInfo(datasetId);
+    JsonNode datasetResponseTwo = objectMapper.readTree(getResponseTwo.getData());
     assertDatasetValues(List.of("name", "id"), datasetResponseTwo, "crud2", storageSystem);
-    assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
+    assertThat(getResponseTwo.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
 
     // Delete the entry
-    datasetsApi.deleteDataset(datasetId);
-    assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_NO_CONTENT));
+    var deleteResponse = datasetsApi.deleteDatasetWithHttpInfo(datasetId);
+    assertThat(deleteResponse.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_NO_CONTENT));
 
     // Verify delete success.
     var apiException = assertThrows(ApiException.class, () -> datasetsApi.getDataset(datasetId));

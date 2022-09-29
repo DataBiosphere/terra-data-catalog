@@ -97,6 +97,7 @@ public class DatasetApiController implements DatasetsApi {
     return ResponseEntity.noContent().build();
   }
 
+  @Deprecated
   @Override
   public ResponseEntity<Void> exportDatasetDeprecated(UUID datasetId, UUID workspaceId) {
     datasetService.exportDataset(getUser(), new DatasetId(datasetId), workspaceId);

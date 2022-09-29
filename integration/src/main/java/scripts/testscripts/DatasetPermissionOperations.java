@@ -121,14 +121,12 @@ public class DatasetPermissionOperations extends TestScript {
       throws ApiException {
     CreateDatasetRequest request = datasetRequest(storageSourceId, storageSystem);
     // note if this assertion fails we'll leave behind a stray dataset in the db
-    assertThrows(ApiException.class, () -> userDatasetsApi.createDataset(request));
-    assertThat(
-        userDatasetsApi.getApiClient().getStatusCode(),
-        is(HttpStatusCodes.STATUS_CODE_UNAUTHORIZED));
+    var exception = assertThrows(ApiException.class, () -> userDatasetsApi.createDataset(request));
+    assertThat(exception.getCode(), is(HttpStatusCodes.STATUS_CODE_UNAUTHORIZED));
 
     // verify the user can still access data though
-    userDatasetsApi.getDataset(adminDatasetId);
-    assertThat(userDatasetsApi.getApiClient().getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
+    var getResponse = userDatasetsApi.getDatasetWithHttpInfo(adminDatasetId);
+    assertThat(getResponse.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
   }
 
   private void testNoPermissionsForWorkspaceDataset() throws Exception {
@@ -139,8 +137,9 @@ public class DatasetPermissionOperations extends TestScript {
   }
 
   private void assertNoPermissionsOnDataset(UUID adminDatasetId, int expectedStatusCode) {
-    assertThrows(ApiException.class, () -> userDatasetsApi.getDataset(adminDatasetId));
-    assertThat(userDatasetsApi.getApiClient().getStatusCode(), is(expectedStatusCode));
+    var exception =
+        assertThrows(ApiException.class, () -> userDatasetsApi.getDataset(adminDatasetId));
+    assertThat(exception.getCode(), is(expectedStatusCode));
   }
 
   private void testAdminPermissionsOnUserWorkspace() throws Exception {
@@ -157,21 +156,19 @@ public class DatasetPermissionOperations extends TestScript {
     CreateDatasetRequest request =
         datasetRequest(adminTestSnapshotId.toString(), StorageSystem.TDR);
     // note if this assertion fails we'll leave behind a stray dataset in the db
-    assertThrows(ApiException.class, () -> userDatasetsApi.createDataset(request));
-    assertThat(
-        userDatasetsApi.getApiClient().getStatusCode(),
-        is(HttpStatusCodes.STATUS_CODE_UNAUTHORIZED));
+    var exception = assertThrows(ApiException.class, () -> userDatasetsApi.createDataset(request));
+    assertThat(exception.getCode(), is(HttpStatusCodes.STATUS_CODE_UNAUTHORIZED));
 
     // verify the user cannot preview data either
-    assertThrows(
-        ApiException.class,
-        () -> userDatasetsApi.listDatasetPreviewTables(adminTestSnapshotDatasetId));
-    assertTrue(
-        HttpStatus.valueOf(userDatasetsApi.getApiClient().getStatusCode()).is4xxClientError());
+    exception =
+        assertThrows(
+            ApiException.class,
+            () -> userDatasetsApi.listDatasetPreviewTables(adminTestSnapshotDatasetId));
+    assertTrue(HttpStatus.valueOf(exception.getCode()).is4xxClientError());
 
     // but the user can get datasets
-    userDatasetsApi.getDataset(adminTestSnapshotDatasetId);
-    assertThat(userDatasetsApi.getApiClient().getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
+    var getResponse = userDatasetsApi.getDatasetWithHttpInfo(adminTestSnapshotDatasetId);
+    assertThat(getResponse.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
   }
 
   private void testNoPermissionsForSnapshotDataset() throws Exception {
@@ -187,9 +184,10 @@ public class DatasetPermissionOperations extends TestScript {
     var datasetId = adminCreateDataset(request);
 
     // But admin cannot access the underlying preview data
-    assertThrows(Exception.class, () -> adminDatasetsApi.listDatasetPreviewTables(datasetId));
-    assertTrue(
-        HttpStatus.valueOf(userDatasetsApi.getApiClient().getStatusCode()).is4xxClientError());
+    var exception =
+        assertThrows(
+            ApiException.class, () -> adminDatasetsApi.listDatasetPreviewTables(datasetId));
+    assertTrue(HttpStatus.valueOf(exception.getCode()).is4xxClientError());
   }
 
   private void setTestSnapshotPermissionForRegularUser(String policy) throws Exception {
@@ -214,8 +212,9 @@ public class DatasetPermissionOperations extends TestScript {
   }
 
   private UUID adminCreateDataset(CreateDatasetRequest request) throws Exception {
-    var datasetId = adminDatasetsApi.createDataset(request).getId();
-    assertThat(adminDatasetsApi.getApiClient().getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
+    var createResponse = adminDatasetsApi.createDatasetWithHttpInfo(request);
+    var datasetId = createResponse.getData().getId();
+    assertThat(createResponse.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
     datasetIds.add(datasetId);
     return datasetId;
   }

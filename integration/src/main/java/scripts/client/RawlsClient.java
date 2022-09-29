@@ -17,15 +17,12 @@ import bio.terra.testrunner.runner.config.ServerSpecification;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
 import com.google.auth.oauth2.GoogleCredentials;
 import java.io.IOException;
-import java.net.http.HttpRequest;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
-import javax.ws.rs.core.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,33 +42,36 @@ public class RawlsClient {
 
   private boolean deleteWorkspaceWorkaround;
 
-  private static void setUserAndScopes(
+  private static ApiClient setUserAndScopes(
       ApiClient apiClient, String basePath, TestUserSpecification testUser, List<String> scopes)
       throws IOException {
-    apiClient.updateBaseUri(basePath);
+    apiClient.setBasePath(basePath);
     GoogleCredentials userCredentials =
         AuthenticationUtils.getDelegatedUserCredential(testUser, scopes);
     String accessToken = AuthenticationUtils.getAccessToken(userCredentials).getTokenValue();
-    apiClient.setRequestInterceptor(
-        request -> request.header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken));
+    apiClient.setAccessToken(accessToken);
+    return apiClient;
   }
 
   private WorkspacesApi createWorkspacesApi(String basePath, TestUserSpecification testUser)
       throws IOException {
-    var workspaceApiClient = new ApiClient();
-    setUserAndScopes(workspaceApiClient, basePath, testUser, AuthenticationUtils.userLoginScopes);
-    var oldInterceptor = workspaceApiClient.getRequestInterceptor();
-    Consumer<HttpRequest.Builder> newInterceptor =
-        request -> {
-          // This workaround is necessary because the rawls openAPI spec doesn't match the
-          // endpoint's  behavior. Without this change, calling deleteWorkspace() will fail
-          // with a 406 status.
-          if (deleteWorkspaceWorkaround) {
-            request.setHeader(HttpHeaders.ACCEPT, "text/plain");
+    var workspaceApiClient =
+        new ApiClient() {
+          @Override
+          public String selectHeaderAccept(String[] accepts) {
+            // This workaround is necessary because the rawls openAPI spec doesn't match the
+            // endpoint's  behavior. Without this change, calling deleteWorkspace() will fail
+            // with a 406 status.
+            if (deleteWorkspaceWorkaround) {
+              return "text/plain";
+            }
+            return super.selectHeaderAccept(accepts);
           }
         };
-    workspaceApiClient.setRequestInterceptor(newInterceptor.andThen(oldInterceptor));
-    return new WorkspacesApi(workspaceApiClient);
+
+    return new WorkspacesApi(
+        setUserAndScopes(
+            workspaceApiClient, basePath, testUser, AuthenticationUtils.userLoginScopes));
   }
 
   private BillingV2Api createBillingApi(String basePath, TestUserSpecification testUser)
@@ -122,13 +122,13 @@ public class RawlsClient {
             .attributes(Map.of());
     var workspaceDetails = workspacesApi.createWorkspace(request);
     log.info("created workspace {}", workspaceDetails.getWorkspaceId());
+    ingestData(workspaceDetails);
     return workspaceDetails;
   }
 
   public void ingestData(WorkspaceDetails workspaceDetails) throws ApiException {
     var namespace = workspaceDetails.getNamespace();
     var name = workspaceDetails.getName();
-
     for (int i = 1; i <= 15; i++) {
       Entity entity = new Entity().entityType("sample").name("sample" + i);
       entity.setAttributes(
