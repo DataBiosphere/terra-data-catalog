@@ -86,6 +86,10 @@
     "contributors": {
       "type": "array",
       "items": { "type": "string" }
+    },
+    "brands": {
+      "type": "array",
+      "items": { "type":  "string"}
     }
   },
   "$defs": {
