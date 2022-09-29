@@ -87,7 +87,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                type: string
         '404':
           description: "Dataset not found"
         '500':
@@ -105,7 +105,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
+              type: string
         required: true
       responses:
         204:

@@ -48,7 +48,7 @@ class DatasetApiControllerTest {
   private static final String API = "/api/v1/datasets";
   private static final String API_ID = API + "/{id}";
   private static final String METADATA = """
-      {"some":"metadata"}""";
+      {"some": "metadata"}""";
   private static final String PREVIEW_TABLES_API = API_ID + "/tables";
   private static final String PREVIEW_TABLES_API_TABLE_NAME = PREVIEW_TABLES_API + "/{tableName}";
 

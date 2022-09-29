@@ -187,8 +187,7 @@ public class DatasetOperations extends TestScript {
     log.info("created dataset " + datasetId);
 
     // Retrieve the entry
-    JsonNode datasetResponse =
-        objectMapper.convertValue(datasetsApi.getDataset(datasetId), JsonNode.class);
+    JsonNode datasetResponse = objectMapper.readTree(datasetsApi.getDataset(datasetId));
     // We do not expect phsId or requestAccessURL here because our getDataset doesn't return storage
     // system information
     assertDatasetValues(List.of("name", "id"), datasetResponse, "crud", storageSystem);
@@ -200,12 +199,11 @@ public class DatasetOperations extends TestScript {
     resultHasDatasetWithRoles(datasets.getResult(), storageSystem);
 
     // Modify the entry
-    datasetsApi.updateDataset(datasetId, createMetadata("crud2"));
+    datasetsApi.updateDataset(datasetId, createMetadata("crud2").toString());
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_NO_CONTENT));
 
     // Verify modify success
-    JsonNode datasetResponseTwo =
-        objectMapper.convertValue(datasetsApi.getDataset(datasetId), JsonNode.class);
+    JsonNode datasetResponseTwo = objectMapper.readTree(datasetsApi.getDataset(datasetId));
     assertDatasetValues(List.of("name", "id"), datasetResponseTwo, "crud2", storageSystem);
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
 
