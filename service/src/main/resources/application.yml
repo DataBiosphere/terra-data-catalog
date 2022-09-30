@@ -18,8 +18,6 @@ env:
     basePath: ${DATAREPO_ADDRESS:https://jade.datarepo-dev.broadinstitute.org}
   rawls:
     basePath: ${RAWLS_ADDRESS:https://rawls.dsde-dev.broadinstitute.org}
-  schema:
-    basePath: ${SCHEMA_ADDRESS:https://raw.githubusercontent.com/DataBiosphere/terra-data-catalog/oa-DC-464-schema-validation/service/src/main/resources/schema.json}
 
 # Below here is non-deployment-specific
 
@@ -77,7 +75,7 @@ catalog:
     basePath: ${env.rawls.basePath}
 
   schema:
-    basePath: ${env.schema.basePath}
+    basePath: src/main/resources/schemas/catalog-v0.schema.json
 
 terra.common:
   kubernetes:
