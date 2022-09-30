@@ -26,21 +26,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import com.google.common.annotations.VisibleForTesting;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersion;
-import com.networknt.schema.ValidationMessage;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -50,14 +42,9 @@ public class DatasetService {
   private final DatarepoService datarepoService;
   private final RawlsService rawlsService;
   private final SamService samService;
+  private final SchemaService schemaService;
   private final DatasetDao datasetDao;
   private final ObjectMapper objectMapper;
-
-  @Value("${catalog.schema.basePath}")
-  @VisibleForTesting
-  private String CATALOG_SCHEMA_PATH;
-
-  private JsonSchema schema;
   private static final int MAX_ROWS = 30;
 
   @Autowired
@@ -65,15 +52,16 @@ public class DatasetService {
       DatarepoService datarepoService,
       RawlsService rawlsService,
       SamService samService,
+      SchemaService schemaService,
       DatasetDao datasetDao,
-      ObjectMapper objectMapper) throws URISyntaxException {
+      ObjectMapper objectMapper)
+       {
     this.datarepoService = datarepoService;
     this.rawlsService = rawlsService;
     this.samService = samService;
+    this.schemaService = schemaService;
     this.datasetDao = datasetDao;
     this.objectMapper = objectMapper;
-      this.schema = getJsonSchemaFromUrl(CATALOG_SCHEMA_PATH);
-
   }
 
   public static class IllegalMetadataException extends RuntimeException {
@@ -299,7 +287,7 @@ public class DatasetService {
   }
 
   public void updateMetadata(AuthenticatedUserRequest user, DatasetId datasetId, String metadata) {
-    validateMetadata(metadata);
+    schemaService.validateMetadata(toJsonNode(metadata));
     var dataset = datasetDao.retrieve(datasetId);
     ensureActionPermission(user, dataset, SamAction.UPDATE_ANY_METADATA);
     datasetDao.update(dataset.withMetadata(metadata));
@@ -310,7 +298,7 @@ public class DatasetService {
       StorageSystem storageSystem,
       String storageSourceId,
       String metadata) {
-    validateMetadata(metadata);
+    schemaService.validateMetadata(toJsonNode(metadata));
     var dataset = new Dataset(storageSourceId, storageSystem, metadata);
     ensureActionPermission(user, dataset, SamAction.CREATE_METADATA);
     return datasetDao.create(dataset).id();
@@ -321,25 +309,6 @@ public class DatasetService {
     var dataset = datasetDao.retrieve(datasetId);
     var tableMetadataList = generateDatasetTables(user, dataset);
     return new DatasetPreviewTablesResponse().tables(tableMetadataList);
-  }
-
-  private JsonSchema getJsonSchemaFromUrl(String uri) throws URISyntaxException {
-    JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4);
-    return factory.getSchema(new URI(uri));
-  }
-
-  private ObjectNode validateMetadata(String metadata) {
-    JsonSchema schema;
-    try {
-      schema = getJsonSchemaFromUrl(CATALOG_SCHEMA_PATH);
-    } catch (URISyntaxException e) {
-      throw new BadRequestException("Catalog URL is invalid", e);
-    }
-    Set<ValidationMessage> errors = schema.validate(toJsonNode(metadata));
-    if (errors.size() > 0) {
-      throw new BadRequestException("Catalog entry is invalid: " + errors);
-    }
-    return toJsonNode(metadata);
   }
 
   private static List<TableMetadata> convertDatarepoTablesToCatalogTables(

@@ -42,6 +42,7 @@ import bio.terra.datarepo.model.TableModel;
 import bio.terra.rawls.model.Entity;
 import bio.terra.rawls.model.EntityQueryResponse;
 import bio.terra.rawls.model.EntityTypeMetadata;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.net.URISyntaxException;
@@ -59,10 +60,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class DatasetServiceTest {
-
-
   private DatasetService datasetService;
 
+  @Mock private SchemaService schemaService;
 
   @Mock private DatarepoService datarepoService;
 
@@ -101,7 +101,8 @@ class DatasetServiceTest {
   @BeforeEach
   public void beforeEach() throws URISyntaxException {
     datasetService =
-        new DatasetService(datarepoService, rawlsService, samService, datasetDao, objectMapper);
+        new DatasetService(
+            datarepoService, rawlsService, samService, schemaService, datasetDao, objectMapper);
   }
 
   private void mockDataset() {
@@ -223,10 +224,11 @@ class DatasetServiceTest {
   }
 
   @Test
-  void testUpdateMetadata() {
+  void testUpdateMetadata() throws JsonProcessingException {
     mockDataset();
     when(samService.hasGlobalAction(user, SamAction.UPDATE_ANY_METADATA)).thenReturn(true);
     datasetService.updateMetadata(user, datasetId, metadata);
+    verify(schemaService).validateMetadata(objectMapper.readTree(dataset.metadata()));
     verify(datasetDao).update(dataset.withMetadata(metadata));
   }
 
@@ -248,7 +250,7 @@ class DatasetServiceTest {
   }
 
   @Test
-  void testCreateDataset() {
+  void testCreateDataset() throws Exception {
     String storageSourceId = "testSource";
     Dataset testDataset = new Dataset(storageSourceId, StorageSystem.TERRA_DATA_REPO, metadata);
     Dataset testDatasetWithCreationInfo =
@@ -260,6 +262,7 @@ class DatasetServiceTest {
     DatasetId id =
         datasetService.createDataset(
             user, StorageSystem.TERRA_DATA_REPO, storageSourceId, metadata);
+    verify(schemaService).validateMetadata(objectMapper.readTree(testDataset.metadata()));
     assertThat(id, is(datasetId));
   }
 
