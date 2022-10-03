@@ -11,9 +11,11 @@ on:
           - staging
           - alpha
           - dev
+        default: 'dev'
 
 env:
   TEST_ENV: ${{ github.event.inputs.environment }}
+  TEST_DEFAULT: dev
 
 jobs:
   build:
@@ -138,9 +140,8 @@ jobs:
           STATUS: failure
         with:
           channel: '#jade-data-explorer'
-          author_name: ${{ github.actor }}
           status: ${{ env.STATUS }}
-          fields: workflow,ref
+          fields: job,ref
           text: >
             ${{ format('Catalog test *{0}* in *{1}* {2}',
             env.STATUS, needs.test-env.outputs.test-env,
@@ -164,9 +165,8 @@ jobs:
             && 'success' || 'failure' }}
         with:
           channel: '#dsde-qa'
-          author_name: ${{ github.actor }}
           status: ${{ env.STATUS }}
-          fields: workflow,ref
+          fields: job,ref
           text: >
             ${{ format('Catalog test *{0}* in *{1}* {2}',
             env.STATUS, needs.test-env.outputs.test-env,
