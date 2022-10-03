@@ -44,12 +44,11 @@ dependencies {
     implementation 'io.swagger.core.v3:swagger-annotations:2.2.0'
     swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli:3.0.31'
 
-    implementation 'org.slf4j:slf4j-api:2.0.2'
+    implementation 'org.slf4j:slf4j-api:1.7.36'
 
-    testImplementation 'ch.qos.logback:logback-classic:1.4.1'
     testImplementation 'org.hamcrest:hamcrest:2.2'
 
-    implementation 'bio.terra:terra-common-lib:0.0.73-SNAPSHOT'
+    implementation 'bio.terra:terra-common-lib:0.0.75-SNAPSHOT'
     implementation 'bio.terra:datarepo-client:1.349.0-SNAPSHOT'
 }
 

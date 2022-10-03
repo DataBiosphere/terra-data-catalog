@@ -1,4 +1,4 @@
-package bio.terra.catalog.app;
+package bio.terra.catalog;
 
 import bio.terra.common.logging.LoggingInitializer;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
