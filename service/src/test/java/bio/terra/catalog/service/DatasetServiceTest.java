@@ -136,12 +136,12 @@ class DatasetServiceTest {
             new StorageSystemInformation()
                 .datasetAccessLevel(DatasetAccessLevel.OWNER)
                 .phsId(phsId));
-    when(datarepoService.getSnapshotInformation(user)).thenReturn(idToRole);
-    when(rawlsService.getWorkspaceInformation(user)).thenReturn(Map.of());
+    when(datarepoService.getSnapshotInformation()).thenReturn(idToRole);
+    when(rawlsService.getWorkspaceInformation()).thenReturn(Map.of());
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, Set.of())).thenReturn(List.of());
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
         .thenReturn(List.of(tdrDataset));
-    ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets(user).getResult().get(0);
+    ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets().getResult().get(0);
     assertThat(tdrJson.get("phsId").asText(), is(phsId));
     assertTrue(tdrJson.has("requestAccessURL"));
   }
