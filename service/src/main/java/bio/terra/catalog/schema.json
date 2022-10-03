@@ -1,6 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Catalog Schema V1",
+  "$id": "https://app.terra.bio/schemas/datacatalog.json",
+  "title": "catalog dataset",
   "type": "object",
   "required": ["dct:title", "dct:description", "dct:creator", "dct:issued", "TerraDCAT_ap:hasDataCollection", "dcat:accessURL", "prov:wasGeneratedBy", "storage", "counts", "contributors"],
   "properties": {
@@ -31,20 +32,23 @@
       "type": "string",
       "description": "A URL to the dataset in the underlying storage system"
     },
+    "requestAccessURL": {
+      "type": "string"
+    },
     "TerraDCAT_ap:hasDataUsePermission": {
       "description": "Full List taken from https://www.ebi.ac.uk/ols/ontologies/duo/terms?iri=http://purl.obolibrary.org/obo/DUO_0000001",
       "enum": ["DUO:0000007", "DUO:0000042", "DUO:0000006", "DUO:0000011", "DUO:0000004"]
     },
     "TerraDCAT_ap:hasOriginalPublication": {
-      "$ref": "/schemas/publication"
+      "$ref": "#/$defs/publication"
     },
     "TerraDCAT_ap:hasPublication": {
       "type": "array",
-      "items": { "$ref": "/schemas/publication" }
+      "items": { "$ref": "#/$defs/publication" }
     },
     "TerraDCAT_ap:hasDataCollection": {
       "type": "array",
-      "items": { "$ref": "/schemas/dataCollection" }
+      "items": { "$ref": "#/$defs/dataCollection" }
     },
     "TerraDCAT_ap:hasOwner": {
       "type": "string",
@@ -70,15 +74,15 @@
     },
     "storage": {
       "type": "array",
-      "items": { "$ref": "/schemas/storageObject" }
+      "items": { "$ref": "#/$defs/storageObject" }
     },
     "counts": {
       "type": "object",
-      "$ref": "/schemas/counts"
+      "$ref": "#/$defs/counts"
     },
     "fileAggregate": {
       "type": "array",
-      "items": { "$ref": "/schemas/fileTypeCounts" }
+      "items": { "$ref": "#/$defs/fileTypeCounts" }
     },
     "samples": {
       "type": "object"
@@ -94,8 +98,6 @@
   },
   "$defs": {
     "publication": {
-      "$id": "/schemas/publication",
-      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "dct:title": {
@@ -109,8 +111,6 @@
       }
     },
     "dataCollection": {
-      "$id": "/schemas/dataCollection",
-      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "dct:identifier": {
@@ -126,8 +126,7 @@
           "description": "A description of the data collection"
         },
         "dct:creator": {
-          "type": "object",
-          "$ref": "/schemas/agent"
+          "type": "string"
         },
         "dct:publisher": {
           "type": "string",
@@ -144,8 +143,6 @@
       }
     },
     "storageObject": {
-      "$id": "/schemas/storageObject",
-      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "region": {
@@ -160,8 +157,6 @@
       }
     },
     "counts": {
-      "$id": "/schemas/counts",
-      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "donors": {
@@ -176,8 +171,6 @@
       }
     },
     "fileTypeCounts": {
-      "$id": "/schemas/files",
-      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "TerraCore:hasFileFormat": {
