@@ -4,6 +4,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import bio.terra.catalog.api.DatasetsApi;
 import bio.terra.catalog.client.ApiException;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import scripts.api.SnapshotsApi;
 import scripts.api.TdrDatasetsApi;
 import scripts.client.CatalogClient;
@@ -164,9 +166,9 @@ public class DatasetPermissionOperations extends TestScript {
     assertThrows(
         ApiException.class,
         () -> userDatasetsApi.listDatasetPreviewTables(adminTestSnapshotDatasetId));
-    assertThat(
-        userDatasetsApi.getApiClient().getStatusCode(),
-        is(HttpStatusCodes.STATUS_CODE_UNAUTHORIZED));
+    assertTrue(
+        HttpStatus.valueOf(userDatasetsApi.getApiClient().getStatusCode()).is4xxClientError());
+
     // but the user can get datasets
     userDatasetsApi.getDataset(adminTestSnapshotDatasetId);
     assertThat(userDatasetsApi.getApiClient().getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
@@ -186,9 +188,8 @@ public class DatasetPermissionOperations extends TestScript {
 
     // But admin cannot access the underlying preview data
     assertThrows(Exception.class, () -> adminDatasetsApi.listDatasetPreviewTables(datasetId));
-    assertThat(
-        adminDatasetsApi.getApiClient().getStatusCode(),
-        is(HttpStatusCodes.STATUS_CODE_UNAUTHORIZED));
+    assertTrue(
+        HttpStatus.valueOf(userDatasetsApi.getApiClient().getStatusCode()).is4xxClientError());
   }
 
   private void setTestSnapshotPermissionForRegularUser(String policy) throws Exception {

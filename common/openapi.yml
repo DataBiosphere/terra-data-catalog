@@ -76,7 +76,7 @@ paths:
                 $ref: '#/components/schemas/ErrorReport'
   /api/v1/datasets/{id}:
     get:
-      summary: Given a dataset ID, return its catalog entry
+      summary: Given a dataset ID, return its catalog entry without accurate phsId or access level
       tags: [ datasets ]
       operationId: getDataset
       parameters:
