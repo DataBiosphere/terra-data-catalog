@@ -1,8 +1,6 @@
 package bio.terra.catalog.datarepo;
 
-import bio.terra.catalog.common.StorageSystemService;
-import bio.terra.catalog.model.ColumnModel;
-import bio.terra.catalog.model.DatasetPreviewTable;
+import bio.terra.catalog.common.StorageSystemInformation;
 import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.catalog.model.TableMetadata;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
@@ -10,6 +8,7 @@ import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.exception.NotFoundException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.client.ApiException;
+import bio.terra.datarepo.model.EnumerateSnapshotModel;
 import bio.terra.datarepo.model.RepositoryStatusModel;
 import bio.terra.datarepo.model.SnapshotModel;
 import bio.terra.datarepo.model.SnapshotPreviewModel;
@@ -62,17 +61,24 @@ public class DatarepoService implements StorageSystemService {
   }
 
   @Override
-  public Map<String, DatasetAccessLevel> getIdsAndRoles(AuthenticatedUserRequest user) {
+  public Map<String, StorageSystemInformation> getInformation(AuthenticatedUserRequest user) {
     try {
-      Map<String, List<String>> response =
+      EnumerateSnapshotModel response =
           datarepoClient
               .snapshotsApi(user)
-              .enumerateSnapshots(null, MAX_DATASETS, null, null, null, null, null)
-              .getRoleMap();
-      return response.entrySet().stream()
+              .enumerateSnapshots(null, MAX_DATASETS, null, null, null, null, null);
+      Map<String, List<String>> roleMap = response.getRoleMap();
+
+      return response.getItems().stream()
           .collect(
               Collectors.toMap(
-                  Map.Entry::getKey, entry -> getHighestAccessFromRoleList(entry.getValue())));
+                  snapshotSummaryModel -> snapshotSummaryModel.getId().toString(),
+                  snapshotSummaryModel ->
+                      new StorageSystemInformation()
+                          .datasetAccessLevel(
+                              getHighestAccessFromRoleList(
+                                  roleMap.get(snapshotSummaryModel.getId().toString())))
+                          .phsId(snapshotSummaryModel.getPhsId())));
     } catch (ApiException e) {
       throw new DatarepoException("Enumerate snapshots failed", e);
     }

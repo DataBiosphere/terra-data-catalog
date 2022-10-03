@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import bio.terra.catalog.common.StorageSystemInformation;
 import bio.terra.catalog.model.DatasetPreviewTable;
 import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.catalog.model.TableMetadata;
@@ -24,6 +25,7 @@ import bio.terra.datarepo.model.SnapshotModel;
 import bio.terra.datarepo.model.SnapshotPreviewModel;
 import bio.terra.datarepo.model.SnapshotRetrieveIncludeModel;
 import bio.terra.datarepo.model.TableModel;
+import bio.terra.datarepo.model.SnapshotSummaryModel;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -59,12 +61,22 @@ class DatarepoServiceTest {
   @Test
   void getSnapshots() throws Exception {
     mockSnapshots();
-    var items = Map.of("id", List.of("steward"));
-    var expectedItems = Map.of("id", DatasetAccessLevel.OWNER);
-    var esm = new EnumerateSnapshotModel().roleMap(items);
+    UUID snapshotId = UUID.randomUUID();
+    var items = Map.of(snapshotId.toString(), List.of("steward"));
+    var expectedItems =
+        Map.of(
+            snapshotId.toString(),
+            new StorageSystemInformation()
+                .datasetAccessLevel(DatasetAccessLevel.OWNER)
+                .phsId("1234"));
+    var esm =
+        new EnumerateSnapshotModel()
+            .items(List.of(new SnapshotSummaryModel().id(snapshotId).phsId("1234")))
+            .roleMap(items);
     when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any()))
         .thenReturn(esm);
-    assertThat(datarepoService.getIdsAndRoles(user), is(expectedItems));
+    var returnedItems = datarepoService.getInformation(user);
+    assertThat(returnedItems, is(expectedItems));
   }
 
   @Test
@@ -72,7 +84,7 @@ class DatarepoServiceTest {
     mockSnapshots();
     when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any()))
         .thenThrow(new ApiException());
-    assertThrows(DatarepoException.class, () -> datarepoService.getIdsAndRoles(user));
+    assertThrows(DatarepoException.class, () -> datarepoService.getInformation(user));
   }
 
   @Test

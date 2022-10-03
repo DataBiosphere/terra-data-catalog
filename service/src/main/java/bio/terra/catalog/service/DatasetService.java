@@ -1,6 +1,7 @@
 package bio.terra.catalog.service;
 
 import bio.terra.catalog.common.StorageSystem;
+import bio.terra.catalog.common.StorageSystemInformation;
 import bio.terra.catalog.common.StorageSystemService;
 import bio.terra.catalog.datarepo.DatarepoService;
 import bio.terra.catalog.iam.SamAction;
@@ -27,6 +28,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class DatasetService {
+  public static final String REQUEST_ACCESS_URL_PROPERTY_NAME = "requestAccessURL";
+  public static final String PHS_ID_PROPERTY_NAME = "phsId";
   private final DatarepoService datarepoService;
   private final RawlsService rawlsService;
   private final SamService samService;
@@ -59,17 +62,50 @@ public class DatasetService {
     };
   }
 
+  private class DatasetResponse {
+    private final Dataset dataset;
+    private final StorageSystemInformation storageSystemInformation;
+
+    public DatasetResponse(Dataset dataset) {
+      this(
+          dataset, new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.NO_ACCESS));
+    }
+
+    public DatasetResponse(Dataset dataset, StorageSystemInformation storageSystemInformation) {
+      this.dataset = dataset;
+      this.storageSystemInformation = storageSystemInformation;
+    }
+  }
+
   private StorageSystemService getService(Dataset dataset) {
     return getService(dataset.storageSystem());
   }
 
   private record DatasetWithAccessLevel(Dataset dataset, DatasetAccessLevel accessLevel) {}
 
-  public Object convertDatasetToObject(DatasetWithAccessLevel dataset) {
-    ObjectNode node = toJsonNode(dataset.dataset.metadata());
-    node.set("accessLevel", TextNode.valueOf(String.valueOf(dataset.accessLevel)));
-    node.set("id", TextNode.valueOf(dataset.dataset.id().toValue()));
-    return node;
+    public Object convertToObject() {
+      ObjectNode node = toJsonNode(dataset.metadata());
+      addPhsProperties(node);
+      node.set(
+          "accessLevel",
+          TextNode.valueOf(String.valueOf(storageSystemInformation.datasetAccessLevel())));
+      node.set("id", TextNode.valueOf(dataset.id().toValue()));
+      return node;
+    }
+
+    private void addPhsProperties(ObjectNode node) {
+      if (storageSystemInformation.phsId() != null) {
+        node.set(PHS_ID_PROPERTY_NAME, TextNode.valueOf(storageSystemInformation.phsId()));
+        if (!node.has(REQUEST_ACCESS_URL_PROPERTY_NAME)) {
+          node.set(
+              REQUEST_ACCESS_URL_PROPERTY_NAME,
+              TextNode.valueOf(
+                  String.format(
+                      "https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=%s",
+                      storageSystemInformation.phsId())));
+        }
+      }
+    }
   }
 
   private ObjectNode toJsonNode(String json) {
@@ -82,26 +118,42 @@ public class DatasetService {
     }
   }
 
-  private List<DatasetWithAccessLevel> collectDatasets(
-      AuthenticatedUserRequest user, StorageSystem system) {
-    var roleMap = getService(system).getIdsAndRoles(user);
-    List<Dataset> datasets = datasetDao.find(system, roleMap.keySet());
+  private List<DatasetResponse> createDatasetResponses(
+      Map<String, StorageSystemInformation> datasetStorageInformation,
+      StorageSystem storageSystem) {
+    List<Dataset> datasets = datasetDao.find(storageSystem, datasetStorageInformation.keySet());
     return datasets.stream()
-        .map(dataset -> new DatasetWithAccessLevel(dataset, roleMap.get(dataset.storageSourceId())))
+        .map(
+            dataset ->
+                new DatasetResponse(
+                    dataset, datasetStorageInformation.get(dataset.storageSourceId())))
         .toList();
+  }
+
+  private List<DatasetResponse> collectDatasets(
+      AuthenticatedUserRequest user, StorageSystem system) {
+    // For this storage system, get the collection of visible datasets and the user's roles for
+    // each dataset.
+    var roleMap = getService(system).getInformation(user);
+    return createDatasetResponses(roleMap, system);
   }
 
   // FIXME: possibly refactor to first get all IDs, and then get all datasets. That will help
   // FIXME: limit the DB work done here.
   public DatasetsListResponse listDatasets(AuthenticatedUserRequest user) {
-    List<DatasetWithAccessLevel> datasets = new ArrayList<>();
+    List<DatasetResponse> datasets = new ArrayList<>();
     for (StorageSystem system : StorageSystem.values()) {
       datasets.addAll(collectDatasets(user, system));
     }
     if (samService.hasGlobalAction(user, SamAction.READ_ANY_METADATA)) {
       datasets.addAll(
           datasetDao.listAllDatasets().stream()
-              .map(dataset -> new DatasetWithAccessLevel(dataset, DatasetAccessLevel.READER))
+              .map(
+                  dataset ->
+                      new DatasetResponse(
+                          dataset,
+                          new StorageSystemInformation()
+                              .datasetAccessLevel(DatasetAccessLevel.READER)))
               // FIXME: add a test for this case, then refactor. One fix is to pass a list of IDs
               // FIXME: to DAO to exclude from `find()`. Doing it this way results in O(n^2)
               // FIXME: complexity and can result in excess DB requests.
@@ -115,7 +167,7 @@ public class DatasetService {
     }
     var response = new DatasetsListResponse();
 
-    response.setResult(datasets.stream().map(this::convertDatasetToObject).toList());
+    response.setResult(datasets.stream().map(DatasetResponse::convertToObject).toList());
     return response;
   }
 
@@ -141,7 +193,7 @@ public class DatasetService {
   public String getMetadata(AuthenticatedUserRequest user, DatasetId datasetId) {
     var dataset = datasetDao.retrieve(datasetId);
     ensureActionPermission(user, dataset, SamAction.READ_ANY_METADATA);
-    return dataset.metadata();
+    return new DatasetResponse(dataset).convertToObject().toString();
   }
 
   public void updateMetadata(AuthenticatedUserRequest user, DatasetId datasetId, String metadata) {

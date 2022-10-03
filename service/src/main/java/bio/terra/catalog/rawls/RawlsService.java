@@ -3,6 +3,7 @@ package bio.terra.catalog.rawls;
 import bio.terra.catalog.common.StorageSystemService;
 import bio.terra.catalog.model.ColumnModel;
 import bio.terra.catalog.model.DatasetPreviewTable;
+import bio.terra.catalog.common.StorageSystemInformation;
 import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.catalog.model.TableMetadata;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
@@ -49,14 +50,16 @@ public class RawlsService implements StorageSystemService {
   }
 
   @Override
-  public Map<String, DatasetAccessLevel> getIdsAndRoles(AuthenticatedUserRequest user) {
+  public Map<String, StorageSystemInformation> getInformation(AuthenticatedUserRequest user) {
     try {
       return rawlsClient.workspacesApi(user).listWorkspaces(ACCESS_LEVEL_AND_ID).stream()
           .collect(
               Collectors.toMap(
                   workspaceListResponse -> workspaceListResponse.getWorkspace().getWorkspaceId(),
                   workspaceListResponse ->
-                      ROLE_TO_DATASET_ACCESS.get(workspaceListResponse.getAccessLevel())));
+                      new StorageSystemInformation()
+                          .datasetAccessLevel(
+                              ROLE_TO_DATASET_ACCESS.get(workspaceListResponse.getAccessLevel()))));
     } catch (ApiException e) {
       throw new RawlsException("List workspaces failed", e);
     }
