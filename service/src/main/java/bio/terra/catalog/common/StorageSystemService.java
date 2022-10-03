@@ -20,13 +20,13 @@ public interface StorageSystemService {
   SystemStatusSystems status();
 
   /**
-   * Return all objects in the storage system that are visible to the user, and the user's access
-   * level for each object.
+   * Return all objects in the storage system that are visible to the user, and the storage system
+   * information for each object.
    *
    * @param user the user
    * @return a map of storage object ID to access level
    */
-  Map<String, DatasetAccessLevel> getIdsAndRoles(AuthenticatedUserRequest user);
+  Map<String, StorageSystemInformation> getObjects(AuthenticatedUserRequest user);
 
   /**
    * Given a storage object, return the user's access level.

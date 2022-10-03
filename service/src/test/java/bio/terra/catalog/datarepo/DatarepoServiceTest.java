@@ -24,8 +24,8 @@ import bio.terra.datarepo.model.RepositoryStatusModel;
 import bio.terra.datarepo.model.SnapshotModel;
 import bio.terra.datarepo.model.SnapshotPreviewModel;
 import bio.terra.datarepo.model.SnapshotRetrieveIncludeModel;
-import bio.terra.datarepo.model.TableModel;
 import bio.terra.datarepo.model.SnapshotSummaryModel;
+import bio.terra.datarepo.model.TableModel;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -75,7 +75,7 @@ class DatarepoServiceTest {
             .roleMap(items);
     when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any()))
         .thenReturn(esm);
-    var returnedItems = datarepoService.getInformation(user);
+    var returnedItems = datarepoService.getObjects(user);
     assertThat(returnedItems, is(expectedItems));
   }
 
@@ -84,7 +84,7 @@ class DatarepoServiceTest {
     mockSnapshots();
     when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any()))
         .thenThrow(new ApiException());
-    assertThrows(DatarepoException.class, () -> datarepoService.getInformation(user));
+    assertThrows(DatarepoException.class, () -> datarepoService.getObjects(user));
   }
 
   @Test

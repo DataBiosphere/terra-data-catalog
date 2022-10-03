@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 
@@ -62,6 +63,10 @@ public class DatasetService {
     };
   }
 
+  private StorageSystemService getService(Dataset dataset) {
+    return getService(dataset.storageSystem());
+  }
+
   private class DatasetResponse {
     private final Dataset dataset;
     private final StorageSystemInformation storageSystemInformation;
@@ -75,13 +80,6 @@ public class DatasetService {
       this.dataset = dataset;
       this.storageSystemInformation = storageSystemInformation;
     }
-  }
-
-  private StorageSystemService getService(Dataset dataset) {
-    return getService(dataset.storageSystem());
-  }
-
-  private record DatasetWithAccessLevel(Dataset dataset, DatasetAccessLevel accessLevel) {}
 
     public Object convertToObject() {
       ObjectNode node = toJsonNode(dataset.metadata());
@@ -134,7 +132,7 @@ public class DatasetService {
       AuthenticatedUserRequest user, StorageSystem system) {
     // For this storage system, get the collection of visible datasets and the user's roles for
     // each dataset.
-    var roleMap = getService(system).getInformation(user);
+    var roleMap = getService(system).getObjects(user);
     return createDatasetResponses(roleMap, system);
   }
 

@@ -1,5 +1,6 @@
 package bio.terra.catalog.service;
 
+import bio.terra.catalog.common.StorageSystemInformation;
 import bio.terra.catalog.common.StorageSystemService;
 import bio.terra.catalog.model.DatasetPreviewTable;
 import bio.terra.catalog.model.SystemStatusSystems;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ExternalSystemService implements StorageSystemService {
   @Override
-  public Map<String, DatasetAccessLevel> getIdsAndRoles(AuthenticatedUserRequest user) {
+  public Map<String, StorageSystemInformation> getObjects(AuthenticatedUserRequest user) {
     // This can be implemented by returning the storage IDs for all EXT datasets in the database.
     // Role is always DISCOVERER.
     return Map.of();

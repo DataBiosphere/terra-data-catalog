@@ -108,8 +108,8 @@ class DatasetServiceTest {
     var idToRole =
         Map.of(
             sourceId, new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.OWNER));
-    when(datarepoService.getInformation(user)).thenReturn(idToRole);
-    when(rawlsService.getInformation(user)).thenReturn(workspaces);
+    when(datarepoService.getObjects(user)).thenReturn(idToRole);
+    when(rawlsService.getObjects(user)).thenReturn(workspaces);
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, workspaces.keySet()))
         .thenReturn(List.of(workspaceDataset));
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
@@ -134,8 +134,8 @@ class DatasetServiceTest {
             new StorageSystemInformation()
                 .datasetAccessLevel(DatasetAccessLevel.OWNER)
                 .phsId(phsId));
-    when(datarepoService.getInformation(user)).thenReturn(idToRole);
-    when(rawlsService.getInformation(user)).thenReturn(Map.of());
+    when(datarepoService.getObjects(user)).thenReturn(idToRole);
+    when(rawlsService.getObjects(user)).thenReturn(Map.of());
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, Set.of())).thenReturn(List.of());
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
         .thenReturn(List.of(tdrDataset));
@@ -150,8 +150,8 @@ class DatasetServiceTest {
     var datasets =
         Map.of(
             sourceId, new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.OWNER));
-    when(datarepoService.getInformation(user)).thenReturn(datasets);
-    when(rawlsService.getInformation(user)).thenReturn(workspaces);
+    when(datarepoService.getObjects(user)).thenReturn(datasets);
+    when(rawlsService.getObjects(user)).thenReturn(workspaces);
     when(samService.hasGlobalAction(user, SamAction.READ_ANY_METADATA)).thenReturn(true);
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, workspaces.keySet())).thenReturn(List.of());
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, datasets.keySet()))

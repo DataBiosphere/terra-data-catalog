@@ -1,9 +1,9 @@
 package bio.terra.catalog.rawls;
 
+import bio.terra.catalog.common.StorageSystemInformation;
 import bio.terra.catalog.common.StorageSystemService;
 import bio.terra.catalog.model.ColumnModel;
 import bio.terra.catalog.model.DatasetPreviewTable;
-import bio.terra.catalog.common.StorageSystemInformation;
 import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.catalog.model.TableMetadata;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
@@ -50,7 +50,7 @@ public class RawlsService implements StorageSystemService {
   }
 
   @Override
-  public Map<String, StorageSystemInformation> getInformation(AuthenticatedUserRequest user) {
+  public Map<String, StorageSystemInformation> getObjects(AuthenticatedUserRequest user) {
     try {
       return rawlsClient.workspacesApi(user).listWorkspaces(ACCESS_LEVEL_AND_ID).stream()
           .collect(

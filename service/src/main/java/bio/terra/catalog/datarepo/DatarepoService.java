@@ -1,6 +1,9 @@
 package bio.terra.catalog.datarepo;
 
 import bio.terra.catalog.common.StorageSystemInformation;
+import bio.terra.catalog.common.StorageSystemService;
+import bio.terra.catalog.model.ColumnModel;
+import bio.terra.catalog.model.DatasetPreviewTable;
 import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.catalog.model.TableMetadata;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
@@ -61,7 +64,7 @@ public class DatarepoService implements StorageSystemService {
   }
 
   @Override
-  public Map<String, StorageSystemInformation> getInformation(AuthenticatedUserRequest user) {
+  public Map<String, StorageSystemInformation> getObjects(AuthenticatedUserRequest user) {
     try {
       EnumerateSnapshotModel response =
           datarepoClient
