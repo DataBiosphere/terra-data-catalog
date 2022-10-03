@@ -73,6 +73,11 @@ class DatasetServiceTest {
   private static final String workspaceSourceId = "abc-def-workspace-id";
   private static final String metadata = """
       {"name":"name"}""";
+
+  private static final String METADATA_WITH_ID =
+      """
+      {"name":"name","accessLevel":"no_access","id":"%s"}""";
+
   private static final Dataset dataset =
       new Dataset(datasetId, sourceId, StorageSystem.EXTERNAL, metadata, null);
   private static final Dataset tdrDataset =
@@ -194,14 +199,17 @@ class DatasetServiceTest {
   void testGetMetadata() {
     mockDataset();
     when(samService.hasGlobalAction(SamAction.READ_ANY_METADATA)).thenReturn(true);
-    assertThat(datasetService.getMetadata(datasetId), is(metadata));
+    assertThat(
+        datasetService.getMetadata(datasetId), is(METADATA_WITH_ID.formatted(datasetId.uuid())));
   }
 
   @Test
   void testGetMetadataUsingTdrPermission() {
     when(datasetDao.retrieve(tdrDataset.id())).thenReturn(tdrDataset);
     when(datarepoService.getRole(sourceId)).thenReturn(DatasetAccessLevel.READER);
-    assertThat(datasetService.getMetadata(tdrDataset.id()), is(metadata));
+    assertThat(
+        datasetService.getMetadata(tdrDataset.id()),
+        is(METADATA_WITH_ID.formatted(tdrDataset.id().uuid())));
   }
 
   @Test
