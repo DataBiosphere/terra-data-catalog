@@ -1,9 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://app.terra.bio/schemas/datacatalog.json",
+  "$id": "https://app.terra.bio/schemas/datacatalog.development.json",
   "title": "catalog dataset",
   "type": "object",
-  "required": ["dct:title", "dct:description", "dct:creator", "dct:issued", "TerraDCAT_ap:hasDataCollection", "dcat:accessURL", "prov:wasGeneratedBy", "storage", "counts", "contributors"],
+  "required": ["dct:title", "version", "dct:description", "dct:creator", "dct:issued", "TerraDCAT_ap:hasDataCollection", "dcat:accessURL", "prov:wasGeneratedBy", "storage", "counts", "contributors"],
   "properties": {
     "TerraCore:id": {
       "type": "string",
@@ -90,10 +90,6 @@
     "contributors": {
       "type": "array",
       "items": { "type": "string" }
-    },
-    "brands": {
-      "type": "array",
-      "items": { "type":  "string"}
     }
   },
   "$defs": {
