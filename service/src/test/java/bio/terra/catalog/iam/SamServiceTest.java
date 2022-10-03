@@ -57,7 +57,7 @@ class SamServiceTest {
   void hasAction() throws Exception {
     mockResources();
     var action = SamAction.READ_ANY_METADATA;
-    when(resourcesApi.resourceActions(any(), any())).thenReturn(List.of(action.value));
+    when(resourcesApi.resourceActionsV2(any(), any())).thenReturn(List.of(action.value));
     assertTrue(samService.hasGlobalAction(USER, action));
   }
 
