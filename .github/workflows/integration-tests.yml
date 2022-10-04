@@ -139,7 +139,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           STATUS: failure
         with:
-          channel: 'D570C3UGJ'
+          channel: '#jade-data-explorer'
           status: ${{ env.STATUS }}
           fields: job,ref
           text: >
@@ -164,7 +164,7 @@ jobs:
             && needs.test-runner.result == 'success'
             && 'success' || 'failure' }}
         with:
-          channel: 'D570C3UGJ'
+          channel: '#dsde-qa'
           status: ${{ env.STATUS }}
           fields: job,ref
           text: >
