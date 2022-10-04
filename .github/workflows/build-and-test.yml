@@ -182,11 +182,13 @@ jobs:
           fi
 
       - name: Run the integration test suite
-        run: ./gradlew --build-cache runTest --args="suites/local/FullIntegration.json build/reports"
+        run: ./gradlew --build-cache runTest --args="suites/dev/FullIntegration.json build/reports"
 
   notify-slack:
     needs: [ build, unit-tests-and-sonarqube, source-clear, integration-tests ]
     runs-on: ubuntu-latest
+
+    if: failure() && github.ref == 'refs/heads/main'
 
     steps:
       - name: Notify slack on failure
