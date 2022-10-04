@@ -44,7 +44,7 @@ dependencies {
     implementation 'io.swagger.core.v3:swagger-annotations:2.2.0'
     swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli:3.0.31'
 
-    implementation 'org.slf4j:slf4j-api:1.7.36'
+    implementation 'org.slf4j:slf4j-api'
 
     testImplementation 'org.hamcrest:hamcrest:2.2'
 
