@@ -8,33 +8,33 @@ on:
     branches: [ '**' ]
 
 jobs:
-#  build:
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#      - uses: actions/checkout@v2
-#      - name: Set up Python
-#        uses: actions/setup-python@v1
-#        with:
-#          python-version: '3.10'
-#      - name: Install black and link shellcheck into expected location
-#        run: |
-#          pip install black --force-reinstall black==22.3.0
-#          sudo ln -s $(which shellcheck) /usr/local/bin/shellcheck
-#      - name: Set up JDK
-#        uses: actions/setup-java@v2
-#        with:
-#          java-version: '17'
-#          distribution: 'temurin'
-#          cache: 'gradle'
-#
-#      - name: Build all projects without running tests
-#        run: ./gradlew --build-cache build -x test
-#
-#      - name: Upload spotbugs results
-#        uses: github/codeql-action/upload-sarif@main
-#        with:
-#          sarif_file: service/build/reports/spotbugs/main.sarif
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.10'
+      - name: Install black and link shellcheck into expected location
+        run: |
+          pip install black --force-reinstall black==22.3.0
+          sudo ln -s $(which shellcheck) /usr/local/bin/shellcheck
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Build all projects without running tests
+        run: ./gradlew --build-cache build -x test
+
+      - name: Upload spotbugs results
+        uses: github/codeql-action/upload-sarif@main
+        with:
+          sarif_file: service/build/reports/spotbugs/main.sarif
 
 #  jib:
 #    needs: [ build ]
@@ -185,7 +185,7 @@ jobs:
 #        run: ./gradlew --build-cache runTest --args="suites/local/FullIntegration.json build/reports"
 
   notify-slack:
-#    needs: [ build ]
+    needs: [ build ]
     runs-on: ubuntu-latest
 
     steps:
@@ -195,8 +195,6 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           channel: D570C3UGJ
-          status: ${{ job.status }}
-          fields: all
 
 #  dispatch-tag:
 #    needs: [ build, unit-tests-and-sonarqube, source-clear, integration-tests ]
