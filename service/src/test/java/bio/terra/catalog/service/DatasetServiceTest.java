@@ -99,7 +99,7 @@ class DatasetServiceTest {
           null);
 
   @BeforeEach
-  public void beforeEach() throws URISyntaxException {
+  public void beforeEach() {
     datasetService =
         new DatasetService(
             datarepoService, rawlsService, samService, schemaService, datasetDao, objectMapper);

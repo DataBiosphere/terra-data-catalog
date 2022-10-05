@@ -9,6 +9,7 @@ import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,14 +25,18 @@ public class SchemaService {
     this.schema = getJsonSchemaFromUrl(schemaConfiguration.basePath());
   }
 
-  private JsonSchema getJsonSchemaFromUrl(String uri) throws FileNotFoundException {
+  private JsonSchema getJsonSchemaFromUrl(String uri) {
     JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4);
-    return factory.getSchema(new FileInputStream(uri));
+    try (var input = new FileInputStream(uri)) {
+      return factory.getSchema(input);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public void validateMetadata(JsonNode json) {
     Set<ValidationMessage> errors = schema.validate(json);
-    if (errors.size() > 0) {
+    if (!errors.isEmpty()) {
       throw new BadRequestException("Catalog entry is invalid: " + errors);
     }
   }
