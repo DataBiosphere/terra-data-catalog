@@ -106,7 +106,7 @@ if __name__ == "__main__":
         parser.add_argument(
             "--environment",
             type=str,
-            choices=["prod", "dev", "alpha", "staging", "perf"],
+            choices=["prod", "dev", "alpha", "staging"],
             default="dev",
             help="terra data catalog environment to create dataset in",
         )
