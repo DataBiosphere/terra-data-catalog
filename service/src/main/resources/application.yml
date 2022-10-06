@@ -75,7 +75,7 @@ catalog:
     basePath: ${env.rawls.basePath}
 
   schema:
-    basePath: src/main/resources/schemas/catalog-v0.schema.json
+    basePath: src/main/resources/schema/development/schema.json
 
 terra.common:
   kubernetes:

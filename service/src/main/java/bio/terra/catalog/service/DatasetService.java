@@ -26,7 +26,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -54,8 +53,7 @@ public class DatasetService {
       SamService samService,
       SchemaService schemaService,
       DatasetDao datasetDao,
-      ObjectMapper objectMapper)
-       {
+      ObjectMapper objectMapper) {
     this.datarepoService = datarepoService;
     this.rawlsService = rawlsService;
     this.samService = samService;

@@ -8,7 +8,6 @@ import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,14 +18,13 @@ public class SchemaService {
 
   private final JsonSchema schema;
 
-
   @Autowired
-  public SchemaService(SchemaConfiguration schemaConfiguration) throws FileNotFoundException {
+  public SchemaService(SchemaConfiguration schemaConfiguration) {
     this.schema = getJsonSchemaFromUrl(schemaConfiguration.basePath());
   }
 
   private JsonSchema getJsonSchemaFromUrl(String uri) {
-    JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4);
+    JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
     try (var input = new FileInputStream(uri)) {
       return factory.getSchema(input);
     } catch (IOException e) {
