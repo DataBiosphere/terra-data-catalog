@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# run separately with env as dev, perf, staging, alpha and prod
+# run separately with env as dev, staging, alpha and prod
 # you can get your auth token by calling any SAM API and copy pasting the authorization header
 # your email should be whatever you use to authenticate in that environment, such as your dev account for dev
 
