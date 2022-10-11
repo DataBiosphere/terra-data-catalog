@@ -236,10 +236,9 @@ class DatasetServiceTest {
   @Test
   void testCreateDatasetAdmin() {
     when(samService.hasGlobalAction(user, SamAction.CREATE_METADATA)).thenReturn(true);
-    when(datasetDao.create(dataset)).thenReturn(dataset);
-    DatasetId id =
-        datasetService.createDataset(
-            user, dataset.storageSystem(), dataset.storageSourceId(), dataset.metadata());
+    when(datasetDao.create(new Dataset(sourceId, dataset.storageSystem(), metadata)))
+        .thenReturn(dataset);
+    DatasetId id = datasetService.createDataset(user, dataset.storageSystem(), sourceId, metadata);
     assertThat(id, is(datasetId));
   }
 
