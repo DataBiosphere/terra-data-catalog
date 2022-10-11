@@ -52,6 +52,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.skyscreamer.jsonassert.JSONAssert;
 
 @ExtendWith(MockitoExtension.class)
 class DatasetServiceTest {
@@ -69,32 +70,33 @@ class DatasetServiceTest {
   private static final ObjectMapper objectMapper = new BeanConfig().objectMapper();
 
   private static final DatasetId datasetId = new DatasetId(UUID.randomUUID());
-  private static final String sourceId = "sourceId";
-  private static final String workspaceSourceId = "abc-def-workspace-id";
-  private static final String metadata = """
+  private static final String SOURCE_ID = "sourceId";
+  private static final String WORKSPACE_ID = "abc-def-workspace-id";
+  private static final String METADATA = """
       {"name":"name"}""";
 
-  private static final String METADATA_WITH_ID =
-      """
-      {"name":"name","accessLevel":"no_access","id":"%s"}""";
-
   private static final Dataset dataset =
-      new Dataset(datasetId, sourceId, StorageSystem.EXTERNAL, metadata, null);
+      new Dataset(datasetId, SOURCE_ID, StorageSystem.EXTERNAL, METADATA, null);
   private static final Dataset tdrDataset =
       new Dataset(
           new DatasetId(UUID.randomUUID()),
-          sourceId,
+          SOURCE_ID,
           StorageSystem.TERRA_DATA_REPO,
-          metadata,
+          METADATA,
           null);
 
   private static final Dataset workspaceDataset =
       new Dataset(
           new DatasetId(UUID.randomUUID()),
-          workspaceSourceId,
+          WORKSPACE_ID,
           StorageSystem.TERRA_WORKSPACE,
-          metadata,
+          METADATA,
           null);
+
+  private static String metadataWithId(DatasetId id) {
+    return """
+        {"name":"name","accessLevel":"no_access","id":"%s"}""".formatted(id.uuid());
+  }
 
   @BeforeEach
   public void beforeEach() {
@@ -110,11 +112,11 @@ class DatasetServiceTest {
   void listDatasets() {
     var workspaces =
         Map.of(
-            workspaceSourceId,
+            WORKSPACE_ID,
             new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.OWNER));
     var idToRole =
         Map.of(
-            sourceId, new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.OWNER));
+            SOURCE_ID, new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.OWNER));
     when(datarepoService.getSnapshotInformation()).thenReturn(idToRole);
     when(rawlsService.getWorkspaceInformation()).thenReturn(workspaces);
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, workspaces.keySet()))
@@ -137,7 +139,7 @@ class DatasetServiceTest {
     String phsId = "1234";
     var idToRole =
         Map.of(
-            sourceId,
+            SOURCE_ID,
             new StorageSystemInformation()
                 .datasetAccessLevel(DatasetAccessLevel.OWNER)
                 .phsId(phsId));
@@ -156,7 +158,7 @@ class DatasetServiceTest {
     Map<String, StorageSystemInformation> workspaces = Map.of();
     var datasets =
         Map.of(
-            sourceId, new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.OWNER));
+            SOURCE_ID, new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.OWNER));
     when(datarepoService.getSnapshotInformation()).thenReturn(datasets);
     when(rawlsService.getWorkspaceInformation()).thenReturn(workspaces);
     when(samService.hasGlobalAction(SamAction.READ_ANY_METADATA)).thenReturn(true);
@@ -196,35 +198,33 @@ class DatasetServiceTest {
   }
 
   @Test
-  void testGetMetadata() {
+  void testGetMetadata() throws Exception {
     mockDataset();
     when(samService.hasGlobalAction(SamAction.READ_ANY_METADATA)).thenReturn(true);
-    assertThat(
-        datasetService.getMetadata(datasetId), is(METADATA_WITH_ID.formatted(datasetId.uuid())));
+    JSONAssert.assertEquals(metadataWithId(datasetId), datasetService.getMetadata(datasetId), true);
   }
 
   @Test
-  void testGetMetadataUsingTdrPermission() {
+  void testGetMetadataUsingTdrPermission() throws Exception {
     when(datasetDao.retrieve(tdrDataset.id())).thenReturn(tdrDataset);
-    when(datarepoService.getRole(sourceId)).thenReturn(DatasetAccessLevel.READER);
-    assertThat(
-        datasetService.getMetadata(tdrDataset.id()),
-        is(METADATA_WITH_ID.formatted(tdrDataset.id().uuid())));
+    when(datarepoService.getRole(SOURCE_ID)).thenReturn(DatasetAccessLevel.READER);
+    JSONAssert.assertEquals(
+        metadataWithId(tdrDataset.id()), datasetService.getMetadata(tdrDataset.id()), true);
   }
 
   @Test
   void testUpdateMetadataWithInvalidUser() {
     mockDataset();
     assertThrows(
-        UnauthorizedException.class, () -> datasetService.updateMetadata(datasetId, metadata));
+        UnauthorizedException.class, () -> datasetService.updateMetadata(datasetId, METADATA));
   }
 
   @Test
   void testUpdateMetadata() {
     mockDataset();
     when(samService.hasGlobalAction(SamAction.UPDATE_ANY_METADATA)).thenReturn(true);
-    datasetService.updateMetadata(datasetId, metadata);
-    verify(datasetDao).update(dataset.withMetadata(metadata));
+    datasetService.updateMetadata(datasetId, METADATA);
+    verify(datasetDao).update(dataset.withMetadata(METADATA));
   }
 
   @Test
@@ -240,21 +240,21 @@ class DatasetServiceTest {
     when(datarepoService.getRole(null)).thenReturn(DatasetAccessLevel.DISCOVERER);
     assertThrows(
         UnauthorizedException.class,
-        () -> datasetService.createDataset(StorageSystem.TERRA_DATA_REPO, null, metadata));
+        () -> datasetService.createDataset(StorageSystem.TERRA_DATA_REPO, null, METADATA));
   }
 
   @Test
   void testCreateDataset() {
     String storageSourceId = "testSource";
-    Dataset testDataset = new Dataset(storageSourceId, StorageSystem.TERRA_DATA_REPO, metadata);
+    Dataset testDataset = new Dataset(storageSourceId, StorageSystem.TERRA_DATA_REPO, METADATA);
     Dataset testDatasetWithCreationInfo =
         new Dataset(
-            datasetId, storageSourceId, StorageSystem.TERRA_DATA_REPO, metadata, Instant.now());
+            datasetId, storageSourceId, StorageSystem.TERRA_DATA_REPO, METADATA, Instant.now());
 
     when(samService.hasGlobalAction(SamAction.CREATE_METADATA)).thenReturn(true);
     when(datasetDao.create(testDataset)).thenReturn(testDatasetWithCreationInfo);
     DatasetId id =
-        datasetService.createDataset(StorageSystem.TERRA_DATA_REPO, storageSourceId, metadata);
+        datasetService.createDataset(StorageSystem.TERRA_DATA_REPO, storageSourceId, METADATA);
     assertThat(id, is(datasetId));
   }
 

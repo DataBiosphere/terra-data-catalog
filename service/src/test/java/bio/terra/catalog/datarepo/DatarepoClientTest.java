@@ -27,13 +27,12 @@ class DatarepoClientTest {
 
   @BeforeEach
   void beforeEach() {
+    when(user.getToken()).thenReturn(TOKEN);
     client = new DatarepoClient(new DatarepoConfiguration(BASE_PATH), user);
   }
 
   @Test
   void testApis() {
-    when(user.getToken()).thenReturn(TOKEN);
-
     var snapshotsClient = client.snapshotsApi().getApiClient();
     validateClient(snapshotsClient, TOKEN);
 

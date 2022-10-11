@@ -26,13 +26,12 @@ class RawlsClientTest {
 
   @BeforeEach
   void beforeEach() {
+    when(user.getToken()).thenReturn(TOKEN);
     client = new RawlsClient(new RawlsConfiguration(BASE_PATH), user);
   }
 
   @Test
   void testApis() {
-    when(user.getToken()).thenReturn(TOKEN);
-
     ApiClient workspacesClient = client.workspacesApi().getApiClient();
     validateClient(workspacesClient, TOKEN);
 
