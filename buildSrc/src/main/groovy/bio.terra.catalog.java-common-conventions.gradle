@@ -40,15 +40,15 @@ repositories {
 }
 
 dependencies {
-    compileOnly "com.google.code.findbugs:annotations:3.0.1"
+    compileOnly 'com.github.spotbugs:spotbugs-annotations:4.7.2'
     implementation 'io.swagger.core.v3:swagger-annotations:2.2.0'
     swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli:3.0.31'
 
-    implementation 'org.slf4j:slf4j-api:1.7.35'
+    implementation 'org.slf4j:slf4j-api'
 
     testImplementation 'ch.qos.logback:logback-classic'
 
-    implementation 'bio.terra:terra-common-lib:0.0.53-SNAPSHOT'
+    implementation 'bio.terra:terra-common-lib:0.0.75-SNAPSHOT'
     implementation 'bio.terra:datarepo-client:1.349.0-SNAPSHOT'
 }
 

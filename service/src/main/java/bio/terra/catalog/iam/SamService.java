@@ -44,7 +44,7 @@ public class SamService {
     ResourcesApi resourceApi = samClient.resourcesApi(accessToken);
     try {
       return SamRetry.retry(
-              () -> resourceApi.resourceActions(CATALOG_RESOURCE_TYPE, samConfig.resourceId()))
+              () -> resourceApi.resourceActionsV2(CATALOG_RESOURCE_TYPE, samConfig.resourceId()))
           .stream()
           .map(SamAction::fromValue)
           .anyMatch(action::equals);
