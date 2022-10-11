@@ -29,11 +29,7 @@ dependencies {
     liquibaseRuntime 'org.postgresql:postgresql:42.4.1'
     liquibaseRuntime 'ch.qos.logback:logback-classic:1.2.9'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter-api'
-    testImplementation('org.springframework.boot:spring-boot-starter-test') {
-        // Fixes warning about multiple occurrences of JSONObject on the classpath
-        exclude group: 'com.vaadin.external.google', module: 'android-json'
-    }
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 test {
