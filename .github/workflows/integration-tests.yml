@@ -151,7 +151,7 @@ jobs:
   notify-qa-slack:
     needs: [ build, jib, test-env, test-runner ]
     runs-on: ubuntu-latest
-    if: always()
+    if: always() && needs.test-env.outputs.test-env != 'dev'
 
     steps:
       - name: "Always notify #dsde-qa Slack"
