@@ -41,7 +41,7 @@ public class DatasetService {
   private final DatarepoService datarepoService;
   private final RawlsService rawlsService;
   private final SamService samService;
-  private final SchemaService schemaService;
+  private final JsonValidationService jsonValidationService;
   private final DatasetDao datasetDao;
   private final ObjectMapper objectMapper;
   private static final int MAX_ROWS = 30;
@@ -51,13 +51,13 @@ public class DatasetService {
       DatarepoService datarepoService,
       RawlsService rawlsService,
       SamService samService,
-      SchemaService schemaService,
+      JsonValidationService jsonValidationService,
       DatasetDao datasetDao,
       ObjectMapper objectMapper) {
     this.datarepoService = datarepoService;
     this.rawlsService = rawlsService;
     this.samService = samService;
-    this.schemaService = schemaService;
+    this.jsonValidationService = jsonValidationService;
     this.datasetDao = datasetDao;
     this.objectMapper = objectMapper;
   }
@@ -285,7 +285,7 @@ public class DatasetService {
   }
 
   public void updateMetadata(AuthenticatedUserRequest user, DatasetId datasetId, String metadata) {
-    schemaService.validateMetadata(toJsonNode(metadata));
+    jsonValidationService.validateMetadata(toJsonNode(metadata));
     var dataset = datasetDao.retrieve(datasetId);
     ensureActionPermission(user, dataset, SamAction.UPDATE_ANY_METADATA);
     datasetDao.update(dataset.withMetadata(metadata));
@@ -296,7 +296,7 @@ public class DatasetService {
       StorageSystem storageSystem,
       String storageSourceId,
       String metadata) {
-    schemaService.validateMetadata(toJsonNode(metadata));
+    jsonValidationService.validateMetadata(toJsonNode(metadata));
     var dataset = new Dataset(storageSourceId, storageSystem, metadata);
     ensureActionPermission(user, dataset, SamAction.CREATE_METADATA);
     return datasetDao.create(dataset).id();

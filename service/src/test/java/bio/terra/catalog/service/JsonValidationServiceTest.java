@@ -10,21 +10,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Test;
 
-public class SchemaServiceTest {
-  private static final String BASE_PATH = "src/main/resources/schema/development/schema.json";
+public class JsonValidationServiceTest {
+  private static final String BASE_PATH = "src/test/resources/schemas/test.schema.json";
 
   private static final ObjectMapper objectMapper = new BeanConfig().objectMapper();
 
   @Test
   void testValidateInvalidMetadata() {
-    SchemaService service = new SchemaService(new SchemaConfiguration(BASE_PATH));
+    JsonValidationService service = new JsonValidationService(new SchemaConfiguration(BASE_PATH));
     JsonNode json = objectMapper.createObjectNode();
     assertThrows(BadRequestException.class, () -> service.validateMetadata(json));
   }
 
   @Test
   void testValidateMetadata() {
-    SchemaService service = new SchemaService(new SchemaConfiguration(BASE_PATH));
+    JsonValidationService service = new JsonValidationService(new SchemaConfiguration(BASE_PATH));
     ObjectNode json = objectMapper.createObjectNode();
     json.put("requiredField", "string");
     service.validateMetadata(json);

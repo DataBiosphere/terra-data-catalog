@@ -61,7 +61,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class DatasetServiceTest {
   private DatasetService datasetService;
 
-  @Mock private SchemaService schemaService;
+  @Mock private JsonValidationService jsonValidationService;
 
   @Mock private DatarepoService datarepoService;
 
@@ -101,7 +101,12 @@ class DatasetServiceTest {
   public void beforeEach() {
     datasetService =
         new DatasetService(
-            datarepoService, rawlsService, samService, schemaService, datasetDao, objectMapper);
+            datarepoService,
+            rawlsService,
+            samService,
+            jsonValidationService,
+            datasetDao,
+            objectMapper);
   }
 
   private void mockDataset() {
@@ -227,7 +232,7 @@ class DatasetServiceTest {
     mockDataset();
     when(samService.hasGlobalAction(user, SamAction.UPDATE_ANY_METADATA)).thenReturn(true);
     datasetService.updateMetadata(user, datasetId, metadata);
-    verify(schemaService).validateMetadata(objectMapper.readTree(dataset.metadata()));
+    verify(jsonValidationService).validateMetadata(objectMapper.readTree(dataset.metadata()));
     verify(datasetDao).update(dataset.withMetadata(metadata));
   }
 
@@ -261,7 +266,7 @@ class DatasetServiceTest {
     DatasetId id =
         datasetService.createDataset(
             user, StorageSystem.TERRA_DATA_REPO, storageSourceId, metadata);
-    verify(schemaService).validateMetadata(objectMapper.readTree(testDataset.metadata()));
+    verify(jsonValidationService).validateMetadata(objectMapper.readTree(testDataset.metadata()));
     assertThat(id, is(datasetId));
   }
 
