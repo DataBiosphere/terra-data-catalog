@@ -133,13 +133,36 @@ class DatasetServiceTest {
                 .datasetAccessLevel(DatasetAccessLevel.OWNER)
                 .phsId(phsId));
     when(datarepoService.getDatasets(user)).thenReturn(idToRole);
-    when(rawlsService.getDatasets(user)).thenReturn(Map.of());
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, Set.of())).thenReturn(List.of());
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
         .thenReturn(List.of(tdrDataset));
     ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets(user).getResult().get(0);
     assertThat(tdrJson.get("phsId").asText(), is(phsId));
     assertTrue(tdrJson.has("requestAccessURL"));
+  }
+
+  @Test
+  void listDatasetsWithPhsIdOverride() {
+    String phsId = "1234";
+    var idToRole =
+        Map.of(
+            sourceId,
+            new StorageSystemInformation()
+                .datasetAccessLevel(DatasetAccessLevel.OWNER)
+                .phsId(phsId));
+    when(datarepoService.getDatasets(user)).thenReturn(idToRole);
+    when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, Set.of())).thenReturn(List.of());
+    var url = "url";
+    when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
+        .thenReturn(
+            List.of(
+                tdrDataset.withMetadata(
+                    """
+            {"%s":"%s"}"""
+                        .formatted(DatasetService.REQUEST_ACCESS_URL_PROPERTY_NAME, url))));
+    ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets(user).getResult().get(0);
+    assertThat(tdrJson.get("phsId").asText(), is(phsId));
+    assertThat(tdrJson.get(DatasetService.REQUEST_ACCESS_URL_PROPERTY_NAME).asText(), is(url));
   }
 
   @Test
@@ -177,9 +200,16 @@ class DatasetServiceTest {
   @Test()
   void testDeleteMetadata() {
     mockDataset();
-    when(samService.hasGlobalAction(user, SamAction.DELETE_ANY_METADATA)).thenReturn(true);
+    when(externalSystemService.getRole(user, sourceId)).thenReturn(DatasetAccessLevel.OWNER);
     datasetService.deleteMetadata(user, datasetId);
     verify(datasetDao).delete(dataset);
+  }
+
+  @Test()
+  void testDeleteMetadataNoPermission() {
+    mockDataset();
+    when(externalSystemService.getRole(user, sourceId)).thenReturn(DatasetAccessLevel.READER);
+    assertThrows(UnauthorizedException.class, () -> datasetService.deleteMetadata(user, datasetId));
   }
 
   @Test

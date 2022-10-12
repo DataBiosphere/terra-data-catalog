@@ -8,10 +8,7 @@ import bio.terra.common.iam.AuthenticatedUserRequest;
 import java.util.List;
 import java.util.Map;
 
-/**
- * An implementation of a storage system for catalog. A storage system adds support to catalog by
- * implementing these APIs.
- */
+/** A storage system adds its support to catalog by implementing these APIs. */
 public interface StorageSystemService {
 
   /**
