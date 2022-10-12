@@ -1,5 +1,5 @@
 {
-  "title": "Catalog Schema V1",
+  "title": "Test Schema",
   "type": "object",
   "required": [
     "requiredField"
