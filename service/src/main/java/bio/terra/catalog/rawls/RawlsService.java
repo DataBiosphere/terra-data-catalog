@@ -50,7 +50,7 @@ public class RawlsService implements StorageSystemService {
   }
 
   @Override
-  public Map<String, StorageSystemInformation> getObjects(AuthenticatedUserRequest user) {
+  public Map<String, StorageSystemInformation> getDatasets(AuthenticatedUserRequest user) {
     try {
       return rawlsClient.workspacesApi(user).listWorkspaces(ACCESS_LEVEL_AND_ID).stream()
           .collect(

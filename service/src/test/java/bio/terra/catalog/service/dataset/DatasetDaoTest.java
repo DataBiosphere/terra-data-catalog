@@ -26,7 +26,7 @@ class DatasetDaoTest {
 
   private static final String METADATA =
       """
-      {"sampleId": "12345", "species": ["mouse", "human"]}""";
+          {"sampleId": "12345", "species": ["mouse", "human"]}""";
 
   private Dataset createDataset(String storageSourceId, StorageSystem storageSystem)
       throws InvalidDatasetException {
@@ -84,13 +84,13 @@ class DatasetDaoTest {
   @Test
   void testFind() {
     Dataset d1 = createDataset("id1", StorageSystem.TERRA_DATA_REPO);
-    Dataset d2 = createDataset("id2", StorageSystem.TERRA_DATA_REPO);
+    // Create a TDR dataset that we don't request in the query below.
+    createDataset("id2", StorageSystem.TERRA_DATA_REPO);
     Dataset d3 = createDataset("id3", StorageSystem.EXTERNAL);
     var datasets =
         datasetDao.find(
-            StorageSystem.TERRA_DATA_REPO,
-            List.of(d1.storageSourceId(), d2.storageSourceId(), d3.storageSourceId()));
-    assertThat(datasets, contains(d1, d2));
+            StorageSystem.TERRA_DATA_REPO, List.of(d1.storageSourceId(), d3.storageSourceId()));
+    assertThat(datasets, contains(d1));
   }
 
   @Test

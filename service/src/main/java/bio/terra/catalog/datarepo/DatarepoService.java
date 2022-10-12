@@ -64,7 +64,7 @@ public class DatarepoService implements StorageSystemService {
   }
 
   @Override
-  public Map<String, StorageSystemInformation> getObjects(AuthenticatedUserRequest user) {
+  public Map<String, StorageSystemInformation> getDatasets(AuthenticatedUserRequest user) {
     try {
       EnumerateSnapshotModel response =
           datarepoClient

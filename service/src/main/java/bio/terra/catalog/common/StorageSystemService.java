@@ -26,7 +26,7 @@ public interface StorageSystemService {
    * @param user the user
    * @return a map of storage object ID to access level
    */
-  Map<String, StorageSystemInformation> getObjects(AuthenticatedUserRequest user);
+  Map<String, StorageSystemInformation> getDatasets(AuthenticatedUserRequest user);
 
   /**
    * Given a storage object, return the user's access level.

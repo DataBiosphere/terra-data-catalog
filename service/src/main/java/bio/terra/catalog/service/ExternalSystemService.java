@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ExternalSystemService implements StorageSystemService {
   @Override
-  public Map<String, StorageSystemInformation> getObjects(AuthenticatedUserRequest user) {
+  public Map<String, StorageSystemInformation> getDatasets(AuthenticatedUserRequest user) {
     // This can be implemented by returning the storage IDs for all EXT datasets in the database.
     // Role is always DISCOVERER.
     return Map.of();
