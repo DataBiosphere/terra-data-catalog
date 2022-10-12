@@ -18,17 +18,17 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.retry:spring-retry'
-    implementation 'org.broadinstitute.dsde.workbench:sam-client_2.12:0.1-61135c7'
+    implementation 'org.broadinstitute.dsde.workbench:sam-client_2.13:0.1-9867891-SNAP'
     implementation 'javax.ws.rs:javax.ws.rs-api:2.1.1'
-    implementation 'org.postgresql:postgresql:42.4.1'
+    implementation 'org.postgresql:postgresql'
     implementation 'com.networknt:json-schema-validator:1.0.73'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation project(':rawls-client')
 
-    liquibaseRuntime 'org.liquibase:liquibase-core:4.8.0'
+    liquibaseRuntime 'org.liquibase:liquibase-core'
     liquibaseRuntime 'info.picocli:picocli:4.6.1'
-    liquibaseRuntime 'org.postgresql:postgresql:42.4.1'
-    liquibaseRuntime 'ch.qos.logback:logback-classic:1.2.9'
+    liquibaseRuntime 'org.postgresql:postgresql'
+    liquibaseRuntime 'ch.qos.logback:logback-classic'
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api'
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
