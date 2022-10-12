@@ -18,7 +18,6 @@ public class SchemaService {
 
   private final JsonSchema schema;
 
-
   @Autowired
   public SchemaService(SchemaConfiguration schemaConfiguration) throws FileNotFoundException {
     this.schema = getJsonSchemaFromUrl(schemaConfiguration.basePath());

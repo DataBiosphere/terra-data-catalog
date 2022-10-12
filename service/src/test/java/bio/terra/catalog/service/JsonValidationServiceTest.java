@@ -16,6 +16,13 @@ public class JsonValidationServiceTest {
   private static final ObjectMapper objectMapper = new BeanConfig().objectMapper();
 
   @Test
+  void testValidateInvalidConfiguration() {
+    assertThrows(
+        JsonValidationService.SchemaConfigurationException.class,
+        () -> new JsonValidationService(new SchemaConfiguration("invalid file")));
+  }
+
+  @Test
   void testValidateInvalidMetadata() {
     JsonValidationService service = new JsonValidationService(new SchemaConfiguration(BASE_PATH));
     JsonNode json = objectMapper.createObjectNode();

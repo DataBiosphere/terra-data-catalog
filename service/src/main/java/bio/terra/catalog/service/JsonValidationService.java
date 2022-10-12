@@ -39,7 +39,7 @@ public class JsonValidationService {
     }
   }
 
-  private static class SchemaConfigurationException extends RuntimeException {
+  public static class SchemaConfigurationException extends RuntimeException {
     public SchemaConfigurationException(Exception e) {
       super(e);
     }
