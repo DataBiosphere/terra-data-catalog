@@ -1,5 +1,9 @@
 package bio.terra.catalog.common;
 
+/**
+ * The storage systems catalog supports. Every catalog entry has an underlying storage system that
+ * handles requests for permission information and other operations.
+ */
 public enum StorageSystem {
   TERRA_WORKSPACE(bio.terra.catalog.model.StorageSystem.WKS.name()),
   TERRA_DATA_REPO(bio.terra.catalog.model.StorageSystem.TDR.name()),
@@ -25,6 +29,6 @@ public enum StorageSystem {
   }
 
   public bio.terra.catalog.model.StorageSystem toModel() {
-    return bio.terra.catalog.model.StorageSystem.valueOf(this.value);
+    return bio.terra.catalog.model.StorageSystem.valueOf(value);
   }
 }

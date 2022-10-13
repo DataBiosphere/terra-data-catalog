@@ -8,19 +8,24 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import bio.terra.catalog.common.StorageSystemInformation;
+import bio.terra.catalog.model.DatasetPreviewTable;
 import bio.terra.catalog.model.SystemStatusSystems;
+import bio.terra.catalog.model.TableMetadata;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.common.exception.BadRequestException;
+import bio.terra.common.exception.NotFoundException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.api.SnapshotsApi;
 import bio.terra.datarepo.api.UnauthenticatedApi;
 import bio.terra.datarepo.client.ApiException;
+import bio.terra.datarepo.model.ColumnModel;
 import bio.terra.datarepo.model.EnumerateSnapshotModel;
 import bio.terra.datarepo.model.RepositoryStatusModel;
 import bio.terra.datarepo.model.SnapshotModel;
 import bio.terra.datarepo.model.SnapshotPreviewModel;
 import bio.terra.datarepo.model.SnapshotRetrieveIncludeModel;
 import bio.terra.datarepo.model.SnapshotSummaryModel;
+import bio.terra.datarepo.model.TableModel;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -70,7 +75,7 @@ class DatarepoServiceTest {
             .roleMap(items);
     when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any()))
         .thenReturn(esm);
-    var returnedItems = datarepoService.getSnapshotInformation(user);
+    var returnedItems = datarepoService.getDatasets(user);
     assertThat(returnedItems, is(expectedItems));
   }
 
@@ -79,7 +84,7 @@ class DatarepoServiceTest {
     mockSnapshots();
     when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any()))
         .thenThrow(new ApiException());
-    assertThrows(DatarepoException.class, () -> datarepoService.getSnapshotInformation(user));
+    assertThrows(DatarepoException.class, () -> datarepoService.getDatasets(user));
   }
 
   @Test
@@ -98,6 +103,14 @@ class DatarepoServiceTest {
     when(snapshotsApi.retrieveUserSnapshotRoles(id))
         .thenReturn(List.of(DatarepoService.STEWARD_ROLE_NAME));
     assertThat(datarepoService.getRole(user, id.toString()), is(DatasetAccessLevel.OWNER));
+  }
+
+  @Test
+  void getRoleNoAccess() throws Exception {
+    mockSnapshots();
+    var id = UUID.randomUUID();
+    when(snapshotsApi.retrieveUserSnapshotRoles(id)).thenReturn(List.of());
+    assertThat(datarepoService.getRole(user, id.toString()), is(DatasetAccessLevel.NO_ACCESS));
   }
 
   @Test
@@ -137,12 +150,25 @@ class DatarepoServiceTest {
     mockSnapshots();
     var id = UUID.randomUUID();
     when(snapshotsApi.retrieveSnapshot(id, List.of(SnapshotRetrieveIncludeModel.TABLES)))
-        .thenReturn(new SnapshotModel());
-    assertThat(datarepoService.getPreviewTables(user, id.toString()), is(new SnapshotModel()));
+        .thenReturn(
+            new SnapshotModel()
+                .tables(
+                    List.of(
+                        new TableModel()
+                            .rowCount(1)
+                            .name("table 1")
+                            .columns(List.of(new ColumnModel().name("column a"))),
+                        new TableModel().rowCount(0).name("table 2"))));
+    assertThat(
+        datarepoService.getPreviewTables(user, id.toString()),
+        is(
+            List.of(
+                new TableMetadata().name("table 1").hasData(true),
+                new TableMetadata().name("table 2").hasData(false))));
   }
 
   @Test
-  void getPreviewTablesDatarepoException() throws Exception {
+  void getPreviewTablesException() throws Exception {
     mockSnapshots();
     var id = UUID.randomUUID();
     var errorMessage = "Oops, I have errored";
@@ -158,24 +184,57 @@ class DatarepoServiceTest {
   }
 
   @Test
-  void getPreviewTable() throws Exception {
+  void previewTable() throws Exception {
     mockSnapshots();
     var id = UUID.randomUUID();
     var tableName = "table";
+    when(snapshotsApi.retrieveSnapshot(id, List.of(SnapshotRetrieveIncludeModel.TABLES)))
+        .thenReturn(
+            new SnapshotModel()
+                .tables(
+                    List.of(
+                        new TableModel()
+                            .rowCount(2)
+                            .name(tableName)
+                            .columns(
+                                List.of(new ColumnModel().name("a"), new ColumnModel().name("b"))),
+                        new TableModel().rowCount(0).name("empty"))));
+    List<Object> rows = List.of(Map.of("a", 1, "b", 2), Map.of("a", 3, "b", 4));
     when(snapshotsApi.lookupSnapshotPreviewById(id, tableName, null, 10, null, null))
-        .thenReturn(new SnapshotPreviewModel());
+        .thenReturn(new SnapshotPreviewModel().result(rows));
     assertThat(
-        datarepoService.getPreviewTable(user, id.toString(), tableName, 10),
-        is(new SnapshotPreviewModel()));
+        datarepoService.previewTable(user, id.toString(), tableName, 10),
+        is(
+            new DatasetPreviewTable()
+                .columns(
+                    List.of(
+                        new bio.terra.catalog.model.ColumnModel().name("a"),
+                        new bio.terra.catalog.model.ColumnModel().name("b")))
+                .rows(rows)));
   }
 
   @Test
-  void getPreviewTableDatarepoException() throws Exception {
+  void previewTableMissingTable() throws Exception {
+    mockSnapshots();
+    var id = UUID.randomUUID();
+
+    when(snapshotsApi.retrieveSnapshot(id, List.of(SnapshotRetrieveIncludeModel.TABLES)))
+        .thenReturn(new SnapshotModel().tables(List.of()));
+    String snaphsotId = id.toString();
+    assertThrows(
+        NotFoundException.class,
+        () -> datarepoService.previewTable(user, snaphsotId, "missing", 10));
+  }
+
+  @Test
+  void previewTableException() throws Exception {
     mockSnapshots();
     var id = UUID.randomUUID();
     var tableName = "table";
     var errorMessage = "Oops, I have errored";
 
+    when(snapshotsApi.retrieveSnapshot(id, List.of(SnapshotRetrieveIncludeModel.TABLES)))
+        .thenReturn(new SnapshotModel().tables(List.of(new TableModel().name(tableName))));
     when(snapshotsApi.lookupSnapshotPreviewById(id, tableName, null, 10, null, null))
         .thenThrow(new ApiException(HttpStatus.NOT_FOUND.value(), errorMessage));
 
@@ -183,10 +242,13 @@ class DatarepoServiceTest {
     DatarepoException t =
         assertThrows(
             DatarepoException.class,
-            () -> datarepoService.getPreviewTable(user, snapshotId, tableName, 10));
+            () -> datarepoService.previewTable(user, snapshotId, tableName, 10));
 
     assertThat(t.getStatusCode(), is(HttpStatus.NOT_FOUND));
     assertThat(t.getMessage(), is("bio.terra.datarepo.client.ApiException: " + errorMessage));
+    assertThrows(
+        NotFoundException.class,
+        () -> datarepoService.previewTable(user, snapshotId, "missing", 10));
   }
 
   @Test
@@ -195,6 +257,6 @@ class DatarepoServiceTest {
     String workspaceId = "workspaceId";
     assertThrows(
         BadRequestException.class,
-        () -> datarepoService.exportSnapshot(user, snapshotId, workspaceId));
+        () -> datarepoService.exportToWorkspace(user, snapshotId, workspaceId));
   }
 }
