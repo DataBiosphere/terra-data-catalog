@@ -12,9 +12,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
           python-version: '3.10'
       - name: Install black and link shellcheck into expected location
@@ -22,7 +22,7 @@ jobs:
           pip install black --force-reinstall black==22.3.0
           sudo ln -s $(which shellcheck) /usr/local/bin/shellcheck
       - name: Set up JDK
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -41,9 +41,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up JDK
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -54,7 +54,7 @@ jobs:
         run: |
           GITHUB_REPO=$(basename ${{ github.repository }})
           GIT_SHORT_HASH=$(git rev-parse --short HEAD)
-          echo ::set-output name=name::${GITHUB_REPO}:${GIT_SHORT_HASH}
+          echo "name=${GITHUB_REPO}:${GIT_SHORT_HASH}" >> $GITHUB_OUTPUT
 
       - name: Build image locally with jib
         run: |
@@ -81,9 +81,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up JDK
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -106,12 +106,12 @@ jobs:
         ports: [ "5432:5432" ]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         # Needed by sonar to get the git history for the branch the PR will be merged into.
         with:
           fetch-depth: 0
       - name: Set up JDK
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -146,9 +146,9 @@ jobs:
         ports: [ "5432:5432" ]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up JDK
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
