@@ -1,16 +1,14 @@
 package bio.terra.catalog.service;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isA;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -21,6 +19,7 @@ import bio.terra.catalog.config.BeanConfig;
 import bio.terra.catalog.datarepo.DatarepoService;
 import bio.terra.catalog.iam.SamAction;
 import bio.terra.catalog.iam.SamService;
+import bio.terra.catalog.model.ColumnModel;
 import bio.terra.catalog.model.DatasetPreviewTable;
 import bio.terra.catalog.model.DatasetPreviewTablesResponse;
 import bio.terra.catalog.model.TableMetadata;
@@ -31,18 +30,8 @@ import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.exception.UnauthorizedException;
-import bio.terra.datarepo.model.ColumnModel;
-import bio.terra.datarepo.model.SnapshotModel;
-import bio.terra.datarepo.model.SnapshotPreviewModel;
-import bio.terra.datarepo.model.TableDataType;
-import bio.terra.datarepo.model.TableModel;
-import bio.terra.rawls.model.Entity;
-import bio.terra.rawls.model.EntityQueryResponse;
-import bio.terra.rawls.model.EntityTypeMetadata;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -63,6 +52,8 @@ class DatasetServiceTest {
 
   @Mock private RawlsService rawlsService;
 
+  @Mock private ExternalSystemService externalSystemService;
+
   @Mock private DatasetDao datasetDao;
 
   @Mock private SamService samService;
@@ -74,7 +65,6 @@ class DatasetServiceTest {
   private static final String WORKSPACE_ID = "abc-def-workspace-id";
   private static final String METADATA = """
       {"name":"name"}""";
-
   private static final Dataset dataset =
       new Dataset(datasetId, SOURCE_ID, StorageSystem.EXTERNAL, METADATA, null);
   private static final Dataset tdrDataset =
@@ -101,7 +91,13 @@ class DatasetServiceTest {
   @BeforeEach
   public void beforeEach() {
     datasetService =
-        new DatasetService(datarepoService, rawlsService, samService, datasetDao, objectMapper);
+        new DatasetService(
+            datarepoService,
+            rawlsService,
+            externalSystemService,
+            samService,
+            datasetDao,
+            objectMapper);
   }
 
   private void mockDataset() {
@@ -117,8 +113,8 @@ class DatasetServiceTest {
     var idToRole =
         Map.of(
             SOURCE_ID, new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.OWNER));
-    when(datarepoService.getSnapshotInformation()).thenReturn(idToRole);
-    when(rawlsService.getWorkspaceInformation()).thenReturn(workspaces);
+    when(datarepoService.getDatasets()).thenReturn(idToRole);
+    when(rawlsService.getDatasets()).thenReturn(workspaces);
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, workspaces.keySet()))
         .thenReturn(List.of(workspaceDataset));
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
@@ -143,8 +139,7 @@ class DatasetServiceTest {
             new StorageSystemInformation()
                 .datasetAccessLevel(DatasetAccessLevel.OWNER)
                 .phsId(phsId));
-    when(datarepoService.getSnapshotInformation()).thenReturn(idToRole);
-    when(rawlsService.getWorkspaceInformation()).thenReturn(Map.of());
+    when(datarepoService.getDatasets()).thenReturn(idToRole);
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, Set.of())).thenReturn(List.of());
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
         .thenReturn(List.of(tdrDataset));
@@ -154,13 +149,37 @@ class DatasetServiceTest {
   }
 
   @Test
+  void listDatasetsWithPhsIdOverride() {
+    String phsId = "1234";
+    var idToRole =
+        Map.of(
+            SOURCE_ID,
+            new StorageSystemInformation()
+                .datasetAccessLevel(DatasetAccessLevel.OWNER)
+                .phsId(phsId));
+    when(datarepoService.getDatasets()).thenReturn(idToRole);
+    when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, Set.of())).thenReturn(List.of());
+    var url = "url";
+    when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
+        .thenReturn(
+            List.of(
+                tdrDataset.withMetadata(
+                    """
+            {"%s":"%s"}"""
+                        .formatted(DatasetService.REQUEST_ACCESS_URL_PROPERTY_NAME, url))));
+    ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets().getResult().get(0);
+    assertThat(tdrJson.get("phsId").asText(), is(phsId));
+    assertThat(tdrJson.get(DatasetService.REQUEST_ACCESS_URL_PROPERTY_NAME).asText(), is(url));
+  }
+
+  @Test
   void listDatasetsUsingAdminPermissions() {
     Map<String, StorageSystemInformation> workspaces = Map.of();
     var datasets =
         Map.of(
             SOURCE_ID, new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.OWNER));
-    when(datarepoService.getSnapshotInformation()).thenReturn(datasets);
-    when(rawlsService.getWorkspaceInformation()).thenReturn(workspaces);
+    when(datarepoService.getDatasets()).thenReturn(datasets);
+    when(rawlsService.getDatasets()).thenReturn(workspaces);
     when(samService.hasGlobalAction(SamAction.READ_ANY_METADATA)).thenReturn(true);
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, workspaces.keySet())).thenReturn(List.of());
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, datasets.keySet()))
@@ -180,20 +199,31 @@ class DatasetServiceTest {
   @Test()
   void testDeleteMetadataWithInvalidUser() {
     mockDataset();
+    when(externalSystemService.getRole(dataset.storageSourceId()))
+        .thenReturn(DatasetAccessLevel.NO_ACCESS);
     assertThrows(UnauthorizedException.class, () -> datasetService.deleteMetadata(datasetId));
   }
 
   @Test()
   void testDeleteMetadata() {
     mockDataset();
-    when(samService.hasGlobalAction(SamAction.DELETE_ANY_METADATA)).thenReturn(true);
+    when(externalSystemService.getRole(sourceId)).thenReturn(DatasetAccessLevel.OWNER);
     datasetService.deleteMetadata(datasetId);
     verify(datasetDao).delete(dataset);
+  }
+
+  @Test()
+  void testDeleteMetadataNoPermission() {
+    mockDataset();
+    when(externalSystemService.getRole(sourceId)).thenReturn(DatasetAccessLevel.READER);
+    assertThrows(UnauthorizedException.class, () -> datasetService.deleteMetadata(datasetId));
   }
 
   @Test
   void testGetMetadataWithInvalidUser() {
     mockDataset();
+    when(externalSystemService.getRole(dataset.storageSourceId()))
+        .thenReturn(DatasetAccessLevel.NO_ACCESS);
     assertThrows(UnauthorizedException.class, () -> datasetService.getMetadata(datasetId));
   }
 
@@ -205,16 +235,10 @@ class DatasetServiceTest {
   }
 
   @Test
-  void testGetMetadataUsingTdrPermission() throws Exception {
-    when(datasetDao.retrieve(tdrDataset.id())).thenReturn(tdrDataset);
-    when(datarepoService.getRole(SOURCE_ID)).thenReturn(DatasetAccessLevel.READER);
-    JSONAssert.assertEquals(
-        metadataWithId(tdrDataset.id()), datasetService.getMetadata(tdrDataset.id()), true);
-  }
-
-  @Test
   void testUpdateMetadataWithInvalidUser() {
     mockDataset();
+    when(externalSystemService.getRole(dataset.storageSourceId()))
+        .thenReturn(DatasetAccessLevel.NO_ACCESS);
     assertThrows(
         UnauthorizedException.class, () -> datasetService.updateMetadata(datasetId, METADATA));
   }
@@ -244,17 +268,11 @@ class DatasetServiceTest {
   }
 
   @Test
-  void testCreateDataset() {
-    String storageSourceId = "testSource";
-    Dataset testDataset = new Dataset(storageSourceId, StorageSystem.TERRA_DATA_REPO, METADATA);
-    Dataset testDatasetWithCreationInfo =
-        new Dataset(
-            datasetId, storageSourceId, StorageSystem.TERRA_DATA_REPO, METADATA, Instant.now());
-
+  void testCreateDatasetAdmin() {
     when(samService.hasGlobalAction(SamAction.CREATE_METADATA)).thenReturn(true);
-    when(datasetDao.create(testDataset)).thenReturn(testDatasetWithCreationInfo);
-    DatasetId id =
-        datasetService.createDataset(StorageSystem.TERRA_DATA_REPO, storageSourceId, METADATA);
+    when(datasetDao.create(new Dataset(SOURCE_ID, dataset.storageSystem(), METADATA)))
+        .thenReturn(dataset);
+    DatasetId id = datasetService.createDataset(dataset.storageSystem(), SOURCE_ID, METADATA);
     assertThat(id, is(datasetId));
   }
 
@@ -271,108 +289,34 @@ class DatasetServiceTest {
   }
 
   @Test
-  void getDatasetPreviewTablesRepo() {
-    when(datasetDao.retrieve(tdrDataset.id())).thenReturn(tdrDataset);
-    when(datarepoService.getPreviewTables(tdrDataset.storageSourceId()))
-        .thenReturn(
-            new SnapshotModel()
-                .tables(
-                    List.of(
-                        new TableModel()
-                            .rowCount(1)
-                            .columns(
-                                List.of(
-                                    new ColumnModel()
-                                        .datatype(TableDataType.INTEGER)
-                                        .name("column a"))))));
-    DatasetPreviewTablesResponse results = datasetService.listDatasetPreviewTables(tdrDataset.id());
-    assertThat(results, isA(DatasetPreviewTablesResponse.class));
-    assertThat(results.getTables().size(), is(1));
-    assertThat(results.getTables().get(0), isA(TableMetadata.class));
-    assertThat(results.getTables().get(0).isHasData(), is(true));
+  void listDatasetPreviewTables() {
+    var tables =
+        List.of(
+            new TableMetadata().name("table").hasData(true),
+            new TableMetadata().name("empty").hasData(false));
+    var response = new DatasetPreviewTablesResponse().tables(tables);
+    mockDataset();
+    when(externalSystemService.getPreviewTables(tdrDataset.storageSourceId())).thenReturn(tables);
+    assertThat(datasetService.listDatasetPreviewTables(datasetId), is(response));
   }
 
   @Test
-  void getDatasetPreviewTablesWorkspace() {
-    Map<String, EntityTypeMetadata> map = new HashMap<>();
-    map.put("str", new EntityTypeMetadata().count(3));
-    when(datasetDao.retrieve(workspaceDataset.id())).thenReturn(workspaceDataset);
-    when(rawlsService.entityMetadata(workspaceDataset.storageSourceId())).thenReturn(map);
-    DatasetPreviewTablesResponse results =
-        datasetService.listDatasetPreviewTables(workspaceDataset.id());
-    assertThat(results.getTables().size(), is(1));
-    assertThat(results.getTables().get(0), isA(TableMetadata.class));
-    assertThat(results.getTables().get(0).isHasData(), is(true));
-  }
-
-  @Test
-  void getDatasetPreviewTableRepo() {
+  void getDatasetPreviewTable() {
     var tableName = "table";
-    when(datasetDao.retrieve(tdrDataset.id())).thenReturn(tdrDataset);
-    when(datarepoService.getPreviewTables(tdrDataset.storageSourceId()))
-        .thenReturn(
-            new SnapshotModel()
-                .tables(
-                    List.of(
-                        new TableModel()
-                            .name(tableName)
-                            .rowCount(1)
-                            .columns(
-                                List.of(
-                                    new ColumnModel()
-                                        .datatype(TableDataType.INTEGER)
-                                        .name("column a"))))));
-    when(datarepoService.getPreviewTable(eq(tdrDataset.storageSourceId()), eq(tableName), anyInt()))
-        .thenReturn(new SnapshotPreviewModel().result(List.of()));
-    DatasetPreviewTable datasetPreviewTable =
-        datasetService.getDatasetPreview(tdrDataset.id(), tableName);
-    assertThat(datasetPreviewTable.getRows(), empty());
-    assertThat(datasetPreviewTable.getColumns(), hasSize(1));
-    assertThat(
-        datasetPreviewTable.getColumns().get(0),
-        is(new bio.terra.catalog.model.ColumnModel().name("column a")));
+    var previewTable = new DatasetPreviewTable().columns(List.of(new ColumnModel().name("test")));
+
+    mockDataset();
+    when(externalSystemService.previewTable(dataset.storageSourceId(), tableName, 30))
+        .thenReturn(previewTable);
+    assertThat(datasetService.getDatasetPreview(datasetId, tableName), is(previewTable));
   }
 
   @Test
-  void getDatasetPreviewTableWorkspace() {
-    var tableName = "sample";
-    List<String> att = List.of("a", "b", "c");
-    EntityTypeMetadata ent = new EntityTypeMetadata().idName("idName").attributeNames(att);
-    Map<String, EntityTypeMetadata> map = new HashMap<>();
-    map.put("str", new EntityTypeMetadata());
-    map.put(tableName, ent);
-    Entity entity = new Entity().name("sample");
-    DatasetId id = workspaceDataset.id();
-    when(datasetDao.retrieve(id)).thenReturn(workspaceDataset);
-    String workspaceId = workspaceDataset.storageSourceId();
-    when(rawlsService.entityMetadata(workspaceId)).thenReturn(map);
-    when(rawlsService.entityQuery(eq(workspaceId), eq(tableName), anyInt()))
-        .thenReturn(new EntityQueryResponse().results(List.of(entity)));
-    DatasetPreviewTable datasetPreviewTable = datasetService.getDatasetPreview(id, tableName);
-    assertThat(datasetPreviewTable.getRows(), hasSize(1));
-    assertThat(datasetPreviewTable.getColumns(), hasSize(4));
-    assertThat(
-        datasetPreviewTable.getColumns().get(0),
-        is(new bio.terra.catalog.model.ColumnModel().name("idName")));
-  }
-
-  @Test
-  void testExportSnapshot() {
-    DatasetId id = tdrDataset.id();
-    when(datasetDao.retrieve(id)).thenReturn(tdrDataset);
+  void exportDataset() {
     UUID workspaceId = UUID.randomUUID();
-    doThrow(new BadRequestException("error"))
-        .when(datarepoService)
-        .exportSnapshot(tdrDataset.storageSourceId(), workspaceId.toString());
-    assertThrows(BadRequestException.class, () -> datasetService.exportDataset(id, workspaceId));
-  }
-
-  @Test
-  void testExportWorkspaceDataset() {
-    when(datasetDao.retrieve(workspaceDataset.id())).thenReturn(workspaceDataset);
-    UUID workspaceId = UUID.randomUUID();
-    datasetService.exportDataset(workspaceDataset.id(), workspaceId);
-    verify(rawlsService)
-        .exportWorkspaceDataset(workspaceDataset.storageSourceId(), workspaceId.toString());
+    mockDataset();
+    datasetService.exportDataset(datasetId, workspaceId);
+    verify(externalSystemService)
+        .exportToWorkspace(dataset.storageSourceId(), workspaceId.toString());
   }
 }
