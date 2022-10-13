@@ -5,10 +5,6 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -207,7 +203,7 @@ class DatasetServiceTest {
   @Test()
   void testDeleteMetadata() {
     mockDataset();
-    when(externalSystemService.getRole(sourceId)).thenReturn(DatasetAccessLevel.OWNER);
+    when(externalSystemService.getRole(SOURCE_ID)).thenReturn(DatasetAccessLevel.OWNER);
     datasetService.deleteMetadata(datasetId);
     verify(datasetDao).delete(dataset);
   }
@@ -215,7 +211,7 @@ class DatasetServiceTest {
   @Test()
   void testDeleteMetadataNoPermission() {
     mockDataset();
-    when(externalSystemService.getRole(sourceId)).thenReturn(DatasetAccessLevel.READER);
+    when(externalSystemService.getRole(SOURCE_ID)).thenReturn(DatasetAccessLevel.READER);
     assertThrows(UnauthorizedException.class, () -> datasetService.deleteMetadata(datasetId));
   }
 

@@ -108,7 +108,7 @@ class DatarepoServiceTest {
     mockSnapshots();
     var id = UUID.randomUUID();
     when(snapshotsApi.retrieveUserSnapshotRoles(id)).thenReturn(List.of());
-    assertThat(datarepoService.getRole(user, id.toString()), is(DatasetAccessLevel.NO_ACCESS));
+    assertThat(datarepoService.getRole(id.toString()), is(DatasetAccessLevel.NO_ACCESS));
   }
 
   @Test
@@ -219,8 +219,7 @@ class DatarepoServiceTest {
         .thenReturn(new SnapshotModel().tables(List.of()));
     String snaphsotId = id.toString();
     assertThrows(
-        NotFoundException.class,
-        () -> datarepoService.previewTable(snaphsotId, "missing", 10));
+        NotFoundException.class, () -> datarepoService.previewTable(snaphsotId, "missing", 10));
   }
 
   @Test
@@ -238,14 +237,12 @@ class DatarepoServiceTest {
     String snapshotId = id.toString();
     DatarepoException t =
         assertThrows(
-            DatarepoException.class,
-            () -> datarepoService.previewTable(snapshotId, tableName, 10));
+            DatarepoException.class, () -> datarepoService.previewTable(snapshotId, tableName, 10));
 
     assertThat(t.getStatusCode(), is(HttpStatus.NOT_FOUND));
     assertThat(t.getMessage(), is("bio.terra.datarepo.client.ApiException: " + errorMessage));
     assertThrows(
-        NotFoundException.class,
-        () -> datarepoService.previewTable(snapshotId, "missing", 10));
+        NotFoundException.class, () -> datarepoService.previewTable(snapshotId, "missing", 10));
   }
 
   @Test
@@ -253,6 +250,7 @@ class DatarepoServiceTest {
     String snapshotId = "snapshotId";
     String workspaceId = "workspaceId";
     assertThrows(
-        BadRequestException.class, () -> datarepoService.exportToWorkspace(snapshotId, workspaceId));
+        BadRequestException.class,
+        () -> datarepoService.exportToWorkspace(snapshotId, workspaceId));
   }
 }

@@ -169,8 +169,7 @@ public class DatasetService {
     // catalog entry.
     if (!samService.hasGlobalAction(action)
         && !getService(dataset).getRole(dataset.storageSourceId()).hasAction(action)) {
-      throw new UnauthorizedException(
-          String.format("User does not have permission to %s", action));
+      throw new UnauthorizedException(String.format("User does not have permission to %s", action));
     }
   }
 

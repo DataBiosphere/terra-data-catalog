@@ -9,7 +9,6 @@ import bio.terra.catalog.model.TableMetadata;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.exception.NotFoundException;
-import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.client.ApiException;
 import bio.terra.datarepo.model.EnumerateSnapshotModel;
 import bio.terra.datarepo.model.RepositoryStatusModel;
@@ -135,7 +134,7 @@ public class DatarepoService implements StorageSystemService {
   }
 
   @Override
-  public DatasetAccessLevel getRole(AuthenticatedUserRequest user, String snapshotId) {
+  public DatasetAccessLevel getRole(String snapshotId) {
     try {
       UUID id = UUID.fromString(snapshotId);
       List<String> roles = datarepoClient.snapshotsApi().retrieveUserSnapshotRoles(id);
