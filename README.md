@@ -1,7 +1,6 @@
 # Terra Data Catalog
 
 [![Build and Test](https://github.com/DataBiosphere/terra-data-catalog/actions/workflows/build-and-test.yml/badge.svg?branch=main)](https://github.com/DataBiosphere/terra-data-catalog/actions/workflows/build-and-test.yml)
-[![Nightly Tests](https://github.com/DataBiosphere/terra-data-catalog/actions/workflows/nightly-tests.yml/badge.svg)](https://github.com/DataBiosphere/terra-data-catalog/actions/workflows/nightly-tests.yml)
 [![Publish and deploy](https://github.com/DataBiosphere/terra-data-catalog/actions/workflows/publish.yml/badge.svg)](https://github.com/DataBiosphere/terra-data-catalog/actions/workflows/publish.yml)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=terra-data-catalog&metric=coverage)](https://sonarcloud.io/summary/new_code?id=terra-data-catalog)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=terra-data-catalog&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=terra-data-catalog)
@@ -41,13 +40,7 @@ After the database is initialized, then run integration tests:
 ./scripts/render_configs.sh    # render service account credentials needed for tests
 ./gradlew bootRun &    # start up a local instance of the data catalog service
 sleep 5                # wait until service comes up
-./gradlew runTest --args="suites/dev/FullIntegration.json build/reports"
-```
-
-To run performance tests, execute:
-
-```sh
-./gradlew runTest --args="suites/perf/FullIntegration.json build/reports"
+./gradlew runTest --args="suites/local/FullIntegration.json build/reports"
 ```
 
 ## Handling database migrations

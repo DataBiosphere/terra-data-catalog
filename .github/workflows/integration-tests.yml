@@ -1,4 +1,4 @@
-name: Nightly Tests
+name: Integration Tests
 
 on:
   workflow_dispatch:
@@ -8,17 +8,14 @@ on:
         description: 'environment to run test in'
         required: true
         options:
-          - perf
           - staging
           - alpha
           - dev
-        default: 'perf'
-  schedule:
-    - cron: "0 6 * * *" # runs at 6 AM UTC, 1 AM EST.
+        default: 'dev'
 
 env:
   TEST_ENV: ${{ github.event.inputs.environment }}
-  TEST_DEFAULT: perf
+  TEST_DEFAULT: dev
 
 jobs:
   build:
@@ -91,7 +88,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Get the helm chart versions for the perf env
+      - name: Get the helm chart versions for the test env
         run: |
           curl -H 'Authorization: token ${{ secrets.BROADBOT_TOKEN }}' \
             -H 'Accept: application/vnd.github.v3.raw' \
@@ -114,7 +111,7 @@ jobs:
           echo "${{ secrets.DEV_FIRECLOUD_ACCOUNT_B64 }}" | base64 -d > "integration/src/main/resources/rendered/user-delegated-sa.json"
           echo "${{ secrets.PERF_TESTRUNNER_ACCOUNT_B64 }}" | base64 -d > "integration/src/main/resources/rendered/testrunner-perf.json"
 
-      - name: Run perf test suite
+      - name: Run integration test suite
         run: |
           ./gradlew --build-cache runTest --args="suites/${{ needs.test-env.outputs.test-env }}/FullIntegration.json build/reports"
 
@@ -143,9 +140,8 @@ jobs:
           STATUS: failure
         with:
           channel: '#jade-data-explorer'
-          author_name: ${{ github.actor }}
           status: ${{ env.STATUS }}
-          fields: workflow,ref
+          fields: job,ref
           text: >
             ${{ format('Catalog test *{0}* in *{1}* {2}',
             env.STATUS, needs.test-env.outputs.test-env,
@@ -155,7 +151,7 @@ jobs:
   notify-qa-slack:
     needs: [ build, jib, test-env, test-runner ]
     runs-on: ubuntu-latest
-    if: always()
+    if: always() && needs.test-env.outputs.test-env != 'dev'
 
     steps:
       - name: "Always notify #dsde-qa Slack"
@@ -169,9 +165,8 @@ jobs:
             && 'success' || 'failure' }}
         with:
           channel: '#dsde-qa'
-          author_name: ${{ github.actor }}
           status: ${{ env.STATUS }}
-          fields: workflow,ref
+          fields: job,ref
           text: >
             ${{ format('Catalog test *{0}* in *{1}* {2}',
             env.STATUS, needs.test-env.outputs.test-env,

@@ -1,7 +1,7 @@
 {
   "name": "FullIntegration",
   "description": "All integration tests",
-  "serverSpecificationFile": "catalog-dev.json",
+  "serverSpecificationFile": "catalog-local.json",
   "testConfigurationFiles": [
     "integration/GetStatus.json",
     "integration/GetVersion.json",

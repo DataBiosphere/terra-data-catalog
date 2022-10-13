@@ -7,7 +7,7 @@
 # Usage:
 #   ./manage-test-workspaces.sh <env> <create/delete_wks/delete_prj/list> <quiet>
 #
-#   <env>         should be one of dev, perf, alpha, or staging
+#   <env>         should be one of dev, alpha, or staging
 #
 #   create        creates a new workspace
 #   delete_wks    deletes all test workspaces
@@ -94,7 +94,7 @@ if [ $# -lt 2 ]; then
   usage
 fi
 case $1 in
-  dev | perf | alpha | staging) ;;
+  dev | alpha | staging) ;;
   *) usage ;;
 esac
 RAWLS_ENV="https://rawls.dsde-${1}.broadinstitute.org/api"

@@ -182,7 +182,7 @@ jobs:
           fi
 
       - name: Run the integration test suite
-        run: ./gradlew --build-cache runTest --args="suites/dev/FullIntegration.json build/reports"
+        run: ./gradlew --build-cache runTest --args="suites/local/FullIntegration.json build/reports"
 
   notify-slack:
     needs: [ build, unit-tests-and-sonarqube, source-clear, integration-tests ]
@@ -199,7 +199,7 @@ jobs:
           channel: '#jade-data-explorer'
           status: failure
           author_name: Build on dev
-          fields: workflow,message
+          fields: job,message
           text: 'Build failed :sadpanda:'
           username: 'Data Explorer GitHub Action'
 

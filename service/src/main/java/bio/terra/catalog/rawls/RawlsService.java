@@ -1,10 +1,16 @@
 package bio.terra.catalog.rawls;
 
 import bio.terra.catalog.common.StorageSystemInformation;
+import bio.terra.catalog.common.StorageSystemService;
+import bio.terra.catalog.model.ColumnModel;
+import bio.terra.catalog.model.DatasetPreviewTable;
 import bio.terra.catalog.model.SystemStatusSystems;
+import bio.terra.catalog.model.TableMetadata;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
+import bio.terra.common.exception.NotFoundException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.rawls.client.ApiException;
+import bio.terra.rawls.model.Entity;
 import bio.terra.rawls.model.EntityCopyDefinition;
 import bio.terra.rawls.model.EntityQueryResponse;
 import bio.terra.rawls.model.EntityTypeMetadata;
@@ -13,6 +19,8 @@ import bio.terra.rawls.model.WorkspaceDetails;
 import bio.terra.rawls.model.WorkspaceName;
 import bio.terra.rawls.model.WorkspaceResponse;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -21,7 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
-public class RawlsService {
+public class RawlsService implements StorageSystemService {
   private static final Logger logger = LoggerFactory.getLogger(RawlsService.class);
   public static final List<String> ACCESS_LEVEL = List.of("accessLevel");
   public static final List<String> ACCESS_LEVEL_AND_ID =
@@ -41,8 +49,8 @@ public class RawlsService {
     this.rawlsClient = rawlsClient;
   }
 
-  public Map<String, StorageSystemInformation> getWorkspaceInformation(
-      AuthenticatedUserRequest user) {
+  @Override
+  public Map<String, StorageSystemInformation> getDatasets(AuthenticatedUserRequest user) {
     try {
       return rawlsClient.workspacesApi(user).listWorkspaces(ACCESS_LEVEL_AND_ID).stream()
           .collect(
@@ -57,6 +65,7 @@ public class RawlsService {
     }
   }
 
+  @Override
   public DatasetAccessLevel getRole(AuthenticatedUserRequest user, String workspaceId) {
     try {
       WorkspaceAccessLevel accessLevel =
@@ -70,7 +79,7 @@ public class RawlsService {
     }
   }
 
-  public EntityQueryResponse entityQuery(
+  private EntityQueryResponse entityQuery(
       AuthenticatedUserRequest user, String workspaceId, String tableName, int maxRows) {
     try {
       WorkspaceResponse response =
@@ -95,7 +104,12 @@ public class RawlsService {
     }
   }
 
-  public Map<String, EntityTypeMetadata> entityMetadata(
+  @Override
+  public List<TableMetadata> getPreviewTables(AuthenticatedUserRequest user, String workspaceId) {
+    return toCatalogTables(entityMetadata(user, workspaceId));
+  }
+
+  private Map<String, EntityTypeMetadata> entityMetadata(
       AuthenticatedUserRequest user, String workspaceId) {
     try {
       WorkspaceResponse response =
@@ -112,6 +126,7 @@ public class RawlsService {
     }
   }
 
+  @Override
   public SystemStatusSystems status() {
     var result = new SystemStatusSystems();
     try {
@@ -132,7 +147,8 @@ public class RawlsService {
         .name(workspaceDetails.getName());
   }
 
-  public void exportWorkspaceDataset(
+  @Override
+  public void exportToWorkspace(
       AuthenticatedUserRequest user, String workspaceIdSource, String workspaceIdDest) {
     try {
       // build source name
@@ -166,5 +182,45 @@ public class RawlsService {
               workspaceIdSource, workspaceIdDest);
       throw new RawlsException(errorMsg, e);
     }
+  }
+
+  @Override
+  public DatasetPreviewTable previewTable(
+      AuthenticatedUserRequest user, String storageSourceId, String tableName, int maxRows) {
+    Map<String, EntityTypeMetadata> entities = entityMetadata(user, storageSourceId);
+    EntityTypeMetadata tableMetadata = entities.get(tableName);
+    if (tableMetadata == null) {
+      throw new NotFoundException("Table %s not found for dataset".formatted(tableName));
+    }
+    return new DatasetPreviewTable()
+        .columns(convertTableMetadataToColumns(tableMetadata))
+        .rows(
+            entityQuery(user, storageSourceId, tableName, maxRows).getResults().stream()
+                .map(entity -> convertEntityToRow(entity, tableMetadata.getIdName()))
+                .toList());
+  }
+
+  private static Object convertEntityToRow(Entity entity, String idName) {
+    Map<String, Object> att = entity.getAttributes();
+    Map<String, Object> rows = new HashMap<>(att);
+    rows.put(idName, entity.getName());
+    return rows;
+  }
+
+  private static List<ColumnModel> convertTableMetadataToColumns(EntityTypeMetadata entity) {
+    List<ColumnModel> columns = new ArrayList<>();
+    columns.add(new ColumnModel().name(entity.getIdName()));
+    entity.getAttributeNames().stream()
+        .map(name -> new ColumnModel().name(name))
+        .forEach(columns::add);
+    return columns;
+  }
+
+  private static List<TableMetadata> toCatalogTables(Map<String, EntityTypeMetadata> entityTables) {
+    return entityTables.entrySet().stream()
+        .map(
+            entry ->
+                new TableMetadata().name(entry.getKey()).hasData(entry.getValue().getCount() != 0))
+        .toList();
   }
 }
