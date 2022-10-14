@@ -2,6 +2,7 @@ package bio.terra.catalog.iam;
 
 import bio.terra.catalog.config.SamConfiguration;
 import bio.terra.catalog.model.SystemStatusSystems;
+import bio.terra.common.iam.BearerToken;
 import bio.terra.common.sam.SamRetry;
 import bio.terra.common.sam.exception.SamExceptionFactory;
 import java.util.List;
@@ -19,15 +20,15 @@ public class SamService {
   private final SamConfiguration samConfig;
   private final SamClient samClient;
 
-  private final User user;
+  private final BearerToken bearerToken;
 
   private static final String CATALOG_RESOURCE_TYPE = "catalog";
 
   @Autowired
-  public SamService(SamConfiguration samConfig, SamClient samClient, User user) {
+  public SamService(SamConfiguration samConfig, SamClient samClient, BearerToken bearerToken) {
     this.samConfig = samConfig;
     this.samClient = samClient;
-    this.user = user;
+    this.bearerToken = bearerToken;
   }
 
   /**
@@ -40,7 +41,7 @@ public class SamService {
    * @return true if the user has any actions on that resource; false otherwise.
    */
   public boolean hasGlobalAction(SamAction action) {
-    String accessToken = user.getToken();
+    String accessToken = bearerToken.getToken();
     ResourcesApi resourceApi = samClient.resourcesApi(accessToken);
     try {
       return SamRetry.retry(

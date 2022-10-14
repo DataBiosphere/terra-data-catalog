@@ -1,7 +1,7 @@
 package bio.terra.catalog.datarepo;
 
 import bio.terra.catalog.config.DatarepoConfiguration;
-import bio.terra.catalog.iam.User;
+import bio.terra.common.iam.BearerToken;
 import bio.terra.datarepo.api.SnapshotsApi;
 import bio.terra.datarepo.api.UnauthenticatedApi;
 import bio.terra.datarepo.client.ApiClient;
@@ -11,17 +11,17 @@ import org.springframework.stereotype.Component;
 @Component
 public class DatarepoClient {
   private final DatarepoConfiguration datarepoConfig;
-  private final User user;
+  private final BearerToken bearerToken;
   private final Client commonHttpClient = new ApiClient().getHttpClient();
 
-  public DatarepoClient(DatarepoConfiguration datarepoConfig, User user) {
+  public DatarepoClient(DatarepoConfiguration datarepoConfig, BearerToken bearerToken) {
     this.datarepoConfig = datarepoConfig;
-    this.user = user;
+    this.bearerToken = bearerToken;
   }
 
   private ApiClient getAuthApiClient() {
     ApiClient apiClient = getApiClient();
-    apiClient.setAccessToken(user.getToken());
+    apiClient.setAccessToken(bearerToken.getToken());
     return apiClient;
   }
 

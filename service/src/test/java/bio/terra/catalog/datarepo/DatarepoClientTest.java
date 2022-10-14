@@ -5,7 +5,7 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.when;
 
 import bio.terra.catalog.config.DatarepoConfiguration;
-import bio.terra.catalog.iam.User;
+import bio.terra.common.iam.BearerToken;
 import bio.terra.datarepo.client.ApiClient;
 import bio.terra.datarepo.client.auth.OAuth;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,14 +21,14 @@ class DatarepoClientTest {
   private static final String TOKEN = "token";
   private static final String AUTH_NAME = "googleoauth";
 
-  @Mock private User user;
+  @Mock private BearerToken bearerToken;
 
   private DatarepoClient client;
 
   @BeforeEach
   void beforeEach() {
-    when(user.getToken()).thenReturn(TOKEN);
-    client = new DatarepoClient(new DatarepoConfiguration(BASE_PATH), user);
+    when(bearerToken.getToken()).thenReturn(TOKEN);
+    client = new DatarepoClient(new DatarepoConfiguration(BASE_PATH), bearerToken);
   }
 
   @Test

@@ -1,7 +1,7 @@
 package bio.terra.catalog.rawls;
 
 import bio.terra.catalog.config.RawlsConfiguration;
-import bio.terra.catalog.iam.User;
+import bio.terra.common.iam.BearerToken;
 import bio.terra.rawls.api.EntitiesApi;
 import bio.terra.rawls.api.StatusApi;
 import bio.terra.rawls.api.WorkspacesApi;
@@ -12,17 +12,17 @@ import org.springframework.stereotype.Component;
 @Component
 public class RawlsClient {
   private final RawlsConfiguration rawlsConfig;
-  private final User user;
+  private final BearerToken bearerToken;
   private final Client commonHttpClient = new ApiClient().getHttpClient();
 
-  public RawlsClient(RawlsConfiguration rawlsConfig, User user) {
+  public RawlsClient(RawlsConfiguration rawlsConfig, BearerToken bearerToken) {
     this.rawlsConfig = rawlsConfig;
-    this.user = user;
+    this.bearerToken = bearerToken;
   }
 
   private ApiClient getAuthApiClient() {
     ApiClient apiClient = getApiClient();
-    apiClient.setAccessToken(user.getToken());
+    apiClient.setAccessToken(bearerToken.getToken());
     return apiClient;
   }
 

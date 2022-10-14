@@ -5,7 +5,7 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.when;
 
 import bio.terra.catalog.config.RawlsConfiguration;
-import bio.terra.catalog.iam.User;
+import bio.terra.common.iam.BearerToken;
 import bio.terra.rawls.client.ApiClient;
 import bio.terra.rawls.client.auth.OAuth;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,14 +20,14 @@ class RawlsClientTest {
   private static final String BASE_PATH = "base path";
   private static final String TOKEN = "token";
   private static final String AUTH_NAME = "googleoauth";
-  @Mock private User user;
+  @Mock private BearerToken bearerToken;
 
   private RawlsClient client;
 
   @BeforeEach
   void beforeEach() {
-    when(user.getToken()).thenReturn(TOKEN);
-    client = new RawlsClient(new RawlsConfiguration(BASE_PATH), user);
+    when(bearerToken.getToken()).thenReturn(TOKEN);
+    client = new RawlsClient(new RawlsConfiguration(BASE_PATH), bearerToken);
   }
 
   @Test

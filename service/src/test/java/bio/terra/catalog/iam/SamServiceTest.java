@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import bio.terra.catalog.config.SamConfiguration;
+import bio.terra.common.iam.BearerToken;
 import java.util.List;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
 import org.broadinstitute.dsde.workbench.client.sam.api.ResourcesApi;
@@ -23,18 +24,18 @@ class SamServiceTest {
   @Mock private SamClient samClient;
   @Mock private ResourcesApi resourcesApi;
   @Mock private StatusApi statusApi;
-  @Mock private User user;
+  @Mock private BearerToken bearerToken;
 
   private static final String TOKEN = "token";
   private SamService samService;
 
   @BeforeEach
   void beforeEach() {
-    samService = new SamService(new SamConfiguration("", ""), samClient, user);
+    samService = new SamService(new SamConfiguration("", ""), samClient, bearerToken);
   }
 
   private void mockResources() {
-    when(user.getToken()).thenReturn(TOKEN);
+    when(bearerToken.getToken()).thenReturn(TOKEN);
     when(samClient.resourcesApi(TOKEN)).thenReturn(resourcesApi);
   }
 
