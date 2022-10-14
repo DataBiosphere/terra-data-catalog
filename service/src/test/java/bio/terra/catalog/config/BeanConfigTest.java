@@ -15,7 +15,7 @@ class BeanConfigTest {
   void bearerToken() {
     MockHttpServletRequest request = new MockHttpServletRequest();
     BeanConfig beanConfig = new BeanConfig();
-    assertThrows(UnauthorizedException.class, () -> beanConfig.bearerToken(request).getToken());
+    assertThrows(UnauthorizedException.class, () -> beanConfig.bearerToken(request));
 
     var token = "token";
     request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token);
