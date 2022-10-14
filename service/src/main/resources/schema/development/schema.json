@@ -55,7 +55,6 @@
     "TerraDCAT_ap:hasOwner": {
       "type": "string",
       "description": "The entity responsible for making the item available and responsible for identifying authorized users of the Dataset or DataCollection."
-
     },
     "TerraDCAT_ap:hasCustodian": {
       "type": "array",
@@ -71,8 +70,8 @@
     },
     "prov:wasGeneratedBy": {
       "type": "array",
-      "items": { "type": "object" },
-      "description": "must be created by a Project"
+      "items": { "$ref": "#/$defs/generatedBy" },
+      "description": "Used to determine assay and data modality."
     },
     "storage": {
       "type": "array",
@@ -87,7 +86,8 @@
       "items": { "$ref": "#/$defs/fileTypeCounts" }
     },
     "samples": {
-      "type": "object"
+      "type": "object",
+      "ref": "#/$defs/samples"
     },
     "contributors": {
       "type": "array",
@@ -142,6 +142,17 @@
         }
       }
     },
+    "generatedBy": {
+      "type": "object",
+      "properties": {
+        "TerraCore:hasAssayCategory": {
+          "type": "string"
+        },
+        "TerraCore:hasDataModality": {
+          "type": "string"
+        }
+      }
+    },
     "storageObject": {
       "type": "object",
       "properties": {
@@ -152,7 +163,7 @@
           "enum": ["bigquery", "firestore", "bucket"]
         },
         "cloudPlatform": {
-          "enum": ["gcp"]
+          "enum": ["gcp", "azure"]
         }
       }
     },
@@ -182,6 +193,19 @@
         },
         "count": {
           "type": "integer"
+        }
+      }
+    },
+    "samples": {
+      "type": "object",
+      "properties": {
+        "disease": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "species": {
+          "type": "array",
+          "items": { "type": "string" }
         }
       }
     }
