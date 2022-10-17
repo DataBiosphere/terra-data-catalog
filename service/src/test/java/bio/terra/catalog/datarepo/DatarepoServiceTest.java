@@ -99,11 +99,11 @@ class DatarepoServiceTest {
 
   @ParameterizedTest
   @MethodSource
-  void getRole(String datarepoRole, DatasetAccessLevel catalogRole) throws Exception {
+  void getRole(String datarepoRole, DatasetAccessLevel expectedCatalogRole) throws Exception {
     mockSnapshots();
     var id = UUID.randomUUID();
     when(snapshotsApi.retrieveUserSnapshotRoles(id)).thenReturn(List.of(datarepoRole));
-    assertThat(datarepoService.getRole(user, id.toString()), is(catalogRole));
+    assertThat(datarepoService.getRole(user, id.toString()), is(expectedCatalogRole));
   }
 
   @Test
