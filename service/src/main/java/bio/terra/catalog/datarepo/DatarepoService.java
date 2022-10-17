@@ -17,6 +17,7 @@ import bio.terra.datarepo.model.SnapshotPreviewModel;
 import bio.terra.datarepo.model.SnapshotRetrieveIncludeModel;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -54,6 +55,8 @@ public class DatarepoService implements StorageSystemService {
     for (DatasetAccessLevel datasetAccessLevel : DatasetAccessLevel.values()) {
       if (roles.stream()
           .map(ROLE_TO_DATASET_ACCESS::get)
+          // Ignore roles we don't recognize.
+          .filter(Objects::nonNull)
           .anyMatch(
               roleAsDatasetAccessLevel -> roleAsDatasetAccessLevel.equals(datasetAccessLevel))) {
         return datasetAccessLevel;
