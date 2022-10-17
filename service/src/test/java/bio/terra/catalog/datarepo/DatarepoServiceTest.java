@@ -91,19 +91,18 @@ class DatarepoServiceTest {
 
   static Object[][] getRole() {
     return new Object[][] {
-      {List.of(DatarepoService.READER_ROLE_NAME), DatasetAccessLevel.READER},
-      {List.of(DatarepoService.STEWARD_ROLE_NAME), DatasetAccessLevel.OWNER},
-      {List.of(), DatasetAccessLevel.NO_ACCESS},
-      {List.of("unknown role"), DatasetAccessLevel.NO_ACCESS}
+      {DatarepoService.READER_ROLE_NAME, DatasetAccessLevel.READER},
+      {DatarepoService.STEWARD_ROLE_NAME, DatasetAccessLevel.OWNER},
+      {"unknown role", DatasetAccessLevel.NO_ACCESS}
     };
   }
 
   @ParameterizedTest
   @MethodSource
-  void getRole(List<String> datarepoRoles, DatasetAccessLevel catalogRole) throws Exception {
+  void getRole(String datarepoRole, DatasetAccessLevel catalogRole) throws Exception {
     mockSnapshots();
     var id = UUID.randomUUID();
-    when(snapshotsApi.retrieveUserSnapshotRoles(id)).thenReturn(datarepoRoles);
+    when(snapshotsApi.retrieveUserSnapshotRoles(id)).thenReturn(List.of(datarepoRole));
     assertThat(datarepoService.getRole(user, id.toString()), is(catalogRole));
   }
 
