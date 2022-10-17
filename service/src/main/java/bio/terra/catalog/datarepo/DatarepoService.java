@@ -56,6 +56,7 @@ public class DatarepoService implements StorageSystemService {
     for (DatasetAccessLevel datasetAccessLevel : DatasetAccessLevel.values()) {
       if (roles.stream()
           .map(ROLE_TO_DATASET_ACCESS::get)
+          // Ignore roles we don't recognize.
           .filter(Objects::nonNull)
           .anyMatch(
               roleAsDatasetAccessLevel -> roleAsDatasetAccessLevel.equals(datasetAccessLevel))) {
