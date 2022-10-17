@@ -32,6 +32,8 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
@@ -87,30 +89,21 @@ class DatarepoServiceTest {
     assertThrows(DatarepoException.class, () -> datarepoService.getDatasets(user));
   }
 
-  @Test
-  void getRoleReader() throws Exception {
-    mockSnapshots();
-    var id = UUID.randomUUID();
-    when(snapshotsApi.retrieveUserSnapshotRoles(id))
-        .thenReturn(List.of(DatarepoService.READER_ROLE_NAME));
-    assertThat(datarepoService.getRole(user, id.toString()), is(DatasetAccessLevel.READER));
+  static Object[][] getRole() {
+    return new Object[][] {
+      {DatarepoService.READER_ROLE_NAME, DatasetAccessLevel.READER},
+      {DatarepoService.STEWARD_ROLE_NAME, DatasetAccessLevel.OWNER},
+      {"unknown role", DatasetAccessLevel.NO_ACCESS}
+    };
   }
 
-  @Test
-  void getRoleSteward() throws Exception {
+  @ParameterizedTest
+  @MethodSource
+  void getRole(String datarepoRole, DatasetAccessLevel expectedCatalogRole) throws Exception {
     mockSnapshots();
     var id = UUID.randomUUID();
-    when(snapshotsApi.retrieveUserSnapshotRoles(id))
-        .thenReturn(List.of(DatarepoService.STEWARD_ROLE_NAME));
-    assertThat(datarepoService.getRole(user, id.toString()), is(DatasetAccessLevel.OWNER));
-  }
-
-  @Test
-  void getRoleNoAccess() throws Exception {
-    mockSnapshots();
-    var id = UUID.randomUUID();
-    when(snapshotsApi.retrieveUserSnapshotRoles(id)).thenReturn(List.of());
-    assertThat(datarepoService.getRole(user, id.toString()), is(DatasetAccessLevel.NO_ACCESS));
+    when(snapshotsApi.retrieveUserSnapshotRoles(id)).thenReturn(List.of(datarepoRole));
+    assertThat(datarepoService.getRole(user, id.toString()), is(expectedCatalogRole));
   }
 
   @Test
