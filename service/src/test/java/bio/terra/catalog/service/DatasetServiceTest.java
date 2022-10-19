@@ -28,6 +28,7 @@ import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.AuthenticatedUserRequest;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
@@ -88,7 +89,8 @@ class DatasetServiceTest {
         new DatasetService(
             datarepoService,
             rawlsService,
-           externalSystemService, samService,
+            externalSystemService,
+            samService,
             jsonValidationService,
             datasetDao,
             objectMapper);
@@ -266,12 +268,12 @@ class DatasetServiceTest {
   }
 
   @Test
-  void testCreateDatasetAdmin() {
+  void testCreateDatasetAdmin() throws JsonProcessingException {
     when(samService.hasGlobalAction(user, SamAction.CREATE_METADATA)).thenReturn(true);
     when(datasetDao.create(new Dataset(sourceId, dataset.storageSystem(), metadata)))
         .thenReturn(dataset);
     DatasetId id = datasetService.createDataset(user, dataset.storageSystem(), sourceId, metadata);
-    verify(jsonValidationService).validateMetadata(objectMapper.readTree(testDataset.metadata()));
+    verify(jsonValidationService).validateMetadata(objectMapper.readTree(dataset.metadata()));
     assertThat(id, is(datasetId));
   }
 
