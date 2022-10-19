@@ -347,7 +347,7 @@ public class DatasetOperations extends TestScript {
       @SuppressWarnings("unchecked")
       Map<Object, Object> dataset = (Map<Object, Object>) datasetObj;
       if (dataset.get("id").equals(datasetId.toString())) {
-        assertThat(dataset, hasEntry(is("name"), is("crud")));
+        assertThat(dataset, hasEntry(is("dct:title"), is("crud")));
         assertThat(dataset, hasEntry(is("accessLevel"), is("owner")));
         if (storageSystem.equals(StorageSystem.TDR)) {
           assertThat(dataset, hasEntry(is("phsId"), is("1234")));
