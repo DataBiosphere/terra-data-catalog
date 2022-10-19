@@ -27,7 +27,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.api.client.http.HttpStatusCodes;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -84,30 +83,20 @@ public class DatasetOperations extends TestScript {
     snapshotId = snapshotsApi.createTestSnapshot(tdrDataset);
   }
 
-  private ObjectNode createMetadata(
-      String title,
-      String description,
-      String creator,
-      String date,
-      List DataCollections,
-      String url,
-      List generatedBy,
-      List storage,
-      Object counts,
-      List contributors) {
+  private ObjectNode createMetadata(String title) {
     var obj =
         objectMapper
             .createObjectNode()
             .put("dct:title", title)
-            .put("dct:description", description)
-            .put("dct:creator", creator)
-            .put("dct:issued", date)
-            .put("dcat:accessURL", url);
-    obj.putArray("TerraDCAT_ap:hasDataCollection").addAll(DataCollections);
-    obj.putArray("prov:wasGeneratedBy").addAll(generatedBy);
-    obj.putArray("storage").addAll(storage);
+            .put("dct:description", "description")
+            .put("dct:creator", "creator")
+            .put("dct:issued", "date")
+            .put("dcat:accessURL", "url");
+    obj.putArray("TerraDCAT_ap:hasDataCollection").addAll(List.of());
+    obj.putArray("prov:wasGeneratedBy").addAll(List.of());
+    obj.putArray("storage").addAll(List.of());
     obj.putObject("counts");
-    obj.putArray("contributors").addAll(contributors);
+    obj.putArray("contributors").addAll(List.of());
 
     return obj;
   }
@@ -132,19 +121,7 @@ public class DatasetOperations extends TestScript {
     // Create workspace dataset
     var request =
         new CreateDatasetRequest()
-            .catalogEntry(
-                createMetadata(
-                        "crud",
-                        "description",
-                        "creator",
-                        "date",
-                        new ArrayList(),
-                        "url",
-                        new ArrayList(),
-                        new ArrayList(),
-                        new ArrayList<>(),
-                        new ArrayList())
-                    .toString())
+            .catalogEntry(createMetadata("crud").toString())
             .storageSourceId(workspaceSource.getWorkspaceId())
             .storageSystem(storageSystem);
     datasetId = datasetsApi.createDataset(request).getId();
@@ -169,19 +146,7 @@ public class DatasetOperations extends TestScript {
     // Given a snapshot, create a catalog entry.
     var request =
         new CreateDatasetRequest()
-            .catalogEntry(
-                createMetadata(
-                        "preview",
-                        "description",
-                        "creator",
-                        "date",
-                        new ArrayList(),
-                        "url",
-                        new ArrayList(),
-                        new ArrayList(),
-                        new ArrayList<>(),
-                        new ArrayList())
-                    .toString())
+            .catalogEntry(createMetadata("preview").toString())
             .storageSourceId(sourceId)
             .storageSystem(storageSystem);
     datasetId = datasetsApi.createDataset(request).getId();
@@ -214,32 +179,8 @@ public class DatasetOperations extends TestScript {
   }
 
   private void assertDatasetValues(
-      List<String> keys,
-      JsonNode jsonOne,
-      String title,
-      String description,
-      String creator,
-      String date,
-      List DataCollections,
-      String url,
-      List generatedBy,
-      List storage,
-      Object counts,
-      List contributors,
-      StorageSystem storageSystem) {
-    ObjectNode expectedMetadata =
-        createMetadata(
-                title,
-                description,
-                creator,
-                date,
-                DataCollections,
-                url,
-                generatedBy,
-                storage,
-                counts,
-                contributors)
-            .put("id", datasetId.toString());
+      List<String> keys, JsonNode jsonOne, String title, StorageSystem storageSystem) {
+    ObjectNode expectedMetadata = createMetadata(title).put("id", datasetId.toString());
     if (storageSystem.equals(StorageSystem.TDR)) {
       expectedMetadata.put("phsId", "1234");
     }
@@ -251,19 +192,7 @@ public class DatasetOperations extends TestScript {
     // Given a snapshot, create a catalog entry.
     var request =
         new CreateDatasetRequest()
-            .catalogEntry(
-                createMetadata(
-                        "crud",
-                        "description",
-                        "creator",
-                        "date",
-                        new ArrayList(),
-                        "url",
-                        new ArrayList(),
-                        new ArrayList(),
-                        new Object(),
-                        new ArrayList())
-                    .toString())
+            .catalogEntry(createMetadata("crud").toString())
             .storageSourceId(sourceId)
             .storageSystem(storageSystem);
     datasetId = datasetsApi.createDataset(request).getId();
@@ -275,20 +204,7 @@ public class DatasetOperations extends TestScript {
     JsonNode datasetResponse = objectMapper.readTree(datasetsApi.getDataset(datasetId));
     // We do not expect phsId or requestAccessURL here because our getDataset doesn't return storage
     // system information
-    assertDatasetValues(
-        List.of("name", "id"),
-        datasetResponse,
-        "crud",
-        "description",
-        "creator",
-        "date",
-        new ArrayList(),
-        "url",
-        new ArrayList(),
-        new ArrayList(),
-        new Object(),
-        new ArrayList(),
-        storageSystem);
+    assertDatasetValues(List.of("dct:title", "id"), datasetResponse, "crud", storageSystem);
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
 
     // Retrieve all datasets
@@ -297,38 +213,12 @@ public class DatasetOperations extends TestScript {
     resultHasDatasetWithRoles(datasets.getResult(), storageSystem);
 
     // Modify the entry
-    datasetsApi.updateDataset(
-        createMetadata(
-                "crud2",
-                "description",
-                "creator",
-                "date",
-                new ArrayList(),
-                "url",
-                new ArrayList(),
-                new ArrayList(),
-                new Object(),
-                new ArrayList())
-            .toString(),
-        datasetId);
+    datasetsApi.updateDataset(createMetadata("crud2").toString(), datasetId);
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_NO_CONTENT));
 
     // Verify modify success
     JsonNode datasetResponseTwo = objectMapper.readTree(datasetsApi.getDataset(datasetId));
-    assertDatasetValues(
-        List.of("name", "id"),
-        datasetResponseTwo,
-        "crud2",
-        "description",
-        "creator",
-        "date",
-        new ArrayList(),
-        "url",
-        new ArrayList(),
-        new ArrayList(),
-        new Object(),
-        new ArrayList(),
-        storageSystem);
+    assertDatasetValues(List.of("dct:title", "id"), datasetResponseTwo, "crud2", storageSystem);
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
 
     // Delete the entry

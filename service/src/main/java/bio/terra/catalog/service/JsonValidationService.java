@@ -24,7 +24,7 @@ public class JsonValidationService {
   }
 
   private JsonSchema getJsonSchemaFromFile(String file) {
-    JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
+    JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V202012);
     try (var input = new FileInputStream(file)) {
       return factory.getSchema(input);
     } catch (IOException e) {
