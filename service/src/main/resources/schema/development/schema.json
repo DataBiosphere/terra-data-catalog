@@ -21,11 +21,13 @@
       "type": "string"
     },
     "dct:issued": {
-      "type": "date-time",
+      "type": "string",
+      "format": "date-time",
       "description": "The date and time the dataset was created."
     },
     "dct:modified": {
-      "type": "date-time",
+      "type": "string",
+      "format": "date-time",
       "description": "The date and time the dataset was last modified"
     },
     "dcat:accessURL": {
@@ -129,11 +131,13 @@
           "description": "The name of the publisher"
         },
         "dct:issued": {
-          "type": "date-time",
+          "type": "string",
+          "format": "date-time",
           "description": "The date and time the publisher was created."
         },
         "dct:modified": {
-          "type": "date-time",
+          "type": "string",
+          "format": "date-time",
           "description": "The date and time the publisher was last modified"
         }
       }

@@ -90,7 +90,7 @@ public class DatasetOperations extends TestScript {
             .put("dct:title", title)
             .put("dct:description", "description")
             .put("dct:creator", "creator")
-            .put("dct:issued", "date")
+            .put("dct:issued", "2008-11-01T19:35:00.0000000Z")
             .put("dcat:accessURL", "url");
     obj.putArray("TerraDCAT_ap:hasDataCollection").addAll(List.of());
     obj.putArray("prov:wasGeneratedBy").addAll(List.of());
@@ -121,7 +121,7 @@ public class DatasetOperations extends TestScript {
     // Create workspace dataset
     var request =
         new CreateDatasetRequest()
-            .catalogEntry(createMetadata("crud").toString())
+            .catalogEntry(createMetadata("export-test-dataset").toString())
             .storageSourceId(workspaceSource.getWorkspaceId())
             .storageSystem(storageSystem);
     datasetId = datasetsApi.createDataset(request).getId();
