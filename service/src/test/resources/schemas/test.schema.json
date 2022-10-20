@@ -1,0 +1,15 @@
+{
+  "title": "Test Schema",
+  "type": "object",
+  "required": [
+    "requiredField"
+  ],
+  "properties": {
+    "requiredField": {
+      "type": "string"
+    },
+    "nonRequiredField": {
+      "type": "string"
+    }
+  }
+}

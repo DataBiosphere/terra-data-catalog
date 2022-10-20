@@ -15,6 +15,8 @@ import bio.terra.rawls.model.WorkspaceAccessLevel;
 import bio.terra.rawls.model.WorkspaceDetails;
 import bio.terra.testrunner.runner.TestScript;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.api.client.http.HttpStatusCodes;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +33,8 @@ import scripts.client.RawlsClient;
 public class DatasetPermissionOperations extends TestScript {
 
   private static final Logger log = LoggerFactory.getLogger(DatasetPermissionOperations.class);
+
+  private static final ObjectMapper objectMapper = new ObjectMapper();
   private static final String ADMIN_EMAIL = "datacatalogadmin@test.firecloud.org";
   private static final String USER_EMAIL = "datacataloguser@test.firecloud.org";
 
@@ -205,12 +209,29 @@ public class DatasetPermissionOperations extends TestScript {
   }
 
   private CreateDatasetRequest datasetRequest(String sourceId, StorageSystem storageSystem) {
-    final String metadata = """
-        {"name": "test"}""";
+    final String metadata = createMetadata("test").toString();
     return new CreateDatasetRequest()
         .catalogEntry(metadata)
         .storageSourceId(sourceId)
         .storageSystem(storageSystem);
+  }
+
+  private ObjectNode createMetadata(String title) {
+    var obj =
+        objectMapper
+            .createObjectNode()
+            .put("dct:title", title)
+            .put("dct:description", "description")
+            .put("dct:creator", "creator")
+            .put("dct:issued", "2008-11-01T19:35:00.0000000Z")
+            .put("dcat:accessURL", "url");
+    obj.putArray("TerraDCAT_ap:hasDataCollection").addAll(List.of());
+    obj.putArray("prov:wasGeneratedBy").addAll(List.of());
+    obj.putArray("storage").addAll(List.of());
+    obj.putObject("counts");
+    obj.putArray("contributors").addAll(List.of());
+
+    return obj;
   }
 
   private UUID adminCreateDataset(CreateDatasetRequest request) throws Exception {

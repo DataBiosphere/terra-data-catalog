@@ -83,8 +83,22 @@ public class DatasetOperations extends TestScript {
     snapshotId = snapshotsApi.createTestSnapshot(tdrDataset);
   }
 
-  private ObjectNode createMetadata(String name) {
-    return objectMapper.createObjectNode().put("name", name);
+  private ObjectNode createMetadata(String title) {
+    var obj =
+        objectMapper
+            .createObjectNode()
+            .put("dct:title", title)
+            .put("dct:description", "description")
+            .put("dct:creator", "creator")
+            .put("dct:issued", "2008-11-01T19:35:00.0000000Z")
+            .put("dcat:accessURL", "url");
+    obj.putArray("TerraDCAT_ap:hasDataCollection").addAll(List.of());
+    obj.putArray("prov:wasGeneratedBy").addAll(List.of());
+    obj.putArray("storage").addAll(List.of());
+    obj.putObject("counts");
+    obj.putArray("contributors").addAll(List.of());
+
+    return obj;
   }
 
   @Override
@@ -165,8 +179,8 @@ public class DatasetOperations extends TestScript {
   }
 
   private void assertDatasetValues(
-      List<String> keys, JsonNode jsonOne, String name, StorageSystem storageSystem) {
-    ObjectNode expectedMetadata = createMetadata(name).put("id", datasetId.toString());
+      List<String> keys, JsonNode jsonOne, String title, StorageSystem storageSystem) {
+    ObjectNode expectedMetadata = createMetadata(title).put("id", datasetId.toString());
     if (storageSystem.equals(StorageSystem.TDR)) {
       expectedMetadata.put("phsId", "1234");
     }
@@ -190,7 +204,7 @@ public class DatasetOperations extends TestScript {
     JsonNode datasetResponse = objectMapper.readTree(datasetsApi.getDataset(datasetId));
     // We do not expect phsId or requestAccessURL here because our getDataset doesn't return storage
     // system information
-    assertDatasetValues(List.of("name", "id"), datasetResponse, "crud", storageSystem);
+    assertDatasetValues(List.of("dct:title", "id"), datasetResponse, "crud", storageSystem);
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
 
     // Retrieve all datasets
@@ -204,7 +218,7 @@ public class DatasetOperations extends TestScript {
 
     // Verify modify success
     JsonNode datasetResponseTwo = objectMapper.readTree(datasetsApi.getDataset(datasetId));
-    assertDatasetValues(List.of("name", "id"), datasetResponseTwo, "crud2", storageSystem);
+    assertDatasetValues(List.of("dct:title", "id"), datasetResponseTwo, "crud2", storageSystem);
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
 
     // Delete the entry
@@ -223,7 +237,7 @@ public class DatasetOperations extends TestScript {
       @SuppressWarnings("unchecked")
       Map<Object, Object> dataset = (Map<Object, Object>) datasetObj;
       if (dataset.get("id").equals(datasetId.toString())) {
-        assertThat(dataset, hasEntry(is("name"), is("crud")));
+        assertThat(dataset, hasEntry(is("dct:title"), is("crud")));
         assertThat(dataset, hasEntry(is("accessLevel"), is("owner")));
         if (storageSystem.equals(StorageSystem.TDR)) {
           assertThat(dataset, hasEntry(is("phsId"), is("1234")));

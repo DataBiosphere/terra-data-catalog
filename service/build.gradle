@@ -21,6 +21,7 @@ dependencies {
     implementation 'org.broadinstitute.dsde.workbench:sam-client_2.13:0.1-9867891-SNAP'
     implementation 'javax.ws.rs:javax.ws.rs-api:2.1.1'
     implementation 'org.postgresql:postgresql'
+    implementation 'com.networknt:json-schema-validator:1.0.73'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation project(':rawls-client')
 

@@ -34,6 +34,7 @@ public class DatasetService {
   private final DatarepoService datarepoService;
   private final RawlsService rawlsService;
   private final SamService samService;
+  private final JsonValidationService jsonValidationService;
   private final DatasetDao datasetDao;
   private final ObjectMapper objectMapper;
   private final StorageSystemService externalService;
@@ -45,12 +46,14 @@ public class DatasetService {
       RawlsService rawlsService,
       ExternalSystemService externalService,
       SamService samService,
+      JsonValidationService jsonValidationService,
       DatasetDao datasetDao,
       ObjectMapper objectMapper) {
     this.datarepoService = datarepoService;
     this.rawlsService = rawlsService;
     this.externalService = externalService;
     this.samService = samService;
+    this.jsonValidationService = jsonValidationService;
     this.datasetDao = datasetDao;
     this.objectMapper = objectMapper;
   }
@@ -190,7 +193,7 @@ public class DatasetService {
   }
 
   public void updateMetadata(AuthenticatedUserRequest user, DatasetId datasetId, String metadata) {
-    validateMetadata(metadata);
+    jsonValidationService.validateMetadata(toJsonNode(metadata));
     var dataset = datasetDao.retrieve(datasetId);
     ensureActionPermission(user, dataset, SamAction.UPDATE_ANY_METADATA);
     datasetDao.update(dataset.withMetadata(metadata));
@@ -201,7 +204,7 @@ public class DatasetService {
       StorageSystem storageSystem,
       String storageSourceId,
       String metadata) {
-    validateMetadata(metadata);
+    jsonValidationService.validateMetadata(toJsonNode(metadata));
     var dataset = new Dataset(storageSourceId, storageSystem, metadata);
     ensureActionPermission(user, dataset, SamAction.CREATE_METADATA);
     return datasetDao.create(dataset).id();
@@ -212,10 +215,6 @@ public class DatasetService {
     var dataset = datasetDao.retrieve(datasetId);
     var tableMetadataList = getService(dataset).getPreviewTables(user, dataset.storageSourceId());
     return new DatasetPreviewTablesResponse().tables(tableMetadataList);
-  }
-
-  private void validateMetadata(String metadata) {
-    toJsonNode(metadata);
   }
 
   public DatasetPreviewTable getDatasetPreview(
