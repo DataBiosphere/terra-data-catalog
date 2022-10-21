@@ -1,12 +1,17 @@
 {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Test Schema",
   "type": "object",
   "required": [
-    "requiredField"
+    "requiredField", "dateField"
   ],
   "properties": {
     "requiredField": {
       "type": "string"
+    },
+    "dateField": {
+      "type": "string",
+      "format": "date-time"
     },
     "nonRequiredField": {
       "type": "string"

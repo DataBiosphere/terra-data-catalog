@@ -8,10 +8,11 @@ import bio.terra.common.exception.BadRequestException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 
-public class JsonValidationServiceTest {
-  private static final String BASE_PATH = "src/test/resources/schemas/test.schema.json";
+class JsonValidationServiceTest {
+  private static final String BASE_PATH = "classpath:schema/test.schema.json";
 
   private static final ObjectMapper objectMapper = new BeanConfig().objectMapper();
 
@@ -34,6 +35,7 @@ public class JsonValidationServiceTest {
     JsonValidationService service = new JsonValidationService(new SchemaConfiguration(BASE_PATH));
     ObjectNode json = objectMapper.createObjectNode();
     json.put("requiredField", "string");
+    json.put("dateField", Instant.now().toString());
     service.validateMetadata(json);
   }
 }

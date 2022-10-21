@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.api.client.http.HttpStatusCodes;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -83,14 +84,14 @@ public class DatasetOperations extends TestScript {
     snapshotId = snapshotsApi.createTestSnapshot(tdrDataset);
   }
 
-  private ObjectNode createMetadata(String title) {
+  public static ObjectNode createMetadata(String title) {
     var obj =
         objectMapper
             .createObjectNode()
             .put("dct:title", title)
             .put("dct:description", "description")
             .put("dct:creator", "creator")
-            .put("dct:issued", "2008-11-01T19:35:00.0000000Z")
+            .put("dct:issued", Instant.now().toString())
             .put("dcat:accessURL", "url");
     obj.putArray("TerraDCAT_ap:hasDataCollection").addAll(List.of());
     obj.putArray("prov:wasGeneratedBy").addAll(List.of());
