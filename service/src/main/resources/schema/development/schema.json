@@ -71,6 +71,7 @@
     "prov:wasGeneratedBy": {
       "type": "array",
       "items": { "$ref": "#/$defs/generatedBy" },
+      "minItems": 1,
       "description": "Used to determine assay and data modality."
     },
     "storage": {
@@ -201,11 +202,13 @@
       "properties": {
         "disease": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": { "type": "string" },
+          "description": "see https://tinyurl.com/bdf6b23x for disease ontology"
         },
         "species": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": { "type": "string" },
+          "description": "see https://tinyurl.com/4hs8mt98 for species ontology"
         }
       }
     }
