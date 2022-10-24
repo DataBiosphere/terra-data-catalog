@@ -38,7 +38,7 @@ class DatasetDaoTest {
 
   @Test
   void testListAllExternalDatasets() {
-    String sourceId = UUID.randomUUID().toString();
+    String sourceId = "";
     for (StorageSystem value : StorageSystem.values()) {
       createDataset(sourceId, value);
     }

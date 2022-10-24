@@ -22,12 +22,10 @@ class ExternalSystemServiceTest {
 
   @Test
   void getDatasets() {
-    String id1 = "storageId1";
-    String id2 = "storageId2";
+    String storageSourceId = "";
     List<Dataset> resultDatasets =
         List.of(
-            new Dataset(id1, StorageSystem.EXTERNAL, ""),
-            new Dataset(id2, StorageSystem.EXTERNAL, ""));
+            new Dataset(storageSourceId, StorageSystem.EXTERNAL, ""));
     when(mockDatasetDao.listAllExternalDatasets()).thenReturn(resultDatasets);
 
     var expectedStorageSystemInformation =
@@ -35,9 +33,6 @@ class ExternalSystemServiceTest {
     var externalSystemService = new ExternalSystemService(mockDatasetDao);
     assertThat(
         externalSystemService.getDatasets(null),
-        hasEntry(is(id1), is(expectedStorageSystemInformation)));
-    assertThat(
-        externalSystemService.getDatasets(null),
-        hasEntry(is(id2), is(expectedStorageSystemInformation)));
+        hasEntry(is(storageSourceId), is(expectedStorageSystemInformation)));
   }
 }
