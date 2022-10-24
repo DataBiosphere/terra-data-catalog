@@ -24,7 +24,7 @@ jib {
         image = "us.gcr.io/broad-dsp-gcr-public/base/jre:17-distroless"
     }
     extraDirectories {
-        paths = [file(jibExtraDirectory)]
+        paths = [file(jibExtraDirectory), 'src/main/resources/schema/development/schema.json']
     }
     container {
         filesModificationTime = ZonedDateTime.now().toString() // to prevent ui caching
