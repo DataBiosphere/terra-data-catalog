@@ -36,6 +36,27 @@ class DatasetDaoTest {
   }
 
   @Test
+  void testListAllExternalDatasets() {
+    String externalId = UUID.randomUUID().toString();
+    String workspaceId = UUID.randomUUID().toString();
+    String tdrId = UUID.randomUUID().toString();
+
+    List<Dataset> datasets =
+        List.of(
+            createDataset(externalId, StorageSystem.EXTERNAL),
+            createDataset(workspaceId, StorageSystem.TERRA_WORKSPACE),
+            createDataset(tdrId, StorageSystem.TERRA_DATA_REPO));
+
+    List<Dataset> result = datasetDao.listAllExternalDatasets();
+    assertEquals(1, result.size());
+
+    for (Dataset dataset : datasets) {
+      assertTrue(datasetDao.delete(dataset));
+      assertThrows(DatasetNotFoundException.class, () -> datasetDao.retrieve(dataset.id()));
+    }
+  }
+
+  @Test
   void testDatasetCrudOperations() {
     String storageSourceId = UUID.randomUUID().toString();
     Dataset dataset = createDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO);

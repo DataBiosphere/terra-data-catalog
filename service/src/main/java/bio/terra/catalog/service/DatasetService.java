@@ -135,7 +135,7 @@ public class DatasetService {
       AuthenticatedUserRequest user, StorageSystem system) {
     // For this storage system, get the collection of visible datasets and the user's roles for
     // each dataset.
-    var roleMap = getService(system).getDatasets(user);
+    Map<String, StorageSystemInformation> roleMap = getService(system).getDatasets(user);
     return createDatasetResponses(roleMap, system);
   }
 
