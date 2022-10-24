@@ -13,6 +13,7 @@ import bio.terra.catalog.service.dataset.exception.DatasetNotFoundException;
 import bio.terra.catalog.service.dataset.exception.InvalidDatasetException;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -37,25 +38,17 @@ class DatasetDaoTest {
 
   @Test
   void testListAllExternalDatasets() {
-    String externalId = UUID.randomUUID().toString();
-    String workspaceId = UUID.randomUUID().toString();
-    String tdrId = UUID.randomUUID().toString();
+    String sourceId = UUID.randomUUID().toString();
+    for (StorageSystem value : StorageSystem.values()) {
+      createDataset(sourceId, value);
+    }
 
-    List<Dataset> datasets =
-        List.of(
-            createDataset(externalId, StorageSystem.EXTERNAL),
-            createDataset(workspaceId, StorageSystem.TERRA_WORKSPACE),
-            createDataset(tdrId, StorageSystem.TERRA_DATA_REPO));
-
-    List<Dataset> result = datasetDao.listAllExternalDatasets();
+    List<Dataset> result =
+        datasetDao.listAllExternalDatasets().stream()
+            .filter(dataset -> dataset.storageSourceId().equals(sourceId))
+            .collect(Collectors.toList());
     assertEquals(1, result.size());
     assertEquals(result.get(0).storageSystem(), StorageSystem.EXTERNAL);
-    /*
-    for (Dataset dataset : datasets) {
-      assertTrue(datasetDao.delete(dataset));
-      assertThrows(DatasetNotFoundException.class, () -> datasetDao.retrieve(dataset.id()));
-    }
-    */
   }
 
   @Test
