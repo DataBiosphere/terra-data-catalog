@@ -49,11 +49,13 @@ class DatasetDaoTest {
 
     List<Dataset> result = datasetDao.listAllExternalDatasets();
     assertEquals(1, result.size());
-
+    assertEquals(result.get(0).storageSystem(), StorageSystem.EXTERNAL);
+    /*
     for (Dataset dataset : datasets) {
       assertTrue(datasetDao.delete(dataset));
       assertThrows(DatasetNotFoundException.class, () -> datasetDao.retrieve(dataset.id()));
     }
+    */
   }
 
   @Test
