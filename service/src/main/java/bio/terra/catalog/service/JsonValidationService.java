@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ResourceUtils;
 
 @Service
 public class JsonValidationService {
@@ -20,12 +21,12 @@ public class JsonValidationService {
 
   @Autowired
   public JsonValidationService(SchemaConfiguration schemaConfiguration) {
-    this.schema = getJsonSchemaFromFile(schemaConfiguration.basePath());
+    schema = getJsonSchemaFromFile(schemaConfiguration.basePath());
   }
 
   private JsonSchema getJsonSchemaFromFile(String file) {
     JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V202012);
-    try (var input = new FileInputStream(file)) {
+    try (var input = new FileInputStream(ResourceUtils.getFile(file))) {
       return factory.getSchema(input);
     } catch (IOException e) {
       throw new SchemaConfigurationException(e);
