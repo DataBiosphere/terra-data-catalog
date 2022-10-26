@@ -204,7 +204,35 @@ public class DatasetPermissionOperations extends TestScript {
         .storageSourceId(sourceId)
         .storageSystem(storageSystem);
   }
+<<<<<<< HEAD
   
+=======
+
+  private ObjectNode createMetadata(String title) {
+    var obj =
+        objectMapper
+            .createObjectNode()
+            .put("dct:title", title)
+            .put("dct:description", "description")
+            .put("dct:creator", "creator")
+            .put("dct:issued", "2008-11-01T19:35:00.0000000Z")
+            .put("dcat:accessURL", "url");
+    obj.putArray("TerraDCAT_ap:hasDataCollection").addAll(List.of());
+    obj.putArray("prov:wasGeneratedBy")
+        .addAll(
+            List.of(
+                objectMapper
+                    .createObjectNode()
+                    .put("TerraCore:hasAssayCategory", "")
+                    .put("TerraCore:hasDataModality", "")));
+    obj.putArray("storage").addAll(List.of());
+    obj.putObject("counts");
+    obj.putArray("contributors").addAll(List.of());
+
+    return obj;
+  }
+
+>>>>>>> 46eb529 (spotless apply)
   private UUID adminCreateDataset(CreateDatasetRequest request) throws Exception {
     var datasetId = adminDatasetsApi.upsertDataset(request).getId();
     assertThat(adminDatasetsApi.getApiClient().getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
