@@ -24,8 +24,7 @@ class ExternalSystemServiceTest {
   void getDatasets() {
     String storageSourceId = "";
     List<Dataset> resultDatasets =
-        List.of(
-            new Dataset(storageSourceId, StorageSystem.EXTERNAL, ""));
+        List.of(new Dataset(storageSourceId, StorageSystem.EXTERNAL, ""));
     when(mockDatasetDao.listAllExternalDatasets()).thenReturn(resultDatasets);
 
     var expectedStorageSystemInformation =
