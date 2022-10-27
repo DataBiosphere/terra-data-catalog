@@ -71,7 +71,6 @@
     "prov:wasGeneratedBy": {
       "type": "array",
       "items": { "$ref": "#/$defs/generatedBy" },
-      "minItems": 1,
       "description": "Used to determine assay and data modality."
     },
     "storage": {
@@ -147,10 +146,12 @@
       "type": "object",
       "properties": {
         "TerraCore:hasAssayCategory": {
-          "type": "string"
+          "type": "array",
+          "items": { "type": "string" }
         },
         "TerraCore:hasDataModality": {
-          "type": "string"
+          "type": "array",
+          "items": { "type": "string" }
         }
       }
     },
