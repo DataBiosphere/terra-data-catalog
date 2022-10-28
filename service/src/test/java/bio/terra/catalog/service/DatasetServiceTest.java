@@ -26,6 +26,7 @@ import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.exception.UnauthorizedException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
@@ -41,8 +42,9 @@ import org.skyscreamer.jsonassert.JSONAssert;
 
 @ExtendWith(MockitoExtension.class)
 class DatasetServiceTest {
-
   private DatasetService datasetService;
+
+  @Mock private JsonValidationService jsonValidationService;
 
   @Mock private DatarepoService datarepoService;
 
@@ -92,6 +94,7 @@ class DatasetServiceTest {
             rawlsService,
             externalSystemService,
             samService,
+            jsonValidationService,
             datasetDao,
             objectMapper);
   }
@@ -240,10 +243,11 @@ class DatasetServiceTest {
   }
 
   @Test
-  void testUpdateMetadata() {
+  void testUpdateMetadata() throws JsonProcessingException {
     mockDataset();
     when(samService.hasGlobalAction(SamAction.UPDATE_ANY_METADATA)).thenReturn(true);
     datasetService.updateMetadata(datasetId, METADATA);
+    verify(jsonValidationService).validateMetadata(objectMapper.readTree(dataset.metadata()));
     verify(datasetDao).update(dataset.withMetadata(METADATA));
   }
 
@@ -264,11 +268,12 @@ class DatasetServiceTest {
   }
 
   @Test
-  void testCreateDatasetAdmin() {
+  void testCreateDatasetAdmin() throws JsonProcessingException {
     when(samService.hasGlobalAction(SamAction.CREATE_METADATA)).thenReturn(true);
     when(datasetDao.create(new Dataset(SOURCE_ID, dataset.storageSystem(), METADATA)))
         .thenReturn(dataset);
     DatasetId id = datasetService.createDataset(dataset.storageSystem(), SOURCE_ID, METADATA);
+    verify(jsonValidationService).validateMetadata(objectMapper.readTree(dataset.metadata()));
     assertThat(id, is(datasetId));
   }
 

@@ -134,4 +134,11 @@ public class DatasetDao {
     String sql = "SELECT * FROM dataset";
     return jdbcTemplate.query(sql, new DatasetMapper());
   }
+
+  @ReadTransaction
+  public List<Dataset> listAllExternalDatasets() {
+    String sql = "SELECT * FROM dataset WHERE storage_system = :storageSystem";
+    var param = Map.of("storageSystem", String.valueOf(StorageSystem.EXTERNAL));
+    return jdbcTemplate.query(sql, param, new DatasetMapper());
+  }
 }

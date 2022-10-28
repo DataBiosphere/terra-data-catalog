@@ -205,8 +205,7 @@ public class DatasetPermissionOperations extends TestScript {
   }
 
   private CreateDatasetRequest datasetRequest(String sourceId, StorageSystem storageSystem) {
-    final String metadata = """
-        {"name": "test"}""";
+    final String metadata = DatasetOperations.createMetadata("test").toString();
     return new CreateDatasetRequest()
         .catalogEntry(metadata)
         .storageSourceId(sourceId)

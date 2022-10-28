@@ -74,6 +74,9 @@ catalog:
   rawls:
     basePath: ${env.rawls.basePath}
 
+  schema:
+    basePath: classpath:schema/development/schema.json
+
 terra.common:
   kubernetes:
     inKubernetes: false

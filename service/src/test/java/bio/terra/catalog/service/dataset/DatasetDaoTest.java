@@ -13,6 +13,7 @@ import bio.terra.catalog.service.dataset.exception.DatasetNotFoundException;
 import bio.terra.catalog.service.dataset.exception.InvalidDatasetException;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,6 +34,21 @@ class DatasetDaoTest {
     Dataset dataset =
         new Dataset(null, storageSourceId, storageSystem, DatasetDaoTest.METADATA, null);
     return datasetDao.create(dataset);
+  }
+
+  @Test
+  void testListAllExternalDatasets() {
+    String sourceId = "";
+    for (StorageSystem value : StorageSystem.values()) {
+      createDataset(sourceId, value);
+    }
+
+    List<Dataset> result =
+        datasetDao.listAllExternalDatasets().stream()
+            .filter(dataset -> dataset.storageSourceId().equals(sourceId))
+            .collect(Collectors.toList());
+    assertEquals(1, result.size());
+    assertEquals(result.get(0).storageSystem(), StorageSystem.EXTERNAL);
   }
 
   @Test

@@ -33,6 +33,7 @@ public class DatasetService {
   private final DatarepoService datarepoService;
   private final RawlsService rawlsService;
   private final SamService samService;
+  private final JsonValidationService jsonValidationService;
   private final DatasetDao datasetDao;
   private final ObjectMapper objectMapper;
   private final StorageSystemService externalService;
@@ -44,12 +45,14 @@ public class DatasetService {
       RawlsService rawlsService,
       ExternalSystemService externalService,
       SamService samService,
+      JsonValidationService jsonValidationService,
       DatasetDao datasetDao,
       ObjectMapper objectMapper) {
     this.datarepoService = datarepoService;
     this.rawlsService = rawlsService;
     this.externalService = externalService;
     this.samService = samService;
+    this.jsonValidationService = jsonValidationService;
     this.datasetDao = datasetDao;
     this.objectMapper = objectMapper;
   }
@@ -130,7 +133,7 @@ public class DatasetService {
   private List<DatasetResponse> collectDatasets(StorageSystem system) {
     // For this storage system, get the collection of visible datasets and the user's roles for
     // each dataset.
-    var roleMap = getService(system).getDatasets();
+    Map<String, StorageSystemInformation> roleMap = getService(system).getDatasets();
     return createDatasetResponses(roleMap, system);
   }
 
@@ -186,7 +189,7 @@ public class DatasetService {
   }
 
   public void updateMetadata(DatasetId datasetId, String metadata) {
-    validateMetadata(metadata);
+    jsonValidationService.validateMetadata(toJsonNode(metadata));
     var dataset = datasetDao.retrieve(datasetId);
     ensureActionPermission(dataset, SamAction.UPDATE_ANY_METADATA);
     datasetDao.update(dataset.withMetadata(metadata));
@@ -194,7 +197,7 @@ public class DatasetService {
 
   public DatasetId createDataset(
       StorageSystem storageSystem, String storageSourceId, String metadata) {
-    validateMetadata(metadata);
+    jsonValidationService.validateMetadata(toJsonNode(metadata));
     var dataset = new Dataset(storageSourceId, storageSystem, metadata);
     ensureActionPermission(dataset, SamAction.CREATE_METADATA);
     return datasetDao.create(dataset).id();
@@ -204,10 +207,6 @@ public class DatasetService {
     var dataset = datasetDao.retrieve(datasetId);
     var tableMetadataList = getService(dataset).getPreviewTables(dataset.storageSourceId());
     return new DatasetPreviewTablesResponse().tables(tableMetadataList);
-  }
-
-  private void validateMetadata(String metadata) {
-    toJsonNode(metadata);
   }
 
   public DatasetPreviewTable getDatasetPreview(DatasetId datasetId, String tableName) {
