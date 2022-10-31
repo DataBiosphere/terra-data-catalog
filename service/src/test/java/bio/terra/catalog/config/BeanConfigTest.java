@@ -2,7 +2,7 @@ package bio.terra.catalog.config;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import bio.terra.common.exception.UnauthorizedException;
 import javax.ws.rs.core.HttpHeaders;
