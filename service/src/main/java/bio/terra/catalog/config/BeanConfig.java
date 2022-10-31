@@ -1,16 +1,20 @@
 package bio.terra.catalog.config;
 
 import bio.terra.catalog.app.StartupInitializer;
+import bio.terra.common.iam.BearerToken;
+import bio.terra.common.iam.BearerTokenFactory;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.web.context.annotation.RequestScope;
 
 @Configuration
 public class BeanConfig {
@@ -38,5 +42,11 @@ public class BeanConfig {
   @Bean
   public SmartInitializingSingleton postSetupInitialization(ApplicationContext applicationContext) {
     return () -> StartupInitializer.initialize(applicationContext);
+  }
+
+  @Bean
+  @RequestScope
+  public BearerToken bearerToken(HttpServletRequest request) {
+    return new BearerTokenFactory().from(request);
   }
 }

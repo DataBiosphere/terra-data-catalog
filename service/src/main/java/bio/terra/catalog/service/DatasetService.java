@@ -16,7 +16,6 @@ import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.exception.UnauthorizedException;
-import bio.terra.common.iam.AuthenticatedUserRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -131,20 +130,19 @@ public class DatasetService {
         .toList();
   }
 
-  private List<DatasetResponse> collectDatasets(
-      AuthenticatedUserRequest user, StorageSystem system) {
+  private List<DatasetResponse> collectDatasets(StorageSystem system) {
     // For this storage system, get the collection of visible datasets and the user's roles for
     // each dataset.
-    Map<String, StorageSystemInformation> roleMap = getService(system).getDatasets(user);
+    Map<String, StorageSystemInformation> roleMap = getService(system).getDatasets();
     return createDatasetResponses(roleMap, system);
   }
 
-  public DatasetsListResponse listDatasets(AuthenticatedUserRequest user) {
+  public DatasetsListResponse listDatasets() {
     List<DatasetResponse> datasets = new ArrayList<>();
     for (StorageSystem system : StorageSystem.values()) {
-      datasets.addAll(collectDatasets(user, system));
+      datasets.addAll(collectDatasets(system));
     }
-    if (samService.hasGlobalAction(user, SamAction.READ_ANY_METADATA)) {
+    if (samService.hasGlobalAction(SamAction.READ_ANY_METADATA)) {
       datasets.addAll(
           datasetDao.listAllDatasets().stream()
               .map(
@@ -167,64 +165,57 @@ public class DatasetService {
     return response;
   }
 
-  private void ensureActionPermission(
-      AuthenticatedUserRequest user, Dataset dataset, SamAction action) {
+  private void ensureActionPermission(Dataset dataset, SamAction action) {
     // Ensure that the current user has permission to perform this action. The current user
     // can either have permission granted by the storage system that owns the dataset, or if
     // they're a catalog admin user who has permission to perform any operation on any
     // catalog entry.
-    if (!samService.hasGlobalAction(user, action)
-        && !getService(dataset).getRole(user, dataset.storageSourceId()).hasAction(action)) {
-      throw new UnauthorizedException(
-          String.format("User %s does not have permission to %s", user.getEmail(), action));
+    if (!samService.hasGlobalAction(action)
+        && !getService(dataset).getRole(dataset.storageSourceId()).hasAction(action)) {
+      throw new UnauthorizedException(String.format("User does not have permission to %s", action));
     }
   }
 
-  public void deleteMetadata(AuthenticatedUserRequest user, DatasetId datasetId) {
+  public void deleteMetadata(DatasetId datasetId) {
     var dataset = datasetDao.retrieve(datasetId);
-    ensureActionPermission(user, dataset, SamAction.DELETE_ANY_METADATA);
+    ensureActionPermission(dataset, SamAction.DELETE_ANY_METADATA);
     datasetDao.delete(dataset);
   }
 
-  public String getMetadata(AuthenticatedUserRequest user, DatasetId datasetId) {
+  public String getMetadata(DatasetId datasetId) {
     var dataset = datasetDao.retrieve(datasetId);
-    ensureActionPermission(user, dataset, SamAction.READ_ANY_METADATA);
+    ensureActionPermission(dataset, SamAction.READ_ANY_METADATA);
     return new DatasetResponse(dataset).convertToObject().toString();
   }
 
-  public void updateMetadata(AuthenticatedUserRequest user, DatasetId datasetId, String metadata) {
+  public void updateMetadata(DatasetId datasetId, String metadata) {
     jsonValidationService.validateMetadata(toJsonNode(metadata));
     var dataset = datasetDao.retrieve(datasetId);
-    ensureActionPermission(user, dataset, SamAction.UPDATE_ANY_METADATA);
+    ensureActionPermission(dataset, SamAction.UPDATE_ANY_METADATA);
     datasetDao.update(dataset.withMetadata(metadata));
   }
 
   public DatasetId createDataset(
-      AuthenticatedUserRequest user,
-      StorageSystem storageSystem,
-      String storageSourceId,
-      String metadata) {
+      StorageSystem storageSystem, String storageSourceId, String metadata) {
     jsonValidationService.validateMetadata(toJsonNode(metadata));
     var dataset = new Dataset(storageSourceId, storageSystem, metadata);
-    ensureActionPermission(user, dataset, SamAction.CREATE_METADATA);
+    ensureActionPermission(dataset, SamAction.CREATE_METADATA);
     return datasetDao.create(dataset).id();
   }
 
-  public DatasetPreviewTablesResponse listDatasetPreviewTables(
-      AuthenticatedUserRequest user, DatasetId datasetId) {
+  public DatasetPreviewTablesResponse listDatasetPreviewTables(DatasetId datasetId) {
     var dataset = datasetDao.retrieve(datasetId);
-    var tableMetadataList = getService(dataset).getPreviewTables(user, dataset.storageSourceId());
+    var tableMetadataList = getService(dataset).getPreviewTables(dataset.storageSourceId());
     return new DatasetPreviewTablesResponse().tables(tableMetadataList);
   }
 
-  public DatasetPreviewTable getDatasetPreview(
-      AuthenticatedUserRequest user, DatasetId datasetId, String tableName) {
+  public DatasetPreviewTable getDatasetPreview(DatasetId datasetId, String tableName) {
     var dataset = datasetDao.retrieve(datasetId);
-    return getService(dataset).previewTable(user, dataset.storageSourceId(), tableName, MAX_ROWS);
+    return getService(dataset).previewTable(dataset.storageSourceId(), tableName, MAX_ROWS);
   }
 
-  public void exportDataset(AuthenticatedUserRequest user, DatasetId datasetId, UUID workspaceId) {
+  public void exportDataset(DatasetId datasetId, UUID workspaceId) {
     var dataset = datasetDao.retrieve(datasetId);
-    getService(dataset).exportToWorkspace(user, dataset.storageSourceId(), workspaceId.toString());
+    getService(dataset).exportToWorkspace(dataset.storageSourceId(), workspaceId.toString());
   }
 }

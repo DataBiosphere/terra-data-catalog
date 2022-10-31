@@ -46,7 +46,7 @@ dependencies {
 
     implementation 'org.slf4j:slf4j-api'
 
-    testImplementation 'org.hamcrest:hamcrest:2.2'
+    testImplementation 'ch.qos.logback:logback-classic'
 
     implementation 'bio.terra:terra-common-lib:0.0.75-SNAPSHOT'
     implementation 'bio.terra:datarepo-client:1.349.0-SNAPSHOT'

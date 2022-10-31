@@ -9,7 +9,6 @@ import bio.terra.catalog.model.TableMetadata;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.exception.NotFoundException;
-import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.datarepo.client.ApiException;
 import bio.terra.datarepo.model.EnumerateSnapshotModel;
 import bio.terra.datarepo.model.RepositoryStatusModel;
@@ -67,11 +66,11 @@ public class DatarepoService implements StorageSystemService {
   }
 
   @Override
-  public Map<String, StorageSystemInformation> getDatasets(AuthenticatedUserRequest user) {
+  public Map<String, StorageSystemInformation> getDatasets() {
     try {
       EnumerateSnapshotModel response =
           datarepoClient
-              .snapshotsApi(user)
+              .snapshotsApi()
               .enumerateSnapshots(null, MAX_DATASETS, null, null, null, null, null);
       Map<String, List<String>> roleMap = response.getRoleMap();
 
@@ -90,11 +89,11 @@ public class DatarepoService implements StorageSystemService {
     }
   }
 
-  private SnapshotModel getSnapshotTables(AuthenticatedUserRequest user, String snapshotId) {
+  private SnapshotModel getSnapshotTables(String snapshotId) {
     try {
       UUID id = UUID.fromString(snapshotId);
       return datarepoClient
-          .snapshotsApi(user)
+          .snapshotsApi()
           .retrieveSnapshot(id, List.of(SnapshotRetrieveIncludeModel.TABLES));
     } catch (ApiException e) {
       throw new DatarepoException(e);
@@ -102,18 +101,17 @@ public class DatarepoService implements StorageSystemService {
   }
 
   @Override
-  public List<TableMetadata> getPreviewTables(AuthenticatedUserRequest user, String snapshotId) {
-    return getSnapshotTables(user, snapshotId).getTables().stream()
+  public List<TableMetadata> getPreviewTables(String snapshotId) {
+    return getSnapshotTables(snapshotId).getTables().stream()
         .map(table -> new TableMetadata().name(table.getName()).hasData(table.getRowCount() > 0))
         .toList();
   }
 
   @Override
-  public DatasetPreviewTable previewTable(
-      AuthenticatedUserRequest user, String snaphsotId, String tableName, int maxRows) {
+  public DatasetPreviewTable previewTable(String snaphsotId, String tableName, int maxRows) {
     return new DatasetPreviewTable()
         .columns(
-            getSnapshotTables(user, snaphsotId).getTables().stream()
+            getSnapshotTables(snaphsotId).getTables().stream()
                 .filter(tableModel -> tableModel.getName().equals(tableName))
                 .findFirst()
                 .orElseThrow(
@@ -124,15 +122,14 @@ public class DatarepoService implements StorageSystemService {
                 .stream()
                 .map(column -> new ColumnModel().name(column.getName()))
                 .toList())
-        .rows(getPreviewTable(user, snaphsotId, tableName, maxRows).getResult());
+        .rows(getPreviewTable(snaphsotId, tableName, maxRows).getResult());
   }
 
-  private SnapshotPreviewModel getPreviewTable(
-      AuthenticatedUserRequest user, String snapshotId, String tableName, int maxRows) {
+  private SnapshotPreviewModel getPreviewTable(String snapshotId, String tableName, int maxRows) {
     try {
       UUID id = UUID.fromString(snapshotId);
       return datarepoClient
-          .snapshotsApi(user)
+          .snapshotsApi()
           .lookupSnapshotPreviewById(id, tableName, null, maxRows, null, null);
     } catch (ApiException e) {
       throw new DatarepoException(e);
@@ -140,10 +137,10 @@ public class DatarepoService implements StorageSystemService {
   }
 
   @Override
-  public DatasetAccessLevel getRole(AuthenticatedUserRequest user, String snapshotId) {
+  public DatasetAccessLevel getRole(String snapshotId) {
     try {
       UUID id = UUID.fromString(snapshotId);
-      List<String> roles = datarepoClient.snapshotsApi(user).retrieveUserSnapshotRoles(id);
+      List<String> roles = datarepoClient.snapshotsApi().retrieveUserSnapshotRoles(id);
       return getHighestAccessFromRoleList(roles);
     } catch (ApiException e) {
       throw new DatarepoException("Get snapshot roles failed", e);
@@ -172,8 +169,7 @@ public class DatarepoService implements StorageSystemService {
   }
 
   @Override
-  public void exportToWorkspace(
-      AuthenticatedUserRequest user, String snapshotIdSource, String workspaceIdDest) {
+  public void exportToWorkspace(String snapshotIdSource, String workspaceIdDest) {
     throw new BadRequestException("Exporting Data Repo datasets is not supported in the service");
   }
 }

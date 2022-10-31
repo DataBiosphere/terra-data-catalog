@@ -1,7 +1,7 @@
 package bio.terra.catalog.rawls;
 
 import bio.terra.catalog.config.RawlsConfiguration;
-import bio.terra.common.iam.AuthenticatedUserRequest;
+import bio.terra.common.iam.BearerToken;
 import bio.terra.rawls.api.EntitiesApi;
 import bio.terra.rawls.api.StatusApi;
 import bio.terra.rawls.api.WorkspacesApi;
@@ -12,15 +12,17 @@ import org.springframework.stereotype.Component;
 @Component
 public class RawlsClient {
   private final RawlsConfiguration rawlsConfig;
+  private final BearerToken bearerToken;
   private final Client commonHttpClient = new ApiClient().getHttpClient();
 
-  public RawlsClient(RawlsConfiguration rawlsConfig) {
+  public RawlsClient(RawlsConfiguration rawlsConfig, BearerToken bearerToken) {
     this.rawlsConfig = rawlsConfig;
+    this.bearerToken = bearerToken;
   }
 
-  private ApiClient getApiClient(AuthenticatedUserRequest user) {
+  private ApiClient getAuthApiClient() {
     ApiClient apiClient = getApiClient();
-    apiClient.setAccessToken(user.getToken());
+    apiClient.setAccessToken(bearerToken.getToken());
     return apiClient;
   }
 
@@ -29,12 +31,12 @@ public class RawlsClient {
     return new ApiClient().setHttpClient(commonHttpClient).setBasePath(rawlsConfig.basePath());
   }
 
-  WorkspacesApi workspacesApi(AuthenticatedUserRequest user) {
-    return new WorkspacesApi(getApiClient(user));
+  WorkspacesApi workspacesApi() {
+    return new WorkspacesApi(getAuthApiClient());
   }
 
-  EntitiesApi entitiesApi(AuthenticatedUserRequest user) {
-    return new EntitiesApi(getApiClient(user));
+  EntitiesApi entitiesApi() {
+    return new EntitiesApi(getAuthApiClient());
   }
 
   StatusApi statusApi() {

@@ -1,7 +1,7 @@
 package bio.terra.catalog.datarepo;
 
 import bio.terra.catalog.config.DatarepoConfiguration;
-import bio.terra.common.iam.AuthenticatedUserRequest;
+import bio.terra.common.iam.BearerToken;
 import bio.terra.datarepo.api.SnapshotsApi;
 import bio.terra.datarepo.api.UnauthenticatedApi;
 import bio.terra.datarepo.client.ApiClient;
@@ -11,15 +11,17 @@ import org.springframework.stereotype.Component;
 @Component
 public class DatarepoClient {
   private final DatarepoConfiguration datarepoConfig;
+  private final BearerToken bearerToken;
   private final Client commonHttpClient = new ApiClient().getHttpClient();
 
-  public DatarepoClient(DatarepoConfiguration datarepoConfig) {
+  public DatarepoClient(DatarepoConfiguration datarepoConfig, BearerToken bearerToken) {
     this.datarepoConfig = datarepoConfig;
+    this.bearerToken = bearerToken;
   }
 
-  private ApiClient getApiClient(AuthenticatedUserRequest user) {
+  private ApiClient getAuthApiClient() {
     ApiClient apiClient = getApiClient();
-    apiClient.setAccessToken(user.getToken());
+    apiClient.setAccessToken(bearerToken.getToken());
     return apiClient;
   }
 
@@ -28,8 +30,8 @@ public class DatarepoClient {
     return new ApiClient().setHttpClient(commonHttpClient).setBasePath(datarepoConfig.basePath());
   }
 
-  SnapshotsApi snapshotsApi(AuthenticatedUserRequest user) {
-    return new SnapshotsApi(getApiClient(user));
+  SnapshotsApi snapshotsApi() {
+    return new SnapshotsApi(getAuthApiClient());
   }
 
   UnauthenticatedApi unauthenticatedApi() {

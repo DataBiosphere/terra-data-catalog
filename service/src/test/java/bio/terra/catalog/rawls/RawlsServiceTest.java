@@ -18,7 +18,6 @@ import bio.terra.catalog.model.DatasetPreviewTable;
 import bio.terra.catalog.model.TableMetadata;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.common.exception.NotFoundException;
-import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.rawls.api.EntitiesApi;
 import bio.terra.rawls.api.StatusApi;
 import bio.terra.rawls.api.WorkspacesApi;
@@ -46,7 +45,6 @@ class RawlsServiceTest {
   private RawlsService rawlsService;
 
   @Mock private RawlsClient rawlsClient;
-  @Mock private AuthenticatedUserRequest user;
 
   @Mock private EntitiesApi entitiesApi;
 
@@ -59,11 +57,11 @@ class RawlsServiceTest {
   }
 
   private void mockWorkspaces() {
-    when(rawlsClient.workspacesApi(user)).thenReturn(workspacesApi);
+    when(rawlsClient.workspacesApi()).thenReturn(workspacesApi);
   }
 
   private void mockEntities() {
-    when(rawlsClient.entitiesApi(user)).thenReturn(entitiesApi);
+    when(rawlsClient.entitiesApi()).thenReturn(entitiesApi);
   }
 
   private void mockStatus() {
@@ -97,7 +95,7 @@ class RawlsServiceTest {
                 .accessLevel(WorkspaceAccessLevel.OWNER));
     when(workspacesApi.listWorkspaces(RawlsService.ACCESS_LEVEL_AND_ID))
         .thenReturn(workspaceResponses);
-    assertThat(rawlsService.getDatasets(user), is(items));
+    assertThat(rawlsService.getDatasets(), is(items));
   }
 
   @Test
@@ -105,7 +103,7 @@ class RawlsServiceTest {
     mockWorkspaces();
     when(workspacesApi.listWorkspaces(RawlsService.ACCESS_LEVEL_AND_ID))
         .thenThrow(new ApiException());
-    assertThrows(RawlsException.class, () -> rawlsService.getDatasets(user));
+    assertThrows(RawlsException.class, () -> rawlsService.getDatasets());
   }
 
   @Test
@@ -114,7 +112,7 @@ class RawlsServiceTest {
     String id = "abc";
     when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL))
         .thenReturn(new WorkspaceResponse().accessLevel(WorkspaceAccessLevel.READER));
-    assertThat(rawlsService.getRole(user, id), is(DatasetAccessLevel.READER));
+    assertThat(rawlsService.getRole(id), is(DatasetAccessLevel.READER));
   }
 
   @Test
@@ -123,7 +121,7 @@ class RawlsServiceTest {
     String id = "abc";
     when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL))
         .thenReturn(new WorkspaceResponse().accessLevel(WorkspaceAccessLevel.OWNER));
-    assertThat(rawlsService.getRole(user, id), is(DatasetAccessLevel.OWNER));
+    assertThat(rawlsService.getRole(id), is(DatasetAccessLevel.OWNER));
   }
 
   @Test
@@ -132,7 +130,7 @@ class RawlsServiceTest {
     String id = "abc";
     when(workspacesApi.getWorkspaceById(id, RawlsService.ACCESS_LEVEL))
         .thenThrow(new ApiException());
-    assertThrows(RawlsException.class, () -> rawlsService.getRole(user, id));
+    assertThrows(RawlsException.class, () -> rawlsService.getRole(id));
   }
 
   @Test
@@ -185,7 +183,7 @@ class RawlsServiceTest {
                 List.of(
                     Map.of("idName", "idValue1", "a", 1, "b", 2),
                     Map.of("idName", "idValue2", "a", 3, "b", 4)));
-    assertThat(rawlsService.previewTable(user, id, tableName, 10), is(previewResponse));
+    assertThat(rawlsService.previewTable(id, tableName, 10), is(previewResponse));
   }
 
   @Test
@@ -207,7 +205,7 @@ class RawlsServiceTest {
     when(entitiesApi.entityTypeMetadata(namespace, name, true, null))
         .thenReturn(entityTypeResponse);
 
-    assertThrows(NotFoundException.class, () -> rawlsService.previewTable(user, id, "unknown", 10));
+    assertThrows(NotFoundException.class, () -> rawlsService.previewTable(id, "unknown", 10));
   }
 
   @Test
@@ -244,7 +242,7 @@ class RawlsServiceTest {
             null))
         .thenThrow(new ApiException());
 
-    assertThrows(RawlsException.class, () -> rawlsService.previewTable(user, id, tableName, 10));
+    assertThrows(RawlsException.class, () -> rawlsService.previewTable(id, tableName, 10));
   }
 
   @Test
@@ -269,7 +267,7 @@ class RawlsServiceTest {
     when(entitiesApi.entityTypeMetadata(namespace, name, true, null))
         .thenReturn(entityTypeResponse);
 
-    var tables = rawlsService.getPreviewTables(user, id);
+    var tables = rawlsService.getPreviewTables(id);
     assertThat(
         tables,
         containsInAnyOrder(
@@ -288,7 +286,7 @@ class RawlsServiceTest {
         new WorkspaceResponse().workspace(new WorkspaceDetails().name(name).namespace(namespace));
     when(workspacesApi.getWorkspaceById(id, List.of())).thenReturn(response);
     when(entitiesApi.entityTypeMetadata(namespace, name, true, null)).thenThrow(new ApiException());
-    assertThrows(RawlsException.class, () -> rawlsService.getPreviewTables(user, id));
+    assertThrows(RawlsException.class, () -> rawlsService.getPreviewTables(id));
   }
 
   @Test
@@ -324,7 +322,7 @@ class RawlsServiceTest {
     var entityCopyResponse = mock(EntityCopyResponse.class);
     when(entitiesApi.copyEntities(any(), any())).thenReturn(entityCopyResponse);
 
-    rawlsService.exportToWorkspace(user, workspaceIdSource, workspaceIdDest);
+    rawlsService.exportToWorkspace(workspaceIdSource, workspaceIdDest);
     verify(entitiesApi).copyEntities(any(), any());
   }
 
@@ -338,6 +336,6 @@ class RawlsServiceTest {
         .thenThrow(new ApiException());
     assertThrows(
         RawlsException.class,
-        () -> rawlsService.exportToWorkspace(user, workspaceIdSource, workspaceIdDest));
+        () -> rawlsService.exportToWorkspace(workspaceIdSource, workspaceIdDest));
   }
 }

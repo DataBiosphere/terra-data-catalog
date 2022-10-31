@@ -8,7 +8,6 @@ import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.catalog.model.TableMetadata;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.common.exception.NotFoundException;
-import bio.terra.common.iam.AuthenticatedUserRequest;
 import bio.terra.rawls.client.ApiException;
 import bio.terra.rawls.model.Entity;
 import bio.terra.rawls.model.EntityCopyDefinition;
@@ -50,9 +49,9 @@ public class RawlsService implements StorageSystemService {
   }
 
   @Override
-  public Map<String, StorageSystemInformation> getDatasets(AuthenticatedUserRequest user) {
+  public Map<String, StorageSystemInformation> getDatasets() {
     try {
-      return rawlsClient.workspacesApi(user).listWorkspaces(ACCESS_LEVEL_AND_ID).stream()
+      return rawlsClient.workspacesApi().listWorkspaces(ACCESS_LEVEL_AND_ID).stream()
           .collect(
               Collectors.toMap(
                   workspaceListResponse -> workspaceListResponse.getWorkspace().getWorkspaceId(),
@@ -66,26 +65,22 @@ public class RawlsService implements StorageSystemService {
   }
 
   @Override
-  public DatasetAccessLevel getRole(AuthenticatedUserRequest user, String workspaceId) {
+  public DatasetAccessLevel getRole(String workspaceId) {
     try {
       WorkspaceAccessLevel accessLevel =
-          rawlsClient
-              .workspacesApi(user)
-              .getWorkspaceById(workspaceId, ACCESS_LEVEL)
-              .getAccessLevel();
+          rawlsClient.workspacesApi().getWorkspaceById(workspaceId, ACCESS_LEVEL).getAccessLevel();
       return ROLE_TO_DATASET_ACCESS.get(accessLevel);
     } catch (ApiException e) {
       throw new RawlsException("Get workspace role failed", e);
     }
   }
 
-  private EntityQueryResponse entityQuery(
-      AuthenticatedUserRequest user, String workspaceId, String tableName, int maxRows) {
+  private EntityQueryResponse entityQuery(String workspaceId, String tableName, int maxRows) {
     try {
       WorkspaceResponse response =
-          rawlsClient.workspacesApi(user).getWorkspaceById(workspaceId, List.of());
+          rawlsClient.workspacesApi().getWorkspaceById(workspaceId, List.of());
       return rawlsClient
-          .entitiesApi(user)
+          .entitiesApi()
           .entityQuery(
               response.getWorkspace().getNamespace(),
               response.getWorkspace().getName(),
@@ -105,17 +100,16 @@ public class RawlsService implements StorageSystemService {
   }
 
   @Override
-  public List<TableMetadata> getPreviewTables(AuthenticatedUserRequest user, String workspaceId) {
-    return toCatalogTables(entityMetadata(user, workspaceId));
+  public List<TableMetadata> getPreviewTables(String workspaceId) {
+    return toCatalogTables(entityMetadata(workspaceId));
   }
 
-  private Map<String, EntityTypeMetadata> entityMetadata(
-      AuthenticatedUserRequest user, String workspaceId) {
+  private Map<String, EntityTypeMetadata> entityMetadata(String workspaceId) {
     try {
       WorkspaceResponse response =
-          rawlsClient.workspacesApi(user).getWorkspaceById(workspaceId, List.of());
+          rawlsClient.workspacesApi().getWorkspaceById(workspaceId, List.of());
       return rawlsClient
-          .entitiesApi(user)
+          .entitiesApi()
           .entityTypeMetadata(
               response.getWorkspace().getNamespace(),
               response.getWorkspace().getName(),
@@ -148,23 +142,16 @@ public class RawlsService implements StorageSystemService {
   }
 
   @Override
-  public void exportToWorkspace(
-      AuthenticatedUserRequest user, String workspaceIdSource, String workspaceIdDest) {
+  public void exportToWorkspace(String workspaceIdSource, String workspaceIdDest) {
     try {
       // build source name
       WorkspaceDetails workspaceDetailsSource =
-          rawlsClient
-              .workspacesApi(user)
-              .getWorkspaceById(workspaceIdSource, List.of())
-              .getWorkspace();
+          rawlsClient.workspacesApi().getWorkspaceById(workspaceIdSource, List.of()).getWorkspace();
       WorkspaceName workspaceNameSource = getWorkspaceName(workspaceDetailsSource);
 
       // build destination name
       WorkspaceDetails workspaceDetailsDest =
-          rawlsClient
-              .workspacesApi(user)
-              .getWorkspaceById(workspaceIdDest, List.of())
-              .getWorkspace();
+          rawlsClient.workspacesApi().getWorkspaceById(workspaceIdDest, List.of()).getWorkspace();
       WorkspaceName workspaceNameDest = getWorkspaceName(workspaceDetailsDest);
 
       // possible bug: empty entityType and entityNames copies all entities
@@ -174,7 +161,7 @@ public class RawlsService implements StorageSystemService {
               .destinationWorkspace(workspaceNameDest)
               .entityType("")
               .entityNames(List.of());
-      rawlsClient.entitiesApi(user).copyEntities(body, false);
+      rawlsClient.entitiesApi().copyEntities(body, false);
     } catch (ApiException e) {
       String errorMsg =
           String.format(
@@ -185,9 +172,8 @@ public class RawlsService implements StorageSystemService {
   }
 
   @Override
-  public DatasetPreviewTable previewTable(
-      AuthenticatedUserRequest user, String storageSourceId, String tableName, int maxRows) {
-    Map<String, EntityTypeMetadata> entities = entityMetadata(user, storageSourceId);
+  public DatasetPreviewTable previewTable(String storageSourceId, String tableName, int maxRows) {
+    Map<String, EntityTypeMetadata> entities = entityMetadata(storageSourceId);
     EntityTypeMetadata tableMetadata = entities.get(tableName);
     if (tableMetadata == null) {
       throw new NotFoundException("Table %s not found for dataset".formatted(tableName));
@@ -195,7 +181,7 @@ public class RawlsService implements StorageSystemService {
     return new DatasetPreviewTable()
         .columns(convertTableMetadataToColumns(tableMetadata))
         .rows(
-            entityQuery(user, storageSourceId, tableName, maxRows).getResults().stream()
+            entityQuery(storageSourceId, tableName, maxRows).getResults().stream()
                 .map(entity -> convertEntityToRow(entity, tableMetadata.getIdName()))
                 .toList());
   }

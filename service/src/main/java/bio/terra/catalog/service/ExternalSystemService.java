@@ -8,7 +8,6 @@ import bio.terra.catalog.model.TableMetadata;
 import bio.terra.catalog.service.dataset.Dataset;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.catalog.service.dataset.DatasetDao;
-import bio.terra.common.iam.AuthenticatedUserRequest;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -23,7 +22,7 @@ public class ExternalSystemService implements StorageSystemService {
   }
 
   @Override
-  public Map<String, StorageSystemInformation> getDatasets(AuthenticatedUserRequest user) {
+  public Map<String, StorageSystemInformation> getDatasets() {
     // This can be implemented by returning the storage IDs for all EXT datasets in the database.
     // Role is always DISCOVERER.
 
@@ -36,13 +35,12 @@ public class ExternalSystemService implements StorageSystemService {
   }
 
   @Override
-  public DatasetAccessLevel getRole(AuthenticatedUserRequest user, String storageSourceId) {
+  public DatasetAccessLevel getRole(String storageSourceId) {
     return DatasetAccessLevel.DISCOVERER;
   }
 
   @Override
-  public List<TableMetadata> getPreviewTables(
-      AuthenticatedUserRequest user, String storageSourceId) {
+  public List<TableMetadata> getPreviewTables(String storageSourceId) {
     throw new UnsupportedOperationException("preview not supported for external datasets");
   }
 
@@ -52,15 +50,13 @@ public class ExternalSystemService implements StorageSystemService {
   }
 
   @Override
-  public void exportToWorkspace(
-      AuthenticatedUserRequest user, String storageSourceId, String workspaceIdDest) {
+  public void exportToWorkspace(String storageSourceId, String workspaceIdDest) {
     throw new UnsupportedOperationException(
         "export to workspace not supported for external datasets");
   }
 
   @Override
-  public DatasetPreviewTable previewTable(
-      AuthenticatedUserRequest user, String storageSourceId, String tableName, int maxRows) {
+  public DatasetPreviewTable previewTable(String storageSourceId, String tableName, int maxRows) {
     throw new UnsupportedOperationException("preview not supported for external datasets");
   }
 }
