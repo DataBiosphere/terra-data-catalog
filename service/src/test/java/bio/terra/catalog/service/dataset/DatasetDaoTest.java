@@ -71,7 +71,8 @@ class DatasetDaoTest {
     }
     List<Dataset> datasets =
         datasetDao.listAllDatasets().stream()
-            .filter(dataset -> dataset.storageSourceId().equals(storageSourceId)).toList();
+            .filter(dataset -> dataset.storageSourceId().equals(storageSourceId))
+            .toList();
     assertThat(datasets, hasSize(StorageSystem.values().length));
     datasets.forEach(dataset -> assertThat(dataset.storageSourceId(), is(storageSourceId)));
   }
