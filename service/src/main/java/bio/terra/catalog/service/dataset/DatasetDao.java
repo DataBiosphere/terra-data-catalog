@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
@@ -127,6 +128,23 @@ public class DatasetDao {
         "SELECT * FROM dataset WHERE storage_system = :storageSystem AND storage_source_id IN (:ids)";
     var params = Map.of("storageSystem", String.valueOf(storageSystem), "ids", ids);
     return jdbcTemplate.query(sql, params, new DatasetMapper());
+  }
+
+  @ReadTransaction
+  public List<Dataset> find(Map<StorageSystem, Collection<String>> systemsAndIds) {
+    String query = "(storage_system = %s AND storage_source_id IN (%s))";
+    String whereClause =
+        systemsAndIds.entrySet().stream()
+            .filter(entry -> entry.getValue().isEmpty())
+            .map(entry -> query.formatted(entry.getKey(), String.join(",", entry.getValue())))
+            .collect(Collectors.joining(" OR "));
+
+    if (whereClause.isEmpty()) {
+      return List.of();
+    }
+
+    String sql = "SELECT * FROM dataset WHERE " + whereClause;
+    return jdbcTemplate.query(sql, new DatasetMapper());
   }
 
   @ReadTransaction
