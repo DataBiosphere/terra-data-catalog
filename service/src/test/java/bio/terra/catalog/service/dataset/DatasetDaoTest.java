@@ -35,25 +35,19 @@ class DatasetDaoTest {
   }
 
   @Test
-  void testListAllDatasets() {
+  void testListAllExternalDatasets() {
     String storageSourceId = UUID.randomUUID().toString();
     for (StorageSystem value : StorageSystem.values()) {
       createDataset(storageSourceId, value);
     }
-
-    List<Dataset> onlyExternal =
+    List<Dataset> datasets =
         datasetDao.listAllDatasets(StorageSystem.EXTERNAL).stream()
             .filter(dataset -> dataset.storageSourceId().equals(storageSourceId))
             .toList();
-    assertThat(onlyExternal, hasSize(1));
-    assertThat(onlyExternal.get(0).storageSystem(), is(StorageSystem.EXTERNAL));
-
-    List<Dataset> allDatasets =
-        datasetDao.listAllDatasets().stream()
-            .filter(dataset -> dataset.storageSourceId().equals(storageSourceId))
-            .toList();
-    assertThat(allDatasets, hasSize(StorageSystem.values().length));
-    allDatasets.forEach(dataset -> assertThat(dataset.storageSourceId(), is(storageSourceId)));
+    assertThat(datasets, hasSize(1));
+    Dataset dataset = datasets.get(0);
+    assertThat(dataset.storageSourceId(), is(storageSourceId));
+    assertThat(dataset.storageSystem(), is(StorageSystem.EXTERNAL));
   }
 
   @Test
@@ -67,6 +61,19 @@ class DatasetDaoTest {
     assertEquals(newMetadata, datasetDao.retrieve(id).metadata());
     assertTrue(datasetDao.delete(dataset));
     assertThrows(DatasetNotFoundException.class, () -> datasetDao.retrieve(id));
+  }
+
+  @Test
+  void testCreateDatasetWithDifferentSources() {
+    String storageSourceId = UUID.randomUUID().toString();
+    for (StorageSystem value : StorageSystem.values()) {
+      createDataset(storageSourceId, value);
+    }
+    List<Dataset> datasets =
+        datasetDao.listAllDatasets().stream()
+            .filter(dataset -> dataset.storageSourceId().equals(storageSourceId)).toList();
+    assertThat(datasets, hasSize(StorageSystem.values().length));
+    datasets.forEach(dataset -> assertThat(dataset.storageSourceId(), is(storageSourceId)));
   }
 
   @Test
