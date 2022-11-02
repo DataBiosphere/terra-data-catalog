@@ -179,7 +179,7 @@ jobs:
           image: ${{ needs.jib.outputs.image-name }}
 
       - name: Launch the background process for integration tests
-        run: docker run -e DATABASE_HOSTNAME=gateway.docker.internal -p 8080:8080 ${{ needs.jib.outputs.image-name }} | tee bootrun.log &
+        run: docker run -e DATABASE_HOSTNAME=gateway.docker.internal -p 8080:8080 -d ${{ needs.jib.outputs.image-name }}
 
       - name: Wait for boot run to be ready
         run: |
