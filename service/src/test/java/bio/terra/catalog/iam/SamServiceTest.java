@@ -1,12 +1,14 @@
 package bio.terra.catalog.iam;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import bio.terra.catalog.config.SamConfiguration;
 import bio.terra.common.iam.BearerToken;
+import bio.terra.common.sam.SamRetry;
 import java.util.List;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
 import org.broadinstitute.dsde.workbench.client.sam.api.ResourcesApi;
@@ -76,4 +78,29 @@ class SamServiceTest {
     var samStatus = samService.status();
     assertFalse(samStatus.isOk());
   }
+
+  @Test
+  void getUserStatusInfoApiException() throws ApiException, InterruptedException {
+    mockUsers();
+    when(SamRetry.retry(usersApi::getUserStatusInfo)).thenThrow(new ApiException());
+    assertThrows(
+        IllegalArgumentException.class, () -> samService.getUserStatusInfo(USER.getToken()));
+  }
+
+  @Test
+  void hasGlobalActionApiException() throws ApiException, InterruptedException {
+    mockResources();
+    var action = SamAction.READ_ANY_METADATA;
+    when(SamRetry.retry(() -> resourcesApi.resourceActionsV2(any(), any())))
+        .thenThrow(new ApiException());
+    assertThrows(IllegalArgumentException.class, () -> samService.hasGlobalAction(USER, action));
+  }
+
+  //  @Test
+  //  void getUserStatusInfoInterruptedException() throws InterruptedException, ApiException {
+  //    mockUsers();
+  //    when(SamRetry.retry(usersApi::getUserStatusInfo)).(new InterruptedException());
+  //    assertThrows(
+  //        IllegalArgumentException.class, () -> samService.getUserStatusInfo(USER.getToken()));
+  //  }
 }

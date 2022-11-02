@@ -39,7 +39,8 @@ public class BaseStatusService {
   }
 
   @PostConstruct
-  private void startStatusChecking() {
+  @VisibleForTesting
+  void startStatusChecking() {
     if (configuration.enabled()) {
       scheduler.scheduleAtFixedRate(
           this::checkStatus,
@@ -57,16 +58,12 @@ public class BaseStatusService {
   void checkStatus() {
     if (configuration.enabled()) {
       var newStatus = new SystemStatus();
-      try {
-        var systems =
-            statusCheckMap.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get()));
-        newStatus.setOk(systems.values().stream().allMatch(SystemStatusSystems::isOk));
-        newStatus.setSystems(systems);
-      } catch (Exception e) {
-        logger.warn("Status check exception", e);
-        newStatus.setOk(false);
-      }
+
+      var systems =
+          statusCheckMap.entrySet().stream()
+              .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get()));
+      newStatus.setOk(systems.values().stream().allMatch(SystemStatusSystems::isOk));
+      newStatus.setSystems(systems);
       cachedStatus.set(newStatus);
       lastStatusUpdate.set(Instant.now());
     }

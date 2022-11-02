@@ -19,10 +19,7 @@ public class DaoKeyHolder extends GeneratedKeyHolder {
 
   public Instant getCreatedDate() {
     Timestamp timestamp = getTimestamp("created_date");
-    if (timestamp != null) {
       return timestamp.toInstant();
-    }
-    return null;
   }
 
   public String getString(String fieldName) {
