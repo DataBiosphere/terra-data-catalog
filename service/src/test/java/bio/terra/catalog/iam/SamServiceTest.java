@@ -80,27 +80,11 @@ class SamServiceTest {
   }
 
   @Test
-  void getUserStatusInfoApiException() throws ApiException, InterruptedException {
-    mockUsers();
-    when(SamRetry.retry(usersApi::getUserStatusInfo)).thenThrow(new ApiException());
-    assertThrows(
-        IllegalArgumentException.class, () -> samService.getUserStatusInfo(USER.getToken()));
-  }
-
-  @Test
   void hasGlobalActionApiException() throws ApiException, InterruptedException {
     mockResources();
     var action = SamAction.READ_ANY_METADATA;
     when(SamRetry.retry(() -> resourcesApi.resourceActionsV2(any(), any())))
         .thenThrow(new ApiException());
-    assertThrows(IllegalArgumentException.class, () -> samService.hasGlobalAction(USER, action));
+    assertThrows(IllegalArgumentException.class, () -> samService.hasGlobalAction(action));
   }
-
-  //  @Test
-  //  void getUserStatusInfoInterruptedException() throws InterruptedException, ApiException {
-  //    mockUsers();
-  //    when(SamRetry.retry(usersApi::getUserStatusInfo)).(new InterruptedException());
-  //    assertThrows(
-  //        IllegalArgumentException.class, () -> samService.getUserStatusInfo(USER.getToken()));
-  //  }
 }

@@ -19,7 +19,7 @@ public class DaoKeyHolder extends GeneratedKeyHolder {
 
   public Instant getCreatedDate() {
     Timestamp timestamp = getTimestamp("created_date");
-      return timestamp.toInstant();
+    return timestamp.toInstant();
   }
 
   public String getString(String fieldName) {
@@ -28,10 +28,7 @@ public class DaoKeyHolder extends GeneratedKeyHolder {
 
   public <T> T getField(String fieldName, Class<T> type) {
     Map<String, Object> keys = getKeys();
-    if (keys != null) {
-      Object fieldObject = keys.get(fieldName);
-      return type.cast(fieldObject);
-    }
-    return null;
+    @SuppressWarnings("ConstantConditions") Object fieldObject = keys.get(fieldName);
+    return type.cast(fieldObject);
   }
 }

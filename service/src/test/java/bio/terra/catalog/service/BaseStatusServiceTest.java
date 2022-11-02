@@ -27,15 +27,6 @@ class BaseStatusServiceTest {
         is(new SystemStatus().ok(true).systems(Map.of("test", status))));
   }
 
-  //  @Test
-  //  void staleUpdate() {
-  //    var config = new StatusCheckConfiguration(true, 0, 0, 10);
-  //    BaseStatusService service = new BaseStatusService(config);
-  //    var status = new SystemStatusSystems().ok(true);
-  //    service.registerStatusCheck("test", () -> status);
-  //    mockStatic(Instant.class);
-  //  }
-
   interface Status extends Supplier<SystemStatusSystems> {}
 
   @Test
