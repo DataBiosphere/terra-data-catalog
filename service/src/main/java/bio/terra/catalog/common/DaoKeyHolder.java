@@ -28,7 +28,9 @@ public class DaoKeyHolder extends GeneratedKeyHolder {
 
   public <T> T getField(String fieldName, Class<T> type) {
     Map<String, Object> keys = getKeys();
-    @SuppressWarnings("ConstantConditions") Object fieldObject = keys.get(fieldName);
+    // In practice getKeys() will never return null
+    @SuppressWarnings("ConstantConditions")
+    Object fieldObject = keys.get(fieldName);
     return type.cast(fieldObject);
   }
 }
