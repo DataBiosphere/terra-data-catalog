@@ -114,10 +114,12 @@ class DatasetServiceTest {
             SOURCE_ID, new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.OWNER));
     when(datarepoService.getDatasets()).thenReturn(idToRole);
     when(rawlsService.getDatasets()).thenReturn(workspaces);
-    when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, workspaces.keySet()))
-        .thenReturn(List.of(workspaceDataset));
-    when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
-        .thenReturn(List.of(tdrDataset));
+    when(datasetDao.find(
+            Map.of(
+                StorageSystem.TERRA_WORKSPACE, workspaces.keySet(),
+                StorageSystem.TERRA_DATA_REPO, idToRole.keySet(),
+                StorageSystem.EXTERNAL, Set.of())))
+        .thenReturn(List.of(workspaceDataset, tdrDataset));
     ObjectNode workspaceJson = (ObjectNode) datasetService.listDatasets().getResult().get(0);
     ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets().getResult().get(1);
     assertThat(workspaceJson.get("name").asText(), is("name"));
@@ -139,9 +141,9 @@ class DatasetServiceTest {
                 .datasetAccessLevel(DatasetAccessLevel.OWNER)
                 .phsId(phsId));
     when(datarepoService.getDatasets()).thenReturn(idToRole);
-    when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, Set.of())).thenReturn(List.of());
-    when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
-        .thenReturn(List.of(tdrDataset));
+    // FIXME: need to mock better, something like
+    // find(argThat(hasEntry(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
+    when(datasetDao.find(any())).thenReturn(List.of(tdrDataset));
     ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets().getResult().get(0);
     assertThat(tdrJson.get("phsId").asText(), is(phsId));
     assertTrue(tdrJson.has("requestAccessURL"));
@@ -157,9 +159,9 @@ class DatasetServiceTest {
                 .datasetAccessLevel(DatasetAccessLevel.OWNER)
                 .phsId(phsId));
     when(datarepoService.getDatasets()).thenReturn(idToRole);
-    when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, Set.of())).thenReturn(List.of());
     var url = "url";
-    when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
+    // FIXME: need to mock better
+    when(datasetDao.find(any()))
         .thenReturn(
             List.of(
                 tdrDataset.withMetadata(
@@ -180,12 +182,10 @@ class DatasetServiceTest {
     when(datarepoService.getDatasets()).thenReturn(datasets);
     when(rawlsService.getDatasets()).thenReturn(workspaces);
     when(samService.hasGlobalAction(SamAction.READ_ANY_METADATA)).thenReturn(true);
-    when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, workspaces.keySet())).thenReturn(List.of());
-    when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, datasets.keySet()))
-        .thenReturn(List.of(tdrDataset));
     when(datasetDao.listAllDatasets()).thenReturn(List.of(workspaceDataset, tdrDataset));
-    ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets().getResult().get(0);
-    ObjectNode workspaceJson = (ObjectNode) datasetService.listDatasets().getResult().get(1);
+    // FIXME: This order-dependant test is fragile. Using a library like JSONAssert is one way to fit it.
+    ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets().getResult().get(1);
+    ObjectNode workspaceJson = (ObjectNode) datasetService.listDatasets().getResult().get(0);
     assertThat(tdrJson.get("name").asText(), is("name"));
     assertThat(tdrJson.get("id").asText(), is(tdrDataset.id().toValue()));
     assertThat(tdrJson.get("accessLevel").asText(), is(String.valueOf(DatasetAccessLevel.OWNER)));
