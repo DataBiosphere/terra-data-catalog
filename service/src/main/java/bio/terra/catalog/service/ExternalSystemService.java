@@ -1,5 +1,6 @@
 package bio.terra.catalog.service;
 
+import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.common.StorageSystemInformation;
 import bio.terra.catalog.common.StorageSystemService;
 import bio.terra.catalog.model.DatasetPreviewTable;
@@ -23,14 +24,11 @@ public class ExternalSystemService implements StorageSystemService {
 
   @Override
   public Map<String, StorageSystemInformation> getDatasets() {
-    // This can be implemented by returning the storage IDs for all EXT datasets in the database.
-    // Role is always DISCOVERER.
-
-    // query DB for all datasets that are external, make a map of ID to Discoverer access level
-    return datasetDao.listAllExternalDatasets().stream()
+    return datasetDao.listAllDatasets(StorageSystem.EXTERNAL).stream()
         .collect(
             Collectors.toMap(
                 Dataset::storageSourceId,
+                // For external datasets, the role is always DISCOVERER.
                 dataset -> new StorageSystemInformation(DatasetAccessLevel.DISCOVERER, null)));
   }
 
