@@ -109,6 +109,7 @@ public class DatasetOperations extends TestScript {
 
     crudUserJourney(client, StorageSystem.TDR, snapshotId.toString());
     crudUserJourney(client, StorageSystem.WKS, workspaceSource.getWorkspaceId());
+    crudUserJourney(client, StorageSystem.EXT, UUID.randomUUID().toString());
 
     previewUserJourney(StorageSystem.TDR, snapshotId.toString());
     previewUserJourney(StorageSystem.WKS, workspaceSource.getWorkspaceId());
@@ -239,7 +240,8 @@ public class DatasetOperations extends TestScript {
       Map<Object, Object> dataset = (Map<Object, Object>) datasetObj;
       if (dataset.get("id").equals(datasetId.toString())) {
         assertThat(dataset, hasEntry(is("dct:title"), is("crud")));
-        assertThat(dataset, hasEntry(is("accessLevel"), is("owner")));
+        String role = storageSystem == StorageSystem.EXT ? "discoverer" : "owner";
+        assertThat(dataset, hasEntry(is("accessLevel"), is(role)));
         if (storageSystem.equals(StorageSystem.TDR)) {
           assertThat(dataset, hasEntry(is("phsId"), is("1234")));
           assertTrue(dataset.containsKey("requestAccessURL"));

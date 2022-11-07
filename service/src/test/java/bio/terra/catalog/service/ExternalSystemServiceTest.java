@@ -22,10 +22,10 @@ class ExternalSystemServiceTest {
 
   @Test
   void getDatasets() {
-    String storageSourceId = "";
+    String storageSourceId = "source id";
     List<Dataset> resultDatasets =
         List.of(new Dataset(storageSourceId, StorageSystem.EXTERNAL, ""));
-    when(mockDatasetDao.listAllExternalDatasets()).thenReturn(resultDatasets);
+    when(mockDatasetDao.listAllDatasets(StorageSystem.EXTERNAL)).thenReturn(resultDatasets);
 
     var expectedStorageSystemInformation =
         new StorageSystemInformation(DatasetAccessLevel.DISCOVERER, null);
