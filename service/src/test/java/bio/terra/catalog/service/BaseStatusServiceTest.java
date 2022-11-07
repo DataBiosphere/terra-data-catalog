@@ -27,6 +27,22 @@ class BaseStatusServiceTest {
         is(new SystemStatus().ok(true).systems(Map.of("test", status))));
   }
 
+  @Test
+  void getCurrentStatusException() {
+    var config = new StatusCheckConfiguration(true, 0, 0, 10);
+    BaseStatusService service = new BaseStatusService(config);
+    var status = new SystemStatusSystems().ok(true);
+    service.registerStatusCheck(
+        "test",
+        () -> {
+          throw new RuntimeException("failure");
+        });
+    SystemStatus systemDown = new SystemStatus().ok(false);
+    assertThat(service.getCurrentStatus(), is(systemDown));
+    service.checkStatus();
+    assertThat(service.getCurrentStatus(), is(systemDown));
+  }
+
   interface Status extends Supplier<SystemStatusSystems> {}
 
   @Test

@@ -58,12 +58,16 @@ public class BaseStatusService {
   void checkStatus() {
     if (configuration.enabled()) {
       var newStatus = new SystemStatus();
-
-      var systems =
-          statusCheckMap.entrySet().stream()
-              .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get()));
-      newStatus.setOk(systems.values().stream().allMatch(SystemStatusSystems::isOk));
-      newStatus.setSystems(systems);
+      try {
+        var systems =
+            statusCheckMap.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get()));
+        newStatus.setOk(systems.values().stream().allMatch(SystemStatusSystems::isOk));
+        newStatus.setSystems(systems);
+      } catch (Exception e) {
+        logger.warn("Status check exception", e);
+        newStatus.setOk(false);
+      }
       cachedStatus.set(newStatus);
       lastStatusUpdate.set(Instant.now());
     }
