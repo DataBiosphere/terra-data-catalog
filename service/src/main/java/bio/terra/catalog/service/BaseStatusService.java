@@ -39,7 +39,8 @@ public class BaseStatusService {
   }
 
   @PostConstruct
-  private void startStatusChecking() {
+  @VisibleForTesting
+  void startStatusChecking() {
     if (configuration.enabled()) {
       scheduler.scheduleAtFixedRate(
           this::checkStatus,
