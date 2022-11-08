@@ -52,7 +52,7 @@ class BaseStatusServiceTest {
     var status = mock(Status.class);
     service.registerStatusCheck("", status);
     service.startStatusChecking();
-    Thread.sleep(1000);
+    Thread.sleep(500);
     verify(status).get();
   }
 
