@@ -46,12 +46,13 @@ class BaseStatusServiceTest {
   interface Status extends Supplier<SystemStatusSystems> {}
 
   @Test
-  void startStatusChecking() {
+  void startStatusChecking() throws InterruptedException {
     var config = new StatusCheckConfiguration(true, 1, 0, 10);
     BaseStatusService service = new BaseStatusService(config);
     var status = mock(Status.class);
     service.registerStatusCheck("", status);
     service.startStatusChecking();
+    Thread.sleep(1000);
     verify(status).get();
   }
 
