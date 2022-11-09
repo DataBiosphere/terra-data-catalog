@@ -3,7 +3,7 @@
   "$id": "https://app.terra.bio/schemas/datacatalog.development.json",
   "title": "catalog dataset",
   "type": "object",
-  "required": ["dct:title", "dct:description", "dct:creator", "dct:issued", "TerraDCAT_ap:hasDataCollection", "dcat:accessURL", "prov:wasGeneratedBy", "storage", "counts", "contributors"],
+  "required": ["dct:title", "dct:description", "dct:creator", "dct:issued", "TerraDCAT_ap:hasDataCollection", "dcat:accessURL", "storage", "counts", "contributors"],
   "properties": {
     "TerraCore:id": {
       "type": "string",
@@ -68,11 +68,6 @@
     "prov:wasAssociatedWith": {
       "type": "array",
       "items": { "type": "string" }
-    },
-    "prov:wasGeneratedBy": {
-      "type": "array",
-      "items": { "type": "object" },
-      "description": "must be created by a Project"
     },
     "storage": {
       "type": "array",

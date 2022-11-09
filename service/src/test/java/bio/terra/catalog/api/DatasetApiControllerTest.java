@@ -27,6 +27,7 @@ import bio.terra.catalog.service.dataset.exception.DatasetNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +43,8 @@ class DatasetApiControllerTest {
 
   private static final String API = "/api/v1/datasets";
   private static final String API_ID = API + "/{id}";
-  private static final String METADATA = """
+  private static final Map<String, Object> METADATA = Map.of("some", "metadata");
+  private static final String METADATA_AS_STRING = """
       {"some": "metadata"}""";
   private static final String PREVIEW_TABLES_API = API_ID + "/tables";
   private static final String PREVIEW_TABLES_API_TABLE_NAME = PREVIEW_TABLES_API + "/{tableName}";
@@ -112,9 +114,11 @@ class DatasetApiControllerTest {
     var datasetId = new DatasetId(UUID.randomUUID());
     mockMvc
         .perform(
-            put(API_ID, datasetId.uuid()).contentType(MediaType.APPLICATION_JSON).content(METADATA))
+            put(API_ID, datasetId.uuid())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(METADATA_AS_STRING))
         .andExpect(status().is2xxSuccessful());
-    verify(datasetService).updateMetadata(datasetId, METADATA);
+    verify(datasetService).updateMetadata(datasetId, METADATA_AS_STRING);
   }
 
   @Test

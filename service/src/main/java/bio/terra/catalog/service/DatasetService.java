@@ -196,11 +196,16 @@ public class DatasetService {
   }
 
   public DatasetId createDataset(
-      StorageSystem storageSystem, String storageSourceId, String metadata) {
-    jsonValidationService.validateMetadata(toJsonNode(metadata));
-    var dataset = new Dataset(storageSourceId, storageSystem, metadata);
-    ensureActionPermission(dataset, SamAction.CREATE_METADATA);
-    return datasetDao.create(dataset).id();
+      StorageSystem storageSystem, String storageSourceId, Map<String, Object> metadata) {
+    try {
+      String metadataAsString = objectMapper.writeValueAsString(metadata);
+      jsonValidationService.validateMetadata(toJsonNode(metadataAsString));
+      var dataset = new Dataset(storageSourceId, storageSystem, metadataAsString);
+      ensureActionPermission(dataset, SamAction.CREATE_METADATA);
+      return datasetDao.create(dataset).id();
+    } catch (JsonProcessingException e) {
+      throw new BadRequestException("Metadata is not an object", e);
+    }
   }
 
   public DatasetPreviewTablesResponse listDatasetPreviewTables(DatasetId datasetId) {

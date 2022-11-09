@@ -360,7 +360,9 @@ components:
         storageSourceId:
           type: string
         catalogEntry:
-          type: string
+          type: object
+          additionalProperties:
+            type: object
 
     DatasetExportRequest:
       type: object
