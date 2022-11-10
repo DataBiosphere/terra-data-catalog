@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -83,7 +84,7 @@ class DatasetServiceTest {
 
   private static String metadataWithId(DatasetId id) {
     return """
-        {"name":"name","accessLevel":"no_access","id":"%s"}""".formatted(id.uuid());
+        {"name":"name","accessLevel":"owner","id":"%s"}""".formatted(id.uuid());
   }
 
   @BeforeEach
@@ -130,16 +131,13 @@ class DatasetServiceTest {
   }
 
   @Test
-  void getMetadata() {
+  void getMetadata() throws JSONException {
     when(datarepoService.getRole(SOURCE_ID)).thenReturn(DatasetAccessLevel.OWNER);
     when(datarepoService.getDataset(SOURCE_ID))
         .thenReturn(new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.OWNER));
     when(datasetDao.retrieve(any())).thenReturn(tdrDataset);
-    String datasetMetadata = datasetService.getMetadata(tdrDataset.id());
-    // Assert that it fetches database information
-    assertThat(datasetMetadata.contains("name"), is(true));
-    // Assert that it fetches storage source information
-    assertThat(datasetMetadata.contains("accessLevel"), is(true));
+    JSONAssert.assertEquals(
+        metadataWithId(tdrDataset.id()), datasetService.getMetadata(tdrDataset.id()), true);
   }
 
   @Test
