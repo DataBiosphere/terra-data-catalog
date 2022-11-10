@@ -130,6 +130,19 @@ class DatasetServiceTest {
   }
 
   @Test
+  void getMetadata() {
+    when(datarepoService.getRole(SOURCE_ID)).thenReturn(DatasetAccessLevel.OWNER);
+    when(datarepoService.getDataset(SOURCE_ID))
+        .thenReturn(new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.OWNER));
+    when(datasetDao.retrieve(any())).thenReturn(tdrDataset);
+    String datasetMetadata = datasetService.getMetadata(tdrDataset.id());
+    // Assert that it fetches database information
+    assertThat(datasetMetadata.contains("name"), is(true));
+    // Assert that it fetches storage source information
+    assertThat(datasetMetadata.contains("accessLevel"), is(true));
+  }
+
+  @Test
   void listDatasetsWithPhsId() {
     String phsId = "1234";
     var idToRole =
@@ -224,13 +237,6 @@ class DatasetServiceTest {
     when(externalSystemService.getRole(dataset.storageSourceId()))
         .thenReturn(DatasetAccessLevel.NO_ACCESS);
     assertThrows(UnauthorizedException.class, () -> datasetService.getMetadata(datasetId));
-  }
-
-  @Test
-  void testGetMetadata() throws Exception {
-    mockDataset();
-    when(samService.hasGlobalAction(SamAction.READ_ANY_METADATA)).thenReturn(true);
-    JSONAssert.assertEquals(metadataWithId(datasetId), datasetService.getMetadata(datasetId), true);
   }
 
   @Test

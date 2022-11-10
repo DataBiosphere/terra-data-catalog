@@ -99,6 +99,21 @@ class RawlsServiceTest {
   }
 
   @Test
+  void getWorkspace() throws Exception {
+    mockWorkspaces();
+    String workspaceId = "id";
+    var workspaceResponse =
+        new WorkspaceResponse()
+            .workspace(new WorkspaceDetails().workspaceId(workspaceId))
+            .accessLevel(WorkspaceAccessLevel.OWNER);
+    when(workspacesApi.getWorkspaceById(workspaceId, RawlsService.ACCESS_LEVEL))
+        .thenReturn(workspaceResponse);
+    assertThat(
+        rawlsService.getDataset(workspaceId),
+        is(new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.OWNER)));
+  }
+
+  @Test
   void getWorkspacesException() throws Exception {
     mockWorkspaces();
     when(workspacesApi.listWorkspaces(RawlsService.ACCESS_LEVEL_AND_ID))

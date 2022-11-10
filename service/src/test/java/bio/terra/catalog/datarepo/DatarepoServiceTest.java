@@ -18,11 +18,13 @@ import bio.terra.datarepo.api.SnapshotsApi;
 import bio.terra.datarepo.api.UnauthenticatedApi;
 import bio.terra.datarepo.client.ApiException;
 import bio.terra.datarepo.model.ColumnModel;
+import bio.terra.datarepo.model.DatasetSummaryModel;
 import bio.terra.datarepo.model.EnumerateSnapshotModel;
 import bio.terra.datarepo.model.RepositoryStatusModel;
 import bio.terra.datarepo.model.SnapshotModel;
 import bio.terra.datarepo.model.SnapshotPreviewModel;
 import bio.terra.datarepo.model.SnapshotRetrieveIncludeModel;
+import bio.terra.datarepo.model.SnapshotSourceModel;
 import bio.terra.datarepo.model.SnapshotSummaryModel;
 import bio.terra.datarepo.model.TableModel;
 import java.util.List;
@@ -77,6 +79,26 @@ class DatarepoServiceTest {
         .thenReturn(esm);
     var returnedItems = datarepoService.getDatasets();
     assertThat(returnedItems, is(expectedItems));
+  }
+
+  @Test
+  void getSnapshot() throws Exception {
+    mockSnapshots();
+    UUID snapshotId = UUID.randomUUID();
+    String phsId = "1234";
+    when(snapshotsApi.retrieveSnapshot(snapshotId, List.of()))
+        .thenReturn(
+            new SnapshotModel()
+                .addSourceItem(
+                    new SnapshotSourceModel().dataset(new DatasetSummaryModel().phsId(phsId))));
+    when(snapshotsApi.retrieveUserSnapshotRoles(snapshotId))
+        .thenReturn(List.of(DatarepoService.STEWARD_ROLE_NAME));
+    assertThat(
+        datarepoService.getDataset(snapshotId.toString()),
+        is(
+            new StorageSystemInformation()
+                .datasetAccessLevel(DatasetAccessLevel.OWNER)
+                .phsId(phsId)));
   }
 
   @Test
