@@ -12,7 +12,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.service.dataset.exception.DatasetNotFoundException;
-import bio.terra.catalog.service.dataset.exception.InvalidDatasetException;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -31,7 +30,12 @@ class DatasetDaoTest {
           {"sampleId": "12345", "species": ["mouse", "human"]}""";
 
   private Dataset createDataset(String storageSourceId, StorageSystem storageSystem) {
-    return datasetDao.create(new Dataset(storageSourceId, storageSystem, DatasetDaoTest.METADATA));
+    return createDataset(storageSourceId, storageSystem, DatasetDaoTest.METADATA);
+  }
+
+  private Dataset createDataset(
+      String storageSourceId, StorageSystem storageSystem, String metadata) {
+    return datasetDao.upsert(new Dataset(storageSourceId, storageSystem, metadata));
   }
 
   @Test
@@ -81,9 +85,9 @@ class DatasetDaoTest {
   void testCreateDuplicateDataset() {
     String storageSourceId = UUID.randomUUID().toString();
     createDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO);
-    assertThrows(
-        InvalidDatasetException.class,
-        () -> createDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO));
+    Dataset dataset = createDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO, "{}");
+
+    assertThat(dataset.metadata(), is("{}"));
   }
 
   @Test

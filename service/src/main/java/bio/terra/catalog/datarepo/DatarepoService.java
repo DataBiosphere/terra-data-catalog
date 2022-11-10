@@ -89,6 +89,22 @@ public class DatarepoService implements StorageSystemService {
     }
   }
 
+  @Override
+  public StorageSystemInformation getDataset(String snapshotId) {
+    UUID id = UUID.fromString(snapshotId);
+    try {
+      return new StorageSystemInformation()
+          .datasetAccessLevel(getRole(snapshotId))
+          .phsId(
+              datarepoClient.snapshotsApi().retrieveSnapshot(id, List.of()).getSource().stream()
+                  .findFirst()
+                  .map(snapshotSourceModel -> snapshotSourceModel.getDataset().getPhsId())
+                  .orElse(null));
+    } catch (ApiException e) {
+      throw new DatarepoException(e);
+    }
+  }
+
   private SnapshotModel getSnapshotTables(String snapshotId) {
     try {
       UUID id = UUID.fromString(snapshotId);

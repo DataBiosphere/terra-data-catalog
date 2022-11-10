@@ -65,6 +65,11 @@ public class RawlsService implements StorageSystemService {
   }
 
   @Override
+  public StorageSystemInformation getDataset(String workspaceId) {
+    return new StorageSystemInformation().datasetAccessLevel(getRole(workspaceId));
+  }
+
+  @Override
   public DatasetAccessLevel getRole(String workspaceId) {
     try {
       WorkspaceAccessLevel accessLevel =

@@ -264,15 +264,15 @@ class DatasetServiceTest {
     when(datarepoService.getRole(null)).thenReturn(DatasetAccessLevel.DISCOVERER);
     assertThrows(
         UnauthorizedException.class,
-        () -> datasetService.createDataset(StorageSystem.TERRA_DATA_REPO, null, METADATA));
+        () -> datasetService.upsertDataset(StorageSystem.TERRA_DATA_REPO, null, METADATA));
   }
 
   @Test
   void testCreateDatasetAdmin() throws JsonProcessingException {
     when(samService.hasGlobalAction(SamAction.CREATE_METADATA)).thenReturn(true);
-    when(datasetDao.create(new Dataset(SOURCE_ID, dataset.storageSystem(), METADATA)))
+    when(datasetDao.upsert(new Dataset(SOURCE_ID, dataset.storageSystem(), METADATA)))
         .thenReturn(dataset);
-    DatasetId id = datasetService.createDataset(dataset.storageSystem(), SOURCE_ID, METADATA);
+    DatasetId id = datasetService.upsertDataset(dataset.storageSystem(), SOURCE_ID, METADATA);
     verify(jsonValidationService).validateMetadata(objectMapper.readTree(dataset.metadata()));
     assertThat(id, is(datasetId));
   }
@@ -284,9 +284,9 @@ class DatasetServiceTest {
     assertThrows(
         BadRequestException.class,
         () ->
-            datasetService.createDataset(
+            datasetService.upsertDataset(
                 StorageSystem.TERRA_DATA_REPO, storageSourceId, invalidMetadata));
-    verify(datasetDao, never()).create(any());
+    verify(datasetDao, never()).upsert(any());
   }
 
   @Test

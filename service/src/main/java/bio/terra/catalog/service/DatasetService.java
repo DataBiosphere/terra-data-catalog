@@ -185,7 +185,10 @@ public class DatasetService {
   public String getMetadata(DatasetId datasetId) {
     var dataset = datasetDao.retrieve(datasetId);
     ensureActionPermission(dataset, SamAction.READ_ANY_METADATA);
-    return new DatasetResponse(dataset).convertToObject().toString();
+    return new DatasetResponse(
+            dataset, getService(dataset.storageSystem()).getDataset(dataset.storageSourceId()))
+        .convertToObject()
+        .toString();
   }
 
   public void updateMetadata(DatasetId datasetId, String metadata) {
@@ -195,12 +198,12 @@ public class DatasetService {
     datasetDao.update(dataset.withMetadata(metadata));
   }
 
-  public DatasetId createDataset(
+  public DatasetId upsertDataset(
       StorageSystem storageSystem, String storageSourceId, String metadata) {
     jsonValidationService.validateMetadata(toJsonNode(metadata));
     var dataset = new Dataset(storageSourceId, storageSystem, metadata);
     ensureActionPermission(dataset, SamAction.CREATE_METADATA);
-    return datasetDao.create(dataset).id();
+    return datasetDao.upsert(dataset).id();
   }
 
   public DatasetPreviewTablesResponse listDatasetPreviewTables(DatasetId datasetId) {

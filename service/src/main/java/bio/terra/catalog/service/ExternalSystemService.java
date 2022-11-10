@@ -32,6 +32,10 @@ public class ExternalSystemService implements StorageSystemService {
                 dataset -> new StorageSystemInformation(DatasetAccessLevel.DISCOVERER, null)));
   }
 
+  public StorageSystemInformation getDataset(String storageSourceId) {
+    return new StorageSystemInformation(getRole(storageSourceId), null);
+  }
+
   @Override
   public DatasetAccessLevel getRole(String storageSourceId) {
     return DatasetAccessLevel.DISCOVERER;
