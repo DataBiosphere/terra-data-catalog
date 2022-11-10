@@ -25,7 +25,7 @@ import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.common.exception.BadRequestException;
-import bio.terra.common.exception.UnauthorizedException;
+import bio.terra.common.exception.ForbiddenException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -200,7 +200,7 @@ class DatasetServiceTest {
     mockDataset();
     when(externalSystemService.getRole(dataset.storageSourceId()))
         .thenReturn(DatasetAccessLevel.NO_ACCESS);
-    assertThrows(UnauthorizedException.class, () -> datasetService.deleteMetadata(datasetId));
+    assertThrows(ForbiddenException.class, () -> datasetService.deleteMetadata(datasetId));
   }
 
   @Test()
@@ -215,7 +215,7 @@ class DatasetServiceTest {
   void testDeleteMetadataNoPermission() {
     mockDataset();
     when(externalSystemService.getRole(SOURCE_ID)).thenReturn(DatasetAccessLevel.READER);
-    assertThrows(UnauthorizedException.class, () -> datasetService.deleteMetadata(datasetId));
+    assertThrows(ForbiddenException.class, () -> datasetService.deleteMetadata(datasetId));
   }
 
   @Test
@@ -223,7 +223,7 @@ class DatasetServiceTest {
     mockDataset();
     when(externalSystemService.getRole(dataset.storageSourceId()))
         .thenReturn(DatasetAccessLevel.NO_ACCESS);
-    assertThrows(UnauthorizedException.class, () -> datasetService.getMetadata(datasetId));
+    assertThrows(ForbiddenException.class, () -> datasetService.getMetadata(datasetId));
   }
 
   @Test
@@ -239,7 +239,7 @@ class DatasetServiceTest {
     when(externalSystemService.getRole(dataset.storageSourceId()))
         .thenReturn(DatasetAccessLevel.NO_ACCESS);
     assertThrows(
-        UnauthorizedException.class, () -> datasetService.updateMetadata(datasetId, METADATA));
+        ForbiddenException.class, () -> datasetService.updateMetadata(datasetId, METADATA));
   }
 
   @Test
@@ -263,7 +263,7 @@ class DatasetServiceTest {
   void testCreateDatasetWithInvalidUser() {
     when(datarepoService.getRole(null)).thenReturn(DatasetAccessLevel.DISCOVERER);
     assertThrows(
-        UnauthorizedException.class,
+        ForbiddenException.class,
         () -> datasetService.createDataset(StorageSystem.TERRA_DATA_REPO, null, METADATA));
   }
 
