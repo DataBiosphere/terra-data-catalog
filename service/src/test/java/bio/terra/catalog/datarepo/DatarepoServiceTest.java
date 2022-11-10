@@ -109,6 +109,14 @@ class DatarepoServiceTest {
     assertThrows(DatarepoException.class, () -> datarepoService.getDatasets());
   }
 
+  @Test
+  void getDatasetException() throws Exception {
+    mockSnapshots();
+    when(snapshotsApi.retrieveSnapshot(any(), any())).thenThrow(new ApiException());
+    assertThrows(
+        DatarepoException.class, () -> datarepoService.getDataset(UUID.randomUUID().toString()));
+  }
+
   static Object[][] getRole() {
     return new Object[][] {
       {DatarepoService.READER_ROLE_NAME, DatasetAccessLevel.READER},
