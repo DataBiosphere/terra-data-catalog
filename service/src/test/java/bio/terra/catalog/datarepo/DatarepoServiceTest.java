@@ -112,9 +112,9 @@ class DatarepoServiceTest {
   @Test
   void getDatasetException() throws Exception {
     mockSnapshots();
-    when(snapshotsApi.retrieveSnapshot(any(), any())).thenThrow(new ApiException());
-    assertThrows(
-        DatarepoException.class, () -> datarepoService.getDataset(UUID.randomUUID().toString()));
+    UUID snapshotId = UUID.randomUUID();
+    when(snapshotsApi.retrieveSnapshot(snapshotId, List.of())).thenThrow(new ApiException());
+    assertThrows(DatarepoException.class, () -> datarepoService.getDataset(snapshotId.toString()));
   }
 
   static Object[][] getRole() {
