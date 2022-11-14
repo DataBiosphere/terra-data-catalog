@@ -121,7 +121,7 @@ public class DatasetPermissionOperations extends TestScript {
       throws ApiException {
     CreateDatasetRequest request = datasetRequest(storageSourceId, storageSystem);
     // note if this assertion fails we'll leave behind a stray dataset in the db
-    assertThrows(ApiException.class, () -> userDatasetsApi.createDataset(request));
+    assertThrows(ApiException.class, () -> userDatasetsApi.upsertDataset(request));
     assertThat(
         userDatasetsApi.getApiClient().getStatusCode(),
         is(HttpStatusCodes.STATUS_CODE_UNAUTHORIZED));
@@ -157,7 +157,7 @@ public class DatasetPermissionOperations extends TestScript {
     CreateDatasetRequest request =
         datasetRequest(adminTestSnapshotId.toString(), StorageSystem.TDR);
     // note if this assertion fails we'll leave behind a stray dataset in the db
-    assertThrows(ApiException.class, () -> userDatasetsApi.createDataset(request));
+    assertThrows(ApiException.class, () -> userDatasetsApi.upsertDataset(request));
     assertThat(
         userDatasetsApi.getApiClient().getStatusCode(),
         is(HttpStatusCodes.STATUS_CODE_UNAUTHORIZED));
@@ -168,10 +168,6 @@ public class DatasetPermissionOperations extends TestScript {
         () -> userDatasetsApi.listDatasetPreviewTables(adminTestSnapshotDatasetId));
     assertTrue(
         HttpStatus.valueOf(userDatasetsApi.getApiClient().getStatusCode()).is4xxClientError());
-
-    // but the user can get datasets
-    userDatasetsApi.getDataset(adminTestSnapshotDatasetId);
-    assertThat(userDatasetsApi.getApiClient().getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
   }
 
   private void testNoPermissionsForSnapshotDataset() throws Exception {
@@ -213,7 +209,7 @@ public class DatasetPermissionOperations extends TestScript {
   }
 
   private UUID adminCreateDataset(CreateDatasetRequest request) throws Exception {
-    var datasetId = adminDatasetsApi.createDataset(request).getId();
+    var datasetId = adminDatasetsApi.upsertDataset(request).getId();
     assertThat(adminDatasetsApi.getApiClient().getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
     datasetIds.add(datasetId);
     return datasetId;
