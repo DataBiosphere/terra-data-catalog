@@ -83,7 +83,7 @@ class DatarepoServiceTest {
     mockSnapshots();
     UUID snapshotId = UUID.randomUUID();
     String phsId = "1234";
-    when(snapshotsApi.retrieveSnapshot(snapshotId, List.of()))
+    when(snapshotsApi.retrieveSnapshot(snapshotId, List.of(SnapshotRetrieveIncludeModel.SOURCES)))
         .thenReturn(
             new SnapshotModel()
                 .addSourceItem(
@@ -108,7 +108,8 @@ class DatarepoServiceTest {
     mockSnapshots();
     UUID snapshotId = UUID.randomUUID();
     String id = snapshotId.toString();
-    when(snapshotsApi.retrieveSnapshot(snapshotId, List.of())).thenThrow(new ApiException());
+    when(snapshotsApi.retrieveSnapshot(snapshotId, List.of(SnapshotRetrieveIncludeModel.SOURCES)))
+        .thenThrow(new ApiException());
     assertThrows(DatarepoException.class, () -> datarepoService.getDataset(id));
   }
 
