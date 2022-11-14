@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -84,7 +83,7 @@ class DatasetServiceTest {
 
   private static String metadataWithId(DatasetId id) {
     return """
-        {"name":"name","accessLevel":"owner","id":"%s"}""".formatted(id.uuid());
+        {"name":"name","accessLevel":"discoverer","id":"%s"}""".formatted(id.uuid());
   }
 
   @BeforeEach
@@ -106,13 +105,8 @@ class DatasetServiceTest {
 
   @Test
   void listDatasets() {
-    var workspaces =
-        Map.of(
-            WORKSPACE_ID,
-            new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.OWNER));
-    var idToRole =
-        Map.of(
-            SOURCE_ID, new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.OWNER));
+    var workspaces = Map.of(WORKSPACE_ID, new StorageSystemInformation(DatasetAccessLevel.OWNER));
+    var idToRole = Map.of(SOURCE_ID, new StorageSystemInformation(DatasetAccessLevel.OWNER));
     when(datarepoService.getDatasets()).thenReturn(idToRole);
     when(rawlsService.getDatasets()).thenReturn(workspaces);
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, workspaces.keySet()))
@@ -131,24 +125,20 @@ class DatasetServiceTest {
   }
 
   @Test
-  void getMetadata() throws JSONException {
-    when(datarepoService.getRole(SOURCE_ID)).thenReturn(DatasetAccessLevel.OWNER);
-    when(datarepoService.getDataset(SOURCE_ID))
-        .thenReturn(new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.OWNER));
-    when(datasetDao.retrieve(any())).thenReturn(tdrDataset);
+  void getMetadata() throws Exception {
+    when(externalSystemService.getRole(SOURCE_ID)).thenReturn(DatasetAccessLevel.DISCOVERER);
+    when(externalSystemService.getDataset(SOURCE_ID))
+        .thenReturn(
+            new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.DISCOVERER));
+    when(datasetDao.retrieve(dataset.id())).thenReturn(dataset);
     JSONAssert.assertEquals(
-        metadataWithId(tdrDataset.id()), datasetService.getMetadata(tdrDataset.id()), true);
+        metadataWithId(dataset.id()), datasetService.getMetadata(dataset.id()), true);
   }
 
   @Test
   void listDatasetsWithPhsId() {
     String phsId = "1234";
-    var idToRole =
-        Map.of(
-            SOURCE_ID,
-            new StorageSystemInformation()
-                .datasetAccessLevel(DatasetAccessLevel.OWNER)
-                .phsId(phsId));
+    var idToRole = Map.of(SOURCE_ID, new StorageSystemInformation(DatasetAccessLevel.OWNER, phsId));
     when(datarepoService.getDatasets()).thenReturn(idToRole);
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, Set.of())).thenReturn(List.of());
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
@@ -161,12 +151,7 @@ class DatasetServiceTest {
   @Test
   void listDatasetsWithPhsIdOverride() {
     String phsId = "1234";
-    var idToRole =
-        Map.of(
-            SOURCE_ID,
-            new StorageSystemInformation()
-                .datasetAccessLevel(DatasetAccessLevel.OWNER)
-                .phsId(phsId));
+    var idToRole = Map.of(SOURCE_ID, new StorageSystemInformation(DatasetAccessLevel.OWNER, phsId));
     when(datarepoService.getDatasets()).thenReturn(idToRole);
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, Set.of())).thenReturn(List.of());
     var url = "url";
@@ -185,9 +170,7 @@ class DatasetServiceTest {
   @Test
   void listDatasetsUsingAdminPermissions() {
     Map<String, StorageSystemInformation> workspaces = Map.of();
-    var datasets =
-        Map.of(
-            SOURCE_ID, new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.OWNER));
+    var datasets = Map.of(SOURCE_ID, new StorageSystemInformation(DatasetAccessLevel.OWNER));
     when(datarepoService.getDatasets()).thenReturn(datasets);
     when(rawlsService.getDatasets()).thenReturn(workspaces);
     when(samService.hasGlobalAction(SamAction.READ_ANY_METADATA)).thenReturn(true);

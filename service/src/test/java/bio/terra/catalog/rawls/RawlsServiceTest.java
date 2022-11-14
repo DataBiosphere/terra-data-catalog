@@ -86,8 +86,7 @@ class RawlsServiceTest {
   @Test
   void getWorkspaces() throws Exception {
     mockWorkspaces();
-    var items =
-        Map.of("id", new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.OWNER));
+    var items = Map.of("id", new StorageSystemInformation(DatasetAccessLevel.OWNER));
     var workspaceResponses =
         List.of(
             new WorkspaceListResponse()
@@ -110,7 +109,7 @@ class RawlsServiceTest {
         .thenReturn(workspaceResponse);
     assertThat(
         rawlsService.getDataset(workspaceId),
-        is(new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.OWNER)));
+        is(new StorageSystemInformation(DatasetAccessLevel.OWNER)));
   }
 
   @Test

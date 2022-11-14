@@ -67,10 +67,7 @@ class DatarepoServiceTest {
     var items = Map.of(snapshotId.toString(), List.of("steward"));
     var expectedItems =
         Map.of(
-            snapshotId.toString(),
-            new StorageSystemInformation()
-                .datasetAccessLevel(DatasetAccessLevel.OWNER)
-                .phsId("1234"));
+            snapshotId.toString(), new StorageSystemInformation(DatasetAccessLevel.OWNER, "1234"));
     var esm =
         new EnumerateSnapshotModel()
             .items(List.of(new SnapshotSummaryModel().id(snapshotId).phsId("1234")))
@@ -95,10 +92,7 @@ class DatarepoServiceTest {
         .thenReturn(List.of(DatarepoService.STEWARD_ROLE_NAME));
     assertThat(
         datarepoService.getDataset(snapshotId.toString()),
-        is(
-            new StorageSystemInformation()
-                .datasetAccessLevel(DatasetAccessLevel.OWNER)
-                .phsId(phsId)));
+        is(new StorageSystemInformation(DatasetAccessLevel.OWNER, phsId)));
   }
 
   @Test

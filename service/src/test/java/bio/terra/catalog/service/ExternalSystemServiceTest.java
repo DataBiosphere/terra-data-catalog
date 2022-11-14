@@ -28,7 +28,7 @@ class ExternalSystemServiceTest {
     when(mockDatasetDao.listAllDatasets(StorageSystem.EXTERNAL)).thenReturn(resultDatasets);
 
     var expectedStorageSystemInformation =
-        new StorageSystemInformation(DatasetAccessLevel.DISCOVERER, null);
+        new StorageSystemInformation(DatasetAccessLevel.DISCOVERER);
     var externalSystemService = new ExternalSystemService(mockDatasetDao);
     assertThat(
         externalSystemService.getDatasets(),
@@ -41,6 +41,6 @@ class ExternalSystemServiceTest {
     String storageSourceId = "source id";
     assertThat(
         externalSystemService.getDataset(storageSourceId),
-        is(new StorageSystemInformation(DatasetAccessLevel.DISCOVERER, null)));
+        is(new StorageSystemInformation(DatasetAccessLevel.DISCOVERER)));
   }
 }

@@ -73,17 +73,12 @@ public class DatasetService {
     private final Dataset dataset;
     private final StorageSystemInformation storageSystemInformation;
 
-    public DatasetResponse(Dataset dataset) {
-      this(
-          dataset, new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.NO_ACCESS));
-    }
-
     public DatasetResponse(Dataset dataset, StorageSystemInformation storageSystemInformation) {
       this.dataset = dataset;
       this.storageSystemInformation = storageSystemInformation;
     }
 
-    public Object convertToObject() {
+    private Object convertToObject() {
       ObjectNode node = toJsonNode(dataset.metadata());
       addPhsProperties(node);
       node.set(
@@ -148,9 +143,7 @@ public class DatasetService {
               .map(
                   dataset ->
                       new DatasetResponse(
-                          dataset,
-                          new StorageSystemInformation()
-                              .datasetAccessLevel(DatasetAccessLevel.READER)))
+                          dataset, new StorageSystemInformation(DatasetAccessLevel.READER)))
               .filter(
                   datasetWithAccessLevel ->
                       !datasets.stream()

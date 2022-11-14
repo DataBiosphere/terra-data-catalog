@@ -29,11 +29,11 @@ class DatasetDaoTest {
       """
           {"sampleId": "12345", "species": ["mouse", "human"]}""";
 
-  private Dataset createDataset(String storageSourceId, StorageSystem storageSystem) {
-    return createDataset(storageSourceId, storageSystem, DatasetDaoTest.METADATA);
+  private Dataset upsertDataset(String storageSourceId, StorageSystem storageSystem) {
+    return upsertDataset(storageSourceId, storageSystem, DatasetDaoTest.METADATA);
   }
 
-  private Dataset createDataset(
+  private Dataset upsertDataset(
       String storageSourceId, StorageSystem storageSystem, String metadata) {
     return datasetDao.upsert(new Dataset(storageSourceId, storageSystem, metadata));
   }
@@ -42,7 +42,7 @@ class DatasetDaoTest {
   void testListAllExternalDatasets() {
     String storageSourceId = UUID.randomUUID().toString();
     for (StorageSystem value : StorageSystem.values()) {
-      createDataset(storageSourceId, value);
+      upsertDataset(storageSourceId, value);
     }
     List<Dataset> datasets =
         datasetDao.listAllDatasets(StorageSystem.EXTERNAL).stream()
@@ -57,7 +57,7 @@ class DatasetDaoTest {
   @Test
   void testDatasetCrudOperations() {
     String storageSourceId = UUID.randomUUID().toString();
-    Dataset dataset = createDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO);
+    Dataset dataset = upsertDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO);
     var newMetadata = "{}";
     Dataset updateRequest = dataset.withMetadata(newMetadata);
     datasetDao.update(updateRequest);
@@ -71,7 +71,7 @@ class DatasetDaoTest {
   void testCreateDatasetWithDifferentSources() {
     String storageSourceId = UUID.randomUUID().toString();
     for (StorageSystem value : StorageSystem.values()) {
-      createDataset(storageSourceId, value);
+      upsertDataset(storageSourceId, value);
     }
     List<Dataset> datasets =
         datasetDao.listAllDatasets().stream()
@@ -84,8 +84,8 @@ class DatasetDaoTest {
   @Test
   void testCreateDuplicateDataset() {
     String storageSourceId = UUID.randomUUID().toString();
-    createDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO);
-    Dataset dataset = createDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO, "{}");
+    upsertDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO);
+    Dataset dataset = upsertDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO, "{}");
 
     assertThat(dataset.metadata(), is("{}"));
   }
@@ -102,11 +102,11 @@ class DatasetDaoTest {
   @Test
   void testFind() {
     String storageSourceId = UUID.randomUUID().toString();
-    Dataset d1 = createDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO);
+    Dataset d1 = upsertDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO);
     // Create a TDR dataset that we don't request in the query below.
     String storageSourceId2 = UUID.randomUUID().toString();
-    createDataset(storageSourceId2, StorageSystem.TERRA_DATA_REPO);
-    Dataset d3 = createDataset(storageSourceId, StorageSystem.EXTERNAL);
+    upsertDataset(storageSourceId2, StorageSystem.TERRA_DATA_REPO);
+    Dataset d3 = upsertDataset(storageSourceId, StorageSystem.EXTERNAL);
     var datasets =
         datasetDao.find(
             StorageSystem.TERRA_DATA_REPO, List.of(d1.storageSourceId(), d3.storageSourceId()));

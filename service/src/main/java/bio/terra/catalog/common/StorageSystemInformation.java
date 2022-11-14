@@ -8,6 +8,10 @@ public record StorageSystemInformation(DatasetAccessLevel datasetAccessLevel, St
     this(null, null);
   }
 
+  public StorageSystemInformation(DatasetAccessLevel accessLevel) {
+    this(accessLevel, null);
+  }
+
   public StorageSystemInformation phsId(String phsId) {
     return new StorageSystemInformation(datasetAccessLevel, phsId);
   }

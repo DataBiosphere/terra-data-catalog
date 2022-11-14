@@ -29,11 +29,11 @@ public class ExternalSystemService implements StorageSystemService {
             Collectors.toMap(
                 Dataset::storageSourceId,
                 // For external datasets, the role is always DISCOVERER.
-                dataset -> new StorageSystemInformation(DatasetAccessLevel.DISCOVERER, null)));
+                dataset -> new StorageSystemInformation(DatasetAccessLevel.DISCOVERER)));
   }
 
   public StorageSystemInformation getDataset(String storageSourceId) {
-    return new StorageSystemInformation(getRole(storageSourceId), null);
+    return new StorageSystemInformation(getRole(storageSourceId));
   }
 
   @Override
