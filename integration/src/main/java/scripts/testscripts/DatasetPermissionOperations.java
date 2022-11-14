@@ -169,9 +169,10 @@ public class DatasetPermissionOperations extends TestScript {
     assertTrue(
         HttpStatus.valueOf(userDatasetsApi.getApiClient().getStatusCode()).is4xxClientError());
 
+    // TODO (DR-2833): Uncomment once TDR makes retrieve snapshot work for discoverers.
     // but the user can get datasets
-    userDatasetsApi.getDataset(adminTestSnapshotDatasetId);
-    assertThat(userDatasetsApi.getApiClient().getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
+    // userDatasetsApi.getDataset(adminTestSnapshotDatasetId);
+    // assertThat(userDatasetsApi.getApiClient().getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
   }
 
   private void testNoPermissionsForSnapshotDataset() throws Exception {
