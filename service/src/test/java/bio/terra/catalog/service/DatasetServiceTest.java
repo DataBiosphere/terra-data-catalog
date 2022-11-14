@@ -129,7 +129,7 @@ class DatasetServiceTest {
     when(externalSystemService.getRole(SOURCE_ID)).thenReturn(DatasetAccessLevel.DISCOVERER);
     when(externalSystemService.getDataset(SOURCE_ID))
         .thenReturn(
-            new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.DISCOVERER));
+            new StorageSystemInformation(DatasetAccessLevel.DISCOVERER));
     when(datasetDao.retrieve(dataset.id())).thenReturn(dataset);
     JSONAssert.assertEquals(
         metadataWithId(dataset.id()), datasetService.getMetadata(dataset.id()), true);
