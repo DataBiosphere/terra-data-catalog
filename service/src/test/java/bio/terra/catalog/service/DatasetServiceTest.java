@@ -250,8 +250,7 @@ class DatasetServiceTest {
     when(datarepoService.getRole(null)).thenReturn(DatasetAccessLevel.DISCOVERER);
     assertThrows(
         ForbiddenException.class,
-        () -> datasetService.createDataset(StorageSystem.TERRA_DATA_REPO, null, METADATA));
-
+        () -> datasetService.upsertDataset(StorageSystem.TERRA_DATA_REPO, null, METADATA));
   }
 
   @Test
