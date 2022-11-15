@@ -123,8 +123,7 @@ public class DatasetPermissionOperations extends TestScript {
     // note if this assertion fails we'll leave behind a stray dataset in the db
     assertThrows(ApiException.class, () -> userDatasetsApi.createDataset(request));
     assertThat(
-        userDatasetsApi.getApiClient().getStatusCode(),
-        is(HttpStatusCodes.STATUS_CODE_UNAUTHORIZED));
+        userDatasetsApi.getApiClient().getStatusCode(), is(HttpStatusCodes.STATUS_CODE_FORBIDDEN));
 
     // verify the user can still access data though
     userDatasetsApi.getDataset(adminDatasetId);
@@ -159,8 +158,7 @@ public class DatasetPermissionOperations extends TestScript {
     // note if this assertion fails we'll leave behind a stray dataset in the db
     assertThrows(ApiException.class, () -> userDatasetsApi.createDataset(request));
     assertThat(
-        userDatasetsApi.getApiClient().getStatusCode(),
-        is(HttpStatusCodes.STATUS_CODE_UNAUTHORIZED));
+        userDatasetsApi.getApiClient().getStatusCode(), is(HttpStatusCodes.STATUS_CODE_FORBIDDEN));
 
     // verify the user cannot preview data either
     assertThrows(
@@ -177,8 +175,7 @@ public class DatasetPermissionOperations extends TestScript {
   private void testNoPermissionsForSnapshotDataset() throws Exception {
     clearTestSnapshotPermissions();
     // verify the user cannot access dataset without any permissions
-    assertNoPermissionsOnDataset(
-        adminTestSnapshotDatasetId, HttpStatusCodes.STATUS_CODE_UNAUTHORIZED);
+    assertNoPermissionsOnDataset(adminTestSnapshotDatasetId, HttpStatusCodes.STATUS_CODE_FORBIDDEN);
   }
 
   private void testAdminPermissionsOnUserSnapshot() throws Exception {
