@@ -15,7 +15,7 @@ import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.common.exception.BadRequestException;
-import bio.terra.common.exception.UnauthorizedException;
+import bio.terra.common.exception.ForbiddenException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -165,7 +165,7 @@ public class DatasetService {
     // catalog entry.
     if (!samService.hasGlobalAction(action)
         && !getService(dataset).getRole(dataset.storageSourceId()).hasAction(action)) {
-      throw new UnauthorizedException(String.format("User does not have permission to %s", action));
+      throw new ForbiddenException(String.format("User does not have permission to %s", action));
     }
   }
 
