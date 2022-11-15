@@ -18,11 +18,13 @@ import bio.terra.datarepo.api.SnapshotsApi;
 import bio.terra.datarepo.api.UnauthenticatedApi;
 import bio.terra.datarepo.client.ApiException;
 import bio.terra.datarepo.model.ColumnModel;
+import bio.terra.datarepo.model.DatasetSummaryModel;
 import bio.terra.datarepo.model.EnumerateSnapshotModel;
 import bio.terra.datarepo.model.RepositoryStatusModel;
 import bio.terra.datarepo.model.SnapshotModel;
 import bio.terra.datarepo.model.SnapshotPreviewModel;
 import bio.terra.datarepo.model.SnapshotRetrieveIncludeModel;
+import bio.terra.datarepo.model.SnapshotSourceModel;
 import bio.terra.datarepo.model.SnapshotSummaryModel;
 import bio.terra.datarepo.model.TableModel;
 import java.util.List;
@@ -65,10 +67,7 @@ class DatarepoServiceTest {
     var items = Map.of(snapshotId.toString(), List.of("steward"));
     var expectedItems =
         Map.of(
-            snapshotId.toString(),
-            new StorageSystemInformation()
-                .datasetAccessLevel(DatasetAccessLevel.OWNER)
-                .phsId("1234"));
+            snapshotId.toString(), new StorageSystemInformation(DatasetAccessLevel.OWNER, "1234"));
     var esm =
         new EnumerateSnapshotModel()
             .items(List.of(new SnapshotSummaryModel().id(snapshotId).phsId("1234")))
@@ -80,11 +79,38 @@ class DatarepoServiceTest {
   }
 
   @Test
+  void getSnapshot() throws Exception {
+    mockSnapshots();
+    UUID snapshotId = UUID.randomUUID();
+    String phsId = "1234";
+    when(snapshotsApi.retrieveSnapshot(snapshotId, List.of(SnapshotRetrieveIncludeModel.SOURCES)))
+        .thenReturn(
+            new SnapshotModel()
+                .addSourceItem(
+                    new SnapshotSourceModel().dataset(new DatasetSummaryModel().phsId(phsId))));
+    when(snapshotsApi.retrieveUserSnapshotRoles(snapshotId))
+        .thenReturn(List.of(DatarepoService.STEWARD_ROLE_NAME));
+    assertThat(
+        datarepoService.getDataset(snapshotId.toString()),
+        is(new StorageSystemInformation(DatasetAccessLevel.OWNER, phsId)));
+  }
+
+  @Test
   void getSnapshotsException() throws Exception {
     mockSnapshots();
     when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any()))
         .thenThrow(new ApiException());
     assertThrows(DatarepoException.class, () -> datarepoService.getDatasets());
+  }
+
+  @Test
+  void getDatasetException() throws Exception {
+    mockSnapshots();
+    UUID snapshotId = UUID.randomUUID();
+    String id = snapshotId.toString();
+    when(snapshotsApi.retrieveSnapshot(snapshotId, List.of(SnapshotRetrieveIncludeModel.SOURCES)))
+        .thenThrow(new ApiException());
+    assertThrows(DatarepoException.class, () -> datarepoService.getDataset(id));
   }
 
   static Object[][] getRole() {

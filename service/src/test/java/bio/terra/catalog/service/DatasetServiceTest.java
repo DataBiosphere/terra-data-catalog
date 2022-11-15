@@ -83,7 +83,7 @@ class DatasetServiceTest {
 
   private static String metadataWithId(DatasetId id) {
     return """
-        {"name":"name","accessLevel":"no_access","id":"%s"}""".formatted(id.uuid());
+        {"name":"name","accessLevel":"discoverer","id":"%s"}""".formatted(id.uuid());
   }
 
   @BeforeEach
@@ -105,13 +105,8 @@ class DatasetServiceTest {
 
   @Test
   void listDatasets() {
-    var workspaces =
-        Map.of(
-            WORKSPACE_ID,
-            new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.OWNER));
-    var idToRole =
-        Map.of(
-            SOURCE_ID, new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.OWNER));
+    var workspaces = Map.of(WORKSPACE_ID, new StorageSystemInformation(DatasetAccessLevel.OWNER));
+    var idToRole = Map.of(SOURCE_ID, new StorageSystemInformation(DatasetAccessLevel.OWNER));
     when(datarepoService.getDatasets()).thenReturn(idToRole);
     when(rawlsService.getDatasets()).thenReturn(workspaces);
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, workspaces.keySet()))
@@ -130,14 +125,19 @@ class DatasetServiceTest {
   }
 
   @Test
+  void getMetadata() throws Exception {
+    when(externalSystemService.getRole(SOURCE_ID)).thenReturn(DatasetAccessLevel.DISCOVERER);
+    when(externalSystemService.getDataset(SOURCE_ID))
+        .thenReturn(new StorageSystemInformation(DatasetAccessLevel.DISCOVERER));
+    when(datasetDao.retrieve(dataset.id())).thenReturn(dataset);
+    JSONAssert.assertEquals(
+        metadataWithId(dataset.id()), datasetService.getMetadata(dataset.id()), true);
+  }
+
+  @Test
   void listDatasetsWithPhsId() {
     String phsId = "1234";
-    var idToRole =
-        Map.of(
-            SOURCE_ID,
-            new StorageSystemInformation()
-                .datasetAccessLevel(DatasetAccessLevel.OWNER)
-                .phsId(phsId));
+    var idToRole = Map.of(SOURCE_ID, new StorageSystemInformation(DatasetAccessLevel.OWNER, phsId));
     when(datarepoService.getDatasets()).thenReturn(idToRole);
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, Set.of())).thenReturn(List.of());
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
@@ -150,12 +150,7 @@ class DatasetServiceTest {
   @Test
   void listDatasetsWithPhsIdOverride() {
     String phsId = "1234";
-    var idToRole =
-        Map.of(
-            SOURCE_ID,
-            new StorageSystemInformation()
-                .datasetAccessLevel(DatasetAccessLevel.OWNER)
-                .phsId(phsId));
+    var idToRole = Map.of(SOURCE_ID, new StorageSystemInformation(DatasetAccessLevel.OWNER, phsId));
     when(datarepoService.getDatasets()).thenReturn(idToRole);
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, Set.of())).thenReturn(List.of());
     var url = "url";
@@ -174,9 +169,7 @@ class DatasetServiceTest {
   @Test
   void listDatasetsUsingAdminPermissions() {
     Map<String, StorageSystemInformation> workspaces = Map.of();
-    var datasets =
-        Map.of(
-            SOURCE_ID, new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.OWNER));
+    var datasets = Map.of(SOURCE_ID, new StorageSystemInformation(DatasetAccessLevel.OWNER));
     when(datarepoService.getDatasets()).thenReturn(datasets);
     when(rawlsService.getDatasets()).thenReturn(workspaces);
     when(samService.hasGlobalAction(SamAction.READ_ANY_METADATA)).thenReturn(true);
@@ -227,13 +220,6 @@ class DatasetServiceTest {
   }
 
   @Test
-  void testGetMetadata() throws Exception {
-    mockDataset();
-    when(samService.hasGlobalAction(SamAction.READ_ANY_METADATA)).thenReturn(true);
-    JSONAssert.assertEquals(metadataWithId(datasetId), datasetService.getMetadata(datasetId), true);
-  }
-
-  @Test
   void testUpdateMetadataWithInvalidUser() {
     mockDataset();
     when(externalSystemService.getRole(dataset.storageSourceId()))
@@ -265,14 +251,15 @@ class DatasetServiceTest {
     assertThrows(
         ForbiddenException.class,
         () -> datasetService.createDataset(StorageSystem.TERRA_DATA_REPO, null, METADATA));
+
   }
 
   @Test
   void testCreateDatasetAdmin() throws JsonProcessingException {
     when(samService.hasGlobalAction(SamAction.CREATE_METADATA)).thenReturn(true);
-    when(datasetDao.create(new Dataset(SOURCE_ID, dataset.storageSystem(), METADATA)))
+    when(datasetDao.upsert(new Dataset(SOURCE_ID, dataset.storageSystem(), METADATA)))
         .thenReturn(dataset);
-    DatasetId id = datasetService.createDataset(dataset.storageSystem(), SOURCE_ID, METADATA);
+    DatasetId id = datasetService.upsertDataset(dataset.storageSystem(), SOURCE_ID, METADATA);
     verify(jsonValidationService).validateMetadata(objectMapper.readTree(dataset.metadata()));
     assertThat(id, is(datasetId));
   }
@@ -284,9 +271,9 @@ class DatasetServiceTest {
     assertThrows(
         BadRequestException.class,
         () ->
-            datasetService.createDataset(
+            datasetService.upsertDataset(
                 StorageSystem.TERRA_DATA_REPO, storageSourceId, invalidMetadata));
-    verify(datasetDao, never()).create(any());
+    verify(datasetDao, never()).upsert(any());
   }
 
   @Test

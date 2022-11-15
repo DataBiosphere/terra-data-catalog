@@ -52,9 +52,9 @@ public class DatasetApiController implements DatasetsApi {
   }
 
   @Override
-  public ResponseEntity<CreatedDatasetId> createDataset(CreateDatasetRequest request) {
+  public ResponseEntity<CreatedDatasetId> upsertDataset(CreateDatasetRequest request) {
     var datasetId =
-        datasetService.createDataset(
+        datasetService.upsertDataset(
             StorageSystem.fromModel(request.getStorageSystem()),
             request.getStorageSourceId(),
             request.getCatalogEntry());
