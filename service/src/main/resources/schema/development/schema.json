@@ -64,6 +64,10 @@
       "type": "string",
       "description": "A reference to the consent group for datasets not yet using the Data Use Ontology; data use permission and data use modifier supersede this value if they are present."
     },
+    "TerraCoreValueSets:SampleType": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
     "prov:wasAssociatedWith": {
       "type": "array",
       "items": { "type": "string" }
@@ -92,7 +96,7 @@
     "contributors": {
       "type": "array",
       "items": { "type": "string" }
-    }
+    },
   },
   "$defs": {
     "publication": {
