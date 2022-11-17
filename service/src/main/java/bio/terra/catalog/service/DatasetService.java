@@ -16,17 +16,15 @@ import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.exception.ForbiddenException;
+import bio.terra.common.iam.BearerToken;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -40,6 +38,7 @@ public class DatasetService {
   private final DatasetDao datasetDao;
   private final ObjectMapper objectMapper;
   private final StorageSystemService externalService;
+  private final BearerToken bearerToken;
 
   private static final int MAX_ROWS = 30;
 
@@ -50,7 +49,8 @@ public class DatasetService {
       SamService samService,
       JsonValidationService jsonValidationService,
       DatasetDao datasetDao,
-      ObjectMapper objectMapper) {
+      ObjectMapper objectMapper,
+      BearerToken bearerToken) {
     this.datarepoService = datarepoService;
     this.rawlsService = rawlsService;
     this.externalService = externalService;
@@ -58,6 +58,7 @@ public class DatasetService {
     this.jsonValidationService = jsonValidationService;
     this.datasetDao = datasetDao;
     this.objectMapper = objectMapper;
+    this.bearerToken = bearerToken;
   }
 
   private StorageSystemService getService(StorageSystem system) {
@@ -135,14 +136,14 @@ public class DatasetService {
     return createDatasetResponses(roleMap, system);
   }
 
-  public DatasetsListResponse listDatasets() throws InterruptedException {
-    List<DatasetResponse> datasets = new ArrayList<>();
-    ExecutorService es = Executors.newCachedThreadPool();
-    for (StorageSystem system : StorageSystem.values()) {
-      es.execute(() -> datasets.addAll(collectDatasets(system)));
-    }
-    es.shutdown();
-    es.awaitTermination(1, TimeUnit.MINUTES);
+  public DatasetsListResponse listDatasets() {
+    List<DatasetResponse> datasets =
+        Arrays.stream(StorageSystem.values())
+            .parallel()
+            .map(this::collectDatasets)
+            .flatMap(List::stream)
+            .toList();
+
     if (samService.hasGlobalAction(SamAction.READ_ANY_METADATA)) {
       datasets.addAll(
           datasetDao.listAllDatasets().stream()
