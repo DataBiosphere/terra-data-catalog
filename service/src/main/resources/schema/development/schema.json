@@ -77,6 +77,14 @@
       "items": { "$ref": "#/$defs/generatedBy" },
       "description": "Used to determine assay and data modality."
     },
+    "phenotypicDataType": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "genomicDataType": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
     "storage": {
       "type": "array",
       "items": { "$ref": "#/$defs/storageObject" }
@@ -95,8 +103,8 @@
     },
     "contributors": {
       "type": "array",
-      "items": { "type": "string" }
-    },
+      "items": { "$ref": "#/defs/contributor" }
+    }
   },
   "$defs": {
     "publication": {
@@ -214,6 +222,20 @@
           "type": "array",
           "items": { "type": "string" },
           "description": "see https://tinyurl.com/4hs8mt98 for species ontology"
+        }
+      }
+    },
+    "contributor": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "additionalInformation": {
+          "type": "object"
         }
       }
     }
