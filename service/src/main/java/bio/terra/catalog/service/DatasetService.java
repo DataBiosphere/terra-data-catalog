@@ -38,7 +38,6 @@ public class DatasetService {
   private final DatasetDao datasetDao;
   private final ObjectMapper objectMapper;
   private final StorageSystemService externalService;
-  private final BearerToken bearerToken;
 
   private static final int MAX_ROWS = 30;
 
@@ -49,8 +48,7 @@ public class DatasetService {
       SamService samService,
       JsonValidationService jsonValidationService,
       DatasetDao datasetDao,
-      ObjectMapper objectMapper,
-      BearerToken bearerToken) {
+      ObjectMapper objectMapper) {
     this.datarepoService = datarepoService;
     this.rawlsService = rawlsService;
     this.externalService = externalService;
@@ -58,7 +56,6 @@ public class DatasetService {
     this.jsonValidationService = jsonValidationService;
     this.datasetDao = datasetDao;
     this.objectMapper = objectMapper;
-    this.bearerToken = bearerToken;
   }
 
   private StorageSystemService getService(StorageSystem system) {
