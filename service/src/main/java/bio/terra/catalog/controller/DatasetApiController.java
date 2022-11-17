@@ -10,7 +10,6 @@ import bio.terra.catalog.model.DatasetPreviewTablesResponse;
 import bio.terra.catalog.model.DatasetsListResponse;
 import bio.terra.catalog.service.DatasetService;
 import bio.terra.catalog.service.dataset.DatasetId;
-import bio.terra.common.exception.ApiException;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
@@ -28,13 +27,9 @@ public class DatasetApiController implements DatasetsApi {
 
   @Override
   public ResponseEntity<DatasetsListResponse> listDatasets() {
-    try {
-      return ResponseEntity.ok()
-          .cacheControl(CacheControl.noStore())
-          .body(datasetService.listDatasets());
-    } catch (InterruptedException e) {
-      throw new ApiException("Request timeout", e);
-    }
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.noStore())
+        .body(datasetService.listDatasets());
   }
 
   @Override
