@@ -24,6 +24,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -132,11 +135,14 @@ public class DatasetService {
     return createDatasetResponses(roleMap, system);
   }
 
-  public DatasetsListResponse listDatasets() {
+  public DatasetsListResponse listDatasets() throws InterruptedException {
     List<DatasetResponse> datasets = new ArrayList<>();
+    ExecutorService es = Executors.newCachedThreadPool();
     for (StorageSystem system : StorageSystem.values()) {
-      datasets.addAll(collectDatasets(system));
+      es.execute(() -> datasets.addAll(collectDatasets(system)));
     }
+    es.shutdown();
+    es.awaitTermination(1, TimeUnit.MINUTES);
     if (samService.hasGlobalAction(SamAction.READ_ANY_METADATA)) {
       datasets.addAll(
           datasetDao.listAllDatasets().stream()

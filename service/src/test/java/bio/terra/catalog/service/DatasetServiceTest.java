@@ -104,7 +104,7 @@ class DatasetServiceTest {
   }
 
   @Test
-  void listDatasets() {
+  void listDatasets() throws Exception {
     var workspaces = Map.of(WORKSPACE_ID, new StorageSystemInformation(DatasetAccessLevel.OWNER));
     var idToRole = Map.of(SOURCE_ID, new StorageSystemInformation(DatasetAccessLevel.OWNER));
     when(datarepoService.getDatasets()).thenReturn(idToRole);
@@ -135,7 +135,7 @@ class DatasetServiceTest {
   }
 
   @Test
-  void listDatasetsWithPhsId() {
+  void listDatasetsWithPhsId() throws Exception {
     String phsId = "1234";
     var idToRole = Map.of(SOURCE_ID, new StorageSystemInformation(DatasetAccessLevel.OWNER, phsId));
     when(datarepoService.getDatasets()).thenReturn(idToRole);
@@ -148,7 +148,7 @@ class DatasetServiceTest {
   }
 
   @Test
-  void listDatasetsWithPhsIdOverride() {
+  void listDatasetsWithPhsIdOverride() throws Exception {
     String phsId = "1234";
     var idToRole = Map.of(SOURCE_ID, new StorageSystemInformation(DatasetAccessLevel.OWNER, phsId));
     when(datarepoService.getDatasets()).thenReturn(idToRole);
@@ -167,7 +167,7 @@ class DatasetServiceTest {
   }
 
   @Test
-  void listDatasetsUsingAdminPermissions() {
+  void listDatasetsUsingAdminPermissions() throws Exception {
     Map<String, StorageSystemInformation> workspaces = Map.of();
     var datasets = Map.of(SOURCE_ID, new StorageSystemInformation(DatasetAccessLevel.OWNER));
     when(datarepoService.getDatasets()).thenReturn(datasets);
