@@ -94,7 +94,6 @@ public class DatasetOperations extends TestScript {
             .put("dct:issued", Instant.now().toString())
             .put("dcat:accessURL", "url");
     obj.putArray("TerraDCAT_ap:hasDataCollection").addAll(List.of());
-    obj.putArray("prov:wasGeneratedBy").addAll(List.of());
     obj.putArray("storage").addAll(List.of());
     obj.putObject("counts");
     obj.putArray("contributors").addAll(List.of());
