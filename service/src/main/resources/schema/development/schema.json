@@ -77,11 +77,11 @@
       "items": { "$ref": "#/$defs/generatedBy" },
       "description": "Used to determine assay and data modality."
     },
-    "phenotypicDataType": {
+    "TerraDCAT_ap:hasGenomicDataType": {
       "type": "array",
       "items": { "type": "string" }
     },
-    "genomicDataType": {
+    "TerraDCAT_ap:hasPhenotypeDataType": {
       "type": "array",
       "items": { "type": "string" }
     },
