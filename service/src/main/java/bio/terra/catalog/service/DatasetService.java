@@ -136,6 +136,9 @@ public class DatasetService {
   }
 
   public DatasetsListResponse listDatasets() {
+    // Spring request context is limited to the main thread, in order
+    // to have the token and auth information available, we need to copy
+    // the current thread requestAttributes to the child threads
     RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
     List<DatasetResponse> datasets =
         new ArrayList<>(
