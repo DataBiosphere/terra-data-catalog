@@ -20,11 +20,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 
 @Service
 public class DatasetService {
@@ -133,12 +136,17 @@ public class DatasetService {
   }
 
   public DatasetsListResponse listDatasets() {
+    RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
     List<DatasetResponse> datasets =
-        Arrays.stream(StorageSystem.values())
-            .parallel()
-            .map(this::collectDatasets)
-            .flatMap(List::stream)
-            .toList();
+        new ArrayList<>(
+            Arrays.stream(StorageSystem.values())
+                .parallel()
+                .flatMap(
+                    storageSystem -> {
+                      RequestContextHolder.setRequestAttributes(requestAttributes);
+                      return collectDatasets(storageSystem).stream();
+                    })
+                .toList());
 
     if (samService.hasGlobalAction(SamAction.READ_ANY_METADATA)) {
       datasets.addAll(
