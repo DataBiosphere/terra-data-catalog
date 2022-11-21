@@ -114,8 +114,9 @@ class DatasetServiceTest {
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
         .thenReturn(List.of(tdrDataset));
     when(datasetDao.find(StorageSystem.EXTERNAL, Set.of())).thenReturn(List.of());
-    ObjectNode workspaceJson = (ObjectNode) datasetService.listDatasets().getResult().get(0);
-    ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets().getResult().get(1);
+    List<Object> result = datasetService.listDatasets().getResult();
+    ObjectNode workspaceJson = (ObjectNode) result.get(0);
+    ObjectNode tdrJson = (ObjectNode) result.get(1);
     assertThat(workspaceJson.get("name").asText(), is("name"));
     assertThat(workspaceJson.get("id").asText(), is(workspaceDataset.id().toValue()));
     assertThat(
