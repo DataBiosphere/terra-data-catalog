@@ -94,7 +94,6 @@ public class DatasetOperations extends TestScript {
             .put("dct:issued", Instant.now().toString())
             .put("dcat:accessURL", "url");
     obj.putArray("TerraDCAT_ap:hasDataCollection").addAll(List.of());
-    obj.putArray("prov:wasGeneratedBy").addAll(List.of());
     obj.putArray("storage").addAll(List.of());
     obj.putObject("counts");
     obj.putArray("contributors").addAll(List.of());
@@ -109,6 +108,7 @@ public class DatasetOperations extends TestScript {
 
     crudUserJourney(client, StorageSystem.TDR, snapshotId.toString());
     crudUserJourney(client, StorageSystem.WKS, workspaceSource.getWorkspaceId());
+    crudUserJourney(client, StorageSystem.EXT, UUID.randomUUID().toString());
 
     previewUserJourney(StorageSystem.TDR, snapshotId.toString());
     previewUserJourney(StorageSystem.WKS, workspaceSource.getWorkspaceId());
@@ -125,7 +125,7 @@ public class DatasetOperations extends TestScript {
             .catalogEntry(createMetadata("export-test-dataset").toString())
             .storageSourceId(workspaceSource.getWorkspaceId())
             .storageSystem(storageSystem);
-    datasetId = datasetsApi.createDataset(request).getId();
+    datasetId = datasetsApi.upsertDataset(request).getId();
 
     // Export workspace dataset to workspace
     var workspaceId = UUID.fromString(workspaceDest.getWorkspaceId());
@@ -150,7 +150,7 @@ public class DatasetOperations extends TestScript {
             .catalogEntry(createMetadata("preview").toString())
             .storageSourceId(sourceId)
             .storageSystem(storageSystem);
-    datasetId = datasetsApi.createDataset(request).getId();
+    datasetId = datasetsApi.upsertDataset(request).getId();
     log.info("created dataset " + datasetId);
 
     var previewTables = datasetsApi.listDatasetPreviewTables(datasetId);
@@ -196,7 +196,7 @@ public class DatasetOperations extends TestScript {
             .catalogEntry(createMetadata("crud").toString())
             .storageSourceId(sourceId)
             .storageSystem(storageSystem);
-    datasetId = datasetsApi.createDataset(request).getId();
+    datasetId = datasetsApi.upsertDataset(request).getId();
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
     assertThat(datasetId, notNullValue());
     log.info("created dataset " + datasetId);
@@ -239,7 +239,8 @@ public class DatasetOperations extends TestScript {
       Map<Object, Object> dataset = (Map<Object, Object>) datasetObj;
       if (dataset.get("id").equals(datasetId.toString())) {
         assertThat(dataset, hasEntry(is("dct:title"), is("crud")));
-        assertThat(dataset, hasEntry(is("accessLevel"), is("owner")));
+        String role = storageSystem == StorageSystem.EXT ? "discoverer" : "owner";
+        assertThat(dataset, hasEntry(is("accessLevel"), is(role)));
         if (storageSystem.equals(StorageSystem.TDR)) {
           assertThat(dataset, hasEntry(is("phsId"), is("1234")));
           assertTrue(dataset.containsKey("requestAccessURL"));

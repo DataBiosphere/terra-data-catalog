@@ -24,6 +24,14 @@ public interface StorageSystemService {
   Map<String, StorageSystemInformation> getDatasets();
 
   /**
+   * Given a storage object, return the storage system information.
+   *
+   * @param storageSourceId the storage object ID
+   * @return the user's access level
+   */
+  StorageSystemInformation getDataset(String storageSourceId);
+
+  /**
    * Given a storage object, return the user's access level.
    *
    * @param storageSourceId the storage object ID

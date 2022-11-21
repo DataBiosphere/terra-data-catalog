@@ -127,14 +127,14 @@ class DatasetApiControllerTest {
             .storageSourceId(id)
             .catalogEntry(METADATA);
     var uuid = UUID.randomUUID();
-    when(datasetService.createDataset(storageSystem, id, METADATA)).thenReturn(new DatasetId(uuid));
+    when(datasetService.upsertDataset(storageSystem, id, METADATA)).thenReturn(new DatasetId(uuid));
     var postBody = objectMapper.writeValueAsString(request);
     mockMvc
         .perform(post(API).contentType(MediaType.APPLICATION_JSON).content(postBody))
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.id").value(uuid.toString()));
-    verify(datasetService).createDataset(storageSystem, id, METADATA);
+    verify(datasetService).upsertDataset(storageSystem, id, METADATA);
   }
 
   @Test

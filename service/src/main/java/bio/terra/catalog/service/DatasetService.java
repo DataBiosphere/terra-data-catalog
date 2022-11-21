@@ -15,7 +15,7 @@ import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.common.exception.BadRequestException;
-import bio.terra.common.exception.UnauthorizedException;
+import bio.terra.common.exception.ForbiddenException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -74,17 +74,12 @@ public class DatasetService {
     private final Dataset dataset;
     private final StorageSystemInformation storageSystemInformation;
 
-    public DatasetResponse(Dataset dataset) {
-      this(
-          dataset, new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.NO_ACCESS));
-    }
-
     public DatasetResponse(Dataset dataset, StorageSystemInformation storageSystemInformation) {
       this.dataset = dataset;
       this.storageSystemInformation = storageSystemInformation;
     }
 
-    public Object convertToObject() {
+    private Object convertToObject() {
       ObjectNode node = toJsonNode(dataset.metadata());
       addPhsProperties(node);
       node.set(
@@ -137,7 +132,7 @@ public class DatasetService {
     }
     var response = new DatasetsListResponse();
     var defaultInformation =
-        new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.READER);
+        new StorageSystemInformation(DatasetAccessLevel.READER);
     response.setResult(
         datasets.stream()
             .map(
@@ -159,7 +154,7 @@ public class DatasetService {
     // catalog entry.
     if (!samService.hasGlobalAction(action)
         && !getService(dataset).getRole(dataset.storageSourceId()).hasAction(action)) {
-      throw new UnauthorizedException(String.format("User does not have permission to %s", action));
+      throw new ForbiddenException(String.format("User does not have permission to %s", action));
     }
   }
 
@@ -172,7 +167,10 @@ public class DatasetService {
   public String getMetadata(DatasetId datasetId) {
     var dataset = datasetDao.retrieve(datasetId);
     ensureActionPermission(dataset, SamAction.READ_ANY_METADATA);
-    return new DatasetResponse(dataset).convertToObject().toString();
+    return new DatasetResponse(
+            dataset, getService(dataset.storageSystem()).getDataset(dataset.storageSourceId()))
+        .convertToObject()
+        .toString();
   }
 
   public void updateMetadata(DatasetId datasetId, String metadata) {
@@ -182,12 +180,12 @@ public class DatasetService {
     datasetDao.update(dataset.withMetadata(metadata));
   }
 
-  public DatasetId createDataset(
+  public DatasetId upsertDataset(
       StorageSystem storageSystem, String storageSourceId, String metadata) {
     jsonValidationService.validateMetadata(toJsonNode(metadata));
     var dataset = new Dataset(storageSourceId, storageSystem, metadata);
     ensureActionPermission(dataset, SamAction.CREATE_METADATA);
-    return datasetDao.create(dataset).id();
+    return datasetDao.upsert(dataset).id();
   }
 
   public DatasetPreviewTablesResponse listDatasetPreviewTables(DatasetId datasetId) {

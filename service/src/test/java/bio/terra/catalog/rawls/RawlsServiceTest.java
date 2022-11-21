@@ -86,8 +86,7 @@ class RawlsServiceTest {
   @Test
   void getWorkspaces() throws Exception {
     mockWorkspaces();
-    var items =
-        Map.of("id", new StorageSystemInformation().datasetAccessLevel(DatasetAccessLevel.OWNER));
+    var items = Map.of("id", new StorageSystemInformation(DatasetAccessLevel.OWNER));
     var workspaceResponses =
         List.of(
             new WorkspaceListResponse()
@@ -96,6 +95,21 @@ class RawlsServiceTest {
     when(workspacesApi.listWorkspaces(RawlsService.ACCESS_LEVEL_AND_ID))
         .thenReturn(workspaceResponses);
     assertThat(rawlsService.getDatasets(), is(items));
+  }
+
+  @Test
+  void getWorkspace() throws Exception {
+    mockWorkspaces();
+    String workspaceId = "id";
+    var workspaceResponse =
+        new WorkspaceResponse()
+            .workspace(new WorkspaceDetails().workspaceId(workspaceId))
+            .accessLevel(WorkspaceAccessLevel.OWNER);
+    when(workspacesApi.getWorkspaceById(workspaceId, RawlsService.ACCESS_LEVEL))
+        .thenReturn(workspaceResponse);
+    assertThat(
+        rawlsService.getDataset(workspaceId),
+        is(new StorageSystemInformation(DatasetAccessLevel.OWNER)));
   }
 
   @Test
