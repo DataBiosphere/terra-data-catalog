@@ -115,6 +115,9 @@ public class DatasetDao {
   }
 
   @ReadTransaction
+  // This code is safe because it builds a template query string using ?s only. It relies on
+  // JdbcTemplate to perform all text substitutions.
+  @SuppressWarnings("java:S2077")
   public List<Dataset> find(Map<StorageSystem, Collection<String>> systemsAndIds) {
     String query = "(storage_system = ? AND storage_source_id IN %s)";
     List<Object> args = new ArrayList<>();
