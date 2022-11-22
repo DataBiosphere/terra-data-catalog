@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -141,9 +142,9 @@ class DatasetServiceTest {
     String phsId = "1234";
     var idToRole = Map.of(SOURCE_ID, new StorageSystemInformation(DatasetAccessLevel.OWNER, phsId));
     when(datarepoService.getDatasets()).thenReturn(idToRole);
-    // FIXME: need to mock better, something like
-    // find(argThat(hasEntry(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
-    when(datasetDao.find(any())).thenReturn(List.of(tdrDataset));
+    when(datasetDao.find(
+            argThat(map -> map.get(StorageSystem.TERRA_DATA_REPO).equals(idToRole.keySet()))))
+        .thenReturn(List.of(tdrDataset));
     ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets().getResult().get(0);
     assertThat(tdrJson.get("phsId").asText(), is(phsId));
     assertTrue(tdrJson.has("requestAccessURL"));
@@ -155,8 +156,8 @@ class DatasetServiceTest {
     var idToRole = Map.of(SOURCE_ID, new StorageSystemInformation(DatasetAccessLevel.OWNER, phsId));
     when(datarepoService.getDatasets()).thenReturn(idToRole);
     var url = "url";
-    // FIXME: need to mock better
-    when(datasetDao.find(any()))
+    when(datasetDao.find(
+            argThat(map -> map.get(StorageSystem.TERRA_DATA_REPO).equals(idToRole.keySet()))))
         .thenReturn(
             List.of(
                 tdrDataset.withMetadata(
@@ -176,7 +177,6 @@ class DatasetServiceTest {
     when(rawlsService.getDatasets()).thenReturn(workspaces);
     when(samService.hasGlobalAction(SamAction.READ_ANY_METADATA)).thenReturn(true);
     when(datasetDao.listAllDatasets()).thenReturn(List.of(workspaceDataset, tdrDataset));
-    // FIXME: This order-dependant test is fragile. Using a library like JSONAssert is one way to fit it.
     ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets().getResult().get(1);
     ObjectNode workspaceJson = (ObjectNode) datasetService.listDatasets().getResult().get(0);
     assertThat(tdrJson.get("name").asText(), is("name"));
