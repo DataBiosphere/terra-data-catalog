@@ -1,5 +1,6 @@
 package bio.terra.catalog.service;
 
+import bio.terra.catalog.common.RequestContextCopier;
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.common.StorageSystemInformation;
 import bio.terra.catalog.common.StorageSystemService;
@@ -20,14 +21,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
 
 @Service
 public class DatasetService {
@@ -136,20 +135,10 @@ public class DatasetService {
   }
 
   public DatasetsListResponse listDatasets() {
-    // Spring request context is limited to the main thread, in order
-    // to have the token and auth information available, we need to copy
-    // the current thread requestAttributes to the child threads
-    RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
     List<DatasetResponse> datasets =
-        new ArrayList<>(
-            Arrays.stream(StorageSystem.values())
-                .parallel()
-                .flatMap(
-                    storageSystem -> {
-                      RequestContextHolder.setRequestAttributes(requestAttributes);
-                      return collectDatasets(storageSystem).stream();
-                    })
-                .toList());
+        RequestContextCopier.parallelWithRequest(Arrays.stream(StorageSystem.values()))
+            .flatMap(system -> collectDatasets(system).stream())
+            .collect(Collectors.toList());
 
     if (samService.hasGlobalAction(SamAction.READ_ANY_METADATA)) {
       datasets.addAll(
