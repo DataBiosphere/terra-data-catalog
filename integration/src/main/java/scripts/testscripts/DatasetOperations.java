@@ -94,7 +94,6 @@ public class DatasetOperations extends TestScript {
             .put("dct:issued", Instant.now().toString())
             .put("dcat:accessURL", "url");
     obj.putArray("TerraDCAT_ap:hasDataCollection").addAll(List.of());
-    obj.putArray("prov:wasGeneratedBy").addAll(List.of());
     obj.putArray("storage").addAll(List.of());
     obj.putObject("counts");
     obj.putArray("contributors").addAll(List.of());
@@ -126,7 +125,7 @@ public class DatasetOperations extends TestScript {
             .catalogEntry(createMetadata("export-test-dataset").toString())
             .storageSourceId(workspaceSource.getWorkspaceId())
             .storageSystem(storageSystem);
-    datasetId = datasetsApi.createDataset(request).getId();
+    datasetId = datasetsApi.upsertDataset(request).getId();
 
     // Export workspace dataset to workspace
     var workspaceId = UUID.fromString(workspaceDest.getWorkspaceId());
@@ -151,7 +150,7 @@ public class DatasetOperations extends TestScript {
             .catalogEntry(createMetadata("preview").toString())
             .storageSourceId(sourceId)
             .storageSystem(storageSystem);
-    datasetId = datasetsApi.createDataset(request).getId();
+    datasetId = datasetsApi.upsertDataset(request).getId();
     log.info("created dataset " + datasetId);
 
     var previewTables = datasetsApi.listDatasetPreviewTables(datasetId);
@@ -197,7 +196,7 @@ public class DatasetOperations extends TestScript {
             .catalogEntry(createMetadata("crud").toString())
             .storageSourceId(sourceId)
             .storageSystem(storageSystem);
-    datasetId = datasetsApi.createDataset(request).getId();
+    datasetId = datasetsApi.upsertDataset(request).getId();
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_OK));
     assertThat(datasetId, notNullValue());
     log.info("created dataset " + datasetId);

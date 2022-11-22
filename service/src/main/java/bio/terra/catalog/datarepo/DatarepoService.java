@@ -79,13 +79,31 @@ public class DatarepoService implements StorageSystemService {
               Collectors.toMap(
                   snapshotSummaryModel -> snapshotSummaryModel.getId().toString(),
                   snapshotSummaryModel ->
-                      new StorageSystemInformation()
-                          .datasetAccessLevel(
-                              getHighestAccessFromRoleList(
-                                  roleMap.get(snapshotSummaryModel.getId().toString())))
-                          .phsId(snapshotSummaryModel.getPhsId())));
+                      new StorageSystemInformation(
+                          getHighestAccessFromRoleList(
+                              roleMap.get(snapshotSummaryModel.getId().toString())),
+                          snapshotSummaryModel.getPhsId())));
     } catch (ApiException e) {
       throw new DatarepoException("Enumerate snapshots failed", e);
+    }
+  }
+
+  @Override
+  public StorageSystemInformation getDataset(String snapshotId) {
+    UUID id = UUID.fromString(snapshotId);
+    try {
+      return new StorageSystemInformation(
+          getRole(snapshotId),
+          datarepoClient
+              .snapshotsApi()
+              .retrieveSnapshot(id, List.of(SnapshotRetrieveIncludeModel.SOURCES))
+              .getSource()
+              .stream()
+              .findFirst()
+              .map(snapshotSourceModel -> snapshotSourceModel.getDataset().getPhsId())
+              .orElse(null));
+    } catch (ApiException e) {
+      throw new DatarepoException(e);
     }
   }
 
