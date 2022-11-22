@@ -3,7 +3,7 @@
   "$id": "https://app.terra.bio/schemas/datacatalog.development.json",
   "title": "catalog dataset",
   "type": "object",
-  "required": ["dct:title", "dct:description", "dct:creator", "dct:issued", "TerraDCAT_ap:hasDataCollection", "dcat:accessURL", "prov:wasGeneratedBy", "storage", "counts", "contributors"],
+  "required": ["dct:title", "dct:description", "dct:creator", "dct:issued", "TerraDCAT_ap:hasDataCollection", "dcat:accessURL", "storage", "counts", "contributors"],
   "properties": {
     "TerraCore:id": {
       "type": "string",
@@ -55,7 +55,6 @@
     "TerraDCAT_ap:hasOwner": {
       "type": "string",
       "description": "The entity responsible for making the item available and responsible for identifying authorized users of the Dataset or DataCollection."
-
     },
     "TerraDCAT_ap:hasCustodian": {
       "type": "array",
@@ -65,14 +64,26 @@
       "type": "string",
       "description": "A reference to the consent group for datasets not yet using the Data Use Ontology; data use permission and data use modifier supersede this value if they are present."
     },
+    "TerraCoreValueSets:SampleType": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
     "prov:wasAssociatedWith": {
       "type": "array",
       "items": { "type": "string" }
     },
     "prov:wasGeneratedBy": {
       "type": "array",
-      "items": { "type": "object" },
-      "description": "must be created by a Project"
+      "items": { "$ref": "#/$defs/generatedBy" },
+      "description": "Used to determine assay and data modality."
+    },
+    "TerraDCAT_ap:hasGenomicDataType": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "TerraDCAT_ap:hasPhenotypeDataType": {
+      "type": "array",
+      "items": { "type": "string" }
     },
     "storage": {
       "type": "array",
@@ -87,11 +98,12 @@
       "items": { "$ref": "#/$defs/fileTypeCounts" }
     },
     "samples": {
-      "type": "object"
+      "type": "object",
+      "ref": "#/$defs/samples"
     },
     "contributors": {
       "type": "array",
-      "items": { "type": "string" }
+      "items": { "$ref": "#/defs/contributor" }
     }
   },
   "$defs": {
@@ -142,6 +154,19 @@
         }
       }
     },
+    "generatedBy": {
+      "type": "object",
+      "properties": {
+        "TerraCore:hasAssayCategory": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "TerraCore:hasDataModality": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
     "storageObject": {
       "type": "object",
       "properties": {
@@ -152,7 +177,7 @@
           "enum": ["bigquery", "firestore", "bucket"]
         },
         "cloudPlatform": {
-          "enum": ["gcp"]
+          "enum": ["gcp", "azure"]
         }
       }
     },
@@ -182,6 +207,35 @@
         },
         "count": {
           "type": "integer"
+        }
+      }
+    },
+    "samples": {
+      "type": "object",
+      "properties": {
+        "disease": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "see https://tinyurl.com/bdf6b23x for disease ontology"
+        },
+        "species": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "see https://tinyurl.com/4hs8mt98 for species ontology"
+        }
+      }
+    },
+    "contributor": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "additionalInformation": {
+          "type": "object"
         }
       }
     }
