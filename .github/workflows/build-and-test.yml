@@ -142,7 +142,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   integration-tests:
-    needs: [ build, jib ]
+    needs: [ jib ]
     runs-on: ubuntu-latest
 
     services:
@@ -199,7 +199,7 @@ jobs:
         run: ./gradlew --build-cache runTest --args="suites/local/FullIntegration.json build/reports"
 
   notify-slack:
-    needs: [ build, unit-tests-and-sonarqube, source-clear, integration-tests ]
+    needs: [ unit-tests-and-sonarqube, source-clear, integration-tests ]
     runs-on: ubuntu-latest
 
     if: failure() && github.ref == 'refs/heads/main'
@@ -218,7 +218,7 @@ jobs:
           username: 'Data Explorer GitHub Action'
 
   dispatch-tag:
-    needs: [ build, unit-tests-and-sonarqube, source-clear, integration-tests ]
+    needs: [ unit-tests-and-sonarqube, source-clear, integration-tests ]
     runs-on: ubuntu-latest
 
     if: success() && github.ref == 'refs/heads/main'
