@@ -104,7 +104,7 @@ class DatasetServiceTest {
   }
 
   @Test
-  void listDatasets() throws Exception {
+  void listDatasets() {
     var workspaces = Map.of(WORKSPACE_ID, new StorageSystemInformation(DatasetAccessLevel.OWNER));
     var idToRole = Map.of(SOURCE_ID, new StorageSystemInformation(DatasetAccessLevel.OWNER));
     when(datarepoService.getDatasets()).thenReturn(idToRole);
@@ -113,6 +113,7 @@ class DatasetServiceTest {
         .thenReturn(List.of(workspaceDataset));
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
         .thenReturn(List.of(tdrDataset));
+    when(datasetDao.find(StorageSystem.EXTERNAL, Set.of())).thenReturn(List.of());
     ObjectNode workspaceJson = (ObjectNode) datasetService.listDatasets().getResult().get(0);
     ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets().getResult().get(1);
     assertThat(workspaceJson.get("name").asText(), is("name"));
@@ -135,20 +136,22 @@ class DatasetServiceTest {
   }
 
   @Test
-  void listDatasetsWithPhsId() throws Exception {
+  void listDatasetsWithPhsId() {
     String phsId = "1234";
     var idToRole = Map.of(SOURCE_ID, new StorageSystemInformation(DatasetAccessLevel.OWNER, phsId));
     when(datarepoService.getDatasets()).thenReturn(idToRole);
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, Set.of())).thenReturn(List.of());
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
         .thenReturn(List.of(tdrDataset));
+    when(datasetDao.find(StorageSystem.EXTERNAL, Set.of())).thenReturn(List.of());
+
     ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets().getResult().get(0);
     assertThat(tdrJson.get("phsId").asText(), is(phsId));
     assertTrue(tdrJson.has("requestAccessURL"));
   }
 
   @Test
-  void listDatasetsWithPhsIdOverride() throws Exception {
+  void listDatasetsWithPhsIdOverride() {
     String phsId = "1234";
     var idToRole = Map.of(SOURCE_ID, new StorageSystemInformation(DatasetAccessLevel.OWNER, phsId));
     when(datarepoService.getDatasets()).thenReturn(idToRole);
@@ -161,13 +164,15 @@ class DatasetServiceTest {
                     """
             {"%s":"%s"}"""
                         .formatted(DatasetService.REQUEST_ACCESS_URL_PROPERTY_NAME, url))));
+    when(datasetDao.find(StorageSystem.EXTERNAL, Set.of())).thenReturn(List.of());
+
     ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets().getResult().get(0);
     assertThat(tdrJson.get("phsId").asText(), is(phsId));
     assertThat(tdrJson.get(DatasetService.REQUEST_ACCESS_URL_PROPERTY_NAME).asText(), is(url));
   }
 
   @Test
-  void listDatasetsUsingAdminPermissions() throws Exception {
+  void listDatasetsUsingAdminPermissions() {
     Map<String, StorageSystemInformation> workspaces = Map.of();
     var datasets = Map.of(SOURCE_ID, new StorageSystemInformation(DatasetAccessLevel.OWNER));
     when(datarepoService.getDatasets()).thenReturn(datasets);
@@ -176,6 +181,7 @@ class DatasetServiceTest {
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, workspaces.keySet())).thenReturn(List.of());
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, datasets.keySet()))
         .thenReturn(List.of(tdrDataset));
+    when(datasetDao.find(StorageSystem.EXTERNAL, Set.of())).thenReturn(List.of());
     when(datasetDao.listAllDatasets()).thenReturn(List.of(workspaceDataset, tdrDataset));
     ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets().getResult().get(0);
     ObjectNode workspaceJson = (ObjectNode) datasetService.listDatasets().getResult().get(1);
