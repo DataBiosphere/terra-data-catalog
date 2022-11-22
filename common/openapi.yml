@@ -54,11 +54,11 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
     post:
-      summary: Create a new dataset
+      summary: Upsert a new dataset
       tags: [ datasets ]
       description: |
         ⚠️ Do not add sensitive data. All catalog entries are publicly accessible to all Terra users. ⚠️
-      operationId: createDataset
+      operationId: upsertDataset
       requestBody:
         content:
           application/json:
@@ -76,7 +76,7 @@ paths:
                 $ref: '#/components/schemas/ErrorReport'
   /api/v1/datasets/{id}:
     get:
-      summary: Given a dataset ID, return its catalog entry without accurate phsId or access level
+      summary: Given a dataset ID, return its catalog entry with storage source information
       tags: [ datasets ]
       operationId: getDataset
       parameters:

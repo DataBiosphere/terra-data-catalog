@@ -56,12 +56,16 @@ public class RawlsService implements StorageSystemService {
               Collectors.toMap(
                   workspaceListResponse -> workspaceListResponse.getWorkspace().getWorkspaceId(),
                   workspaceListResponse ->
-                      new StorageSystemInformation()
-                          .datasetAccessLevel(
-                              ROLE_TO_DATASET_ACCESS.get(workspaceListResponse.getAccessLevel()))));
+                      new StorageSystemInformation(
+                          ROLE_TO_DATASET_ACCESS.get(workspaceListResponse.getAccessLevel()))));
     } catch (ApiException e) {
       throw new RawlsException("List workspaces failed", e);
     }
+  }
+
+  @Override
+  public StorageSystemInformation getDataset(String workspaceId) {
+    return new StorageSystemInformation(getRole(workspaceId));
   }
 
   @Override

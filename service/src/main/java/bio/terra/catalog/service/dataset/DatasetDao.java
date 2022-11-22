@@ -3,7 +3,6 @@ package bio.terra.catalog.service.dataset;
 import bio.terra.catalog.common.DaoKeyHolder;
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.service.dataset.exception.DatasetNotFoundException;
-import bio.terra.catalog.service.dataset.exception.InvalidDatasetException;
 import bio.terra.common.db.ReadTransaction;
 import bio.terra.common.db.WriteTransaction;
 import java.sql.ResultSet;
@@ -14,7 +13,6 @@ import java.util.Map;
 import java.util.UUID;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -51,12 +49,7 @@ public class DatasetDao {
   private Dataset createOrUpdate(String sql, MapSqlParameterSource params) {
     DaoKeyHolder keyHolder = new DaoKeyHolder();
     int rowsAffected;
-    try {
-      rowsAffected = jdbcTemplate.update(sql, params, keyHolder);
-    } catch (DuplicateKeyException ex) {
-      throw new InvalidDatasetException(
-          "A dataset for this storage_source_id and storage_system already exists", ex);
-    }
+    rowsAffected = jdbcTemplate.update(sql, params, keyHolder);
     if (rowsAffected != 1) {
       throw new DatasetNotFoundException("Dataset not found");
     }
@@ -69,10 +62,11 @@ public class DatasetDao {
   }
 
   @WriteTransaction
-  public Dataset create(Dataset dataset) {
+  public Dataset upsert(Dataset dataset) {
     String sql =
         "INSERT INTO dataset (storage_source_id, storage_system, metadata) "
-            + "VALUES (:storage_source_id, :storage_system, cast(:metadata as jsonb))";
+            + "VALUES (:storage_source_id, :storage_system, cast(:metadata as jsonb)) "
+            + "ON CONFLICT ON CONSTRAINT dataset_unique_constraint DO UPDATE SET metadata = cast(:metadata as jsonb)";
     MapSqlParameterSource params =
         new MapSqlParameterSource()
             .addValue(STORAGE_SOURCE_ID_FIELD, dataset.storageSourceId())
@@ -124,8 +118,8 @@ public class DatasetDao {
     }
 
     String sql =
-        "SELECT * FROM dataset WHERE storage_system = :storageSystem AND storage_source_id IN (:ids)";
-    var params = Map.of("storageSystem", String.valueOf(storageSystem), "ids", ids);
+        "SELECT * FROM dataset WHERE storage_system = :storage_system AND storage_source_id IN (:ids)";
+    var params = Map.of(STORAGE_SYSTEM_FIELD, String.valueOf(storageSystem), "ids", ids);
     return jdbcTemplate.query(sql, params, new DatasetMapper());
   }
 
@@ -137,8 +131,8 @@ public class DatasetDao {
 
   @ReadTransaction
   public List<Dataset> listAllDatasets(StorageSystem storageSystem) {
-    String sql = "SELECT * FROM dataset WHERE storage_system = :storageSystem";
-    var param = Map.of("storageSystem", String.valueOf(storageSystem));
+    String sql = "SELECT * FROM dataset WHERE storage_system = :storage_system";
+    var param = Map.of(STORAGE_SYSTEM_FIELD, String.valueOf(storageSystem));
     return jdbcTemplate.query(sql, param, new DatasetMapper());
   }
 }
