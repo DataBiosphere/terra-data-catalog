@@ -20,10 +20,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
@@ -115,11 +116,11 @@ public class DatasetService {
   }
 
   public DatasetsListResponse listDatasets() {
-    Map<StorageSystem, Map<String, StorageSystemInformation>> systemsAndInfo = new HashMap<>();
-    for (StorageSystem system : StorageSystem.values()) {
-      var systemDatasets = getService(system).getDatasets();
-      systemsAndInfo.put(system, systemDatasets);
-    }
+    var systemsAndInfo =
+        Arrays.stream(StorageSystem.values())
+            .collect(
+                Collectors.toMap(Function.identity(), system -> getService(system).getDatasets()));
+
     List<Dataset> datasets;
     if (samService.hasGlobalAction(SamAction.READ_ANY_METADATA)) {
       datasets = datasetDao.listAllDatasets();
@@ -131,8 +132,9 @@ public class DatasetService {
                       Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().keySet())));
     }
     var response = new DatasetsListResponse();
-    var defaultInformation =
-        new StorageSystemInformation(DatasetAccessLevel.READER);
+    // This is used for the admin user, to provide dummy role for datasets an admin
+    // doesn't have access to in the underlying storage system.
+    var defaultInformation = new StorageSystemInformation(DatasetAccessLevel.READER);
     response.setResult(
         datasets.stream()
             .map(

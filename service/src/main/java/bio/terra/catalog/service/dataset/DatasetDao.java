@@ -7,6 +7,7 @@ import bio.terra.common.db.ReadTransaction;
 import bio.terra.common.db.WriteTransaction;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -113,24 +114,25 @@ public class DatasetDao {
   }
 
   @ReadTransaction
-  public List<Dataset> find(StorageSystem storageSystem, Collection<String> ids) {
-    if (ids.isEmpty()) {
-      return List.of();
-    }
-
-    String sql =
-        "SELECT * FROM dataset WHERE storage_system = :storage_system AND storage_source_id IN (:ids)";
-    var params = Map.of(STORAGE_SYSTEM_FIELD, String.valueOf(storageSystem), "ids", ids);
-    return jdbcTemplate.query(sql, params, new DatasetMapper());
-  }
-
-  @ReadTransaction
   public List<Dataset> find(Map<StorageSystem, Collection<String>> systemsAndIds) {
-    String query = "(storage_system = %s AND storage_source_id IN (%s))";
+    String query = "(storage_system = ? AND storage_source_id IN %s)";
+    List<Object> args = new ArrayList<>();
     String whereClause =
         systemsAndIds.entrySet().stream()
-            .filter(entry -> entry.getValue().isEmpty())
-            .map(entry -> query.formatted(entry.getKey(), String.join(",", entry.getValue())))
+            .filter(entry -> !entry.getValue().isEmpty())
+            .map(
+                entry -> {
+                  args.add(String.valueOf(entry.getKey()));
+                  String inQuery =
+                      entry.getValue().stream()
+                          .map(
+                              value -> {
+                                args.add(value);
+                                return "?";
+                              })
+                          .collect(Collectors.joining(", ", "(", ")"));
+                  return query.formatted(inQuery);
+                })
             .collect(Collectors.joining(" OR "));
 
     if (whereClause.isEmpty()) {
@@ -138,7 +140,7 @@ public class DatasetDao {
     }
 
     String sql = "SELECT * FROM dataset WHERE " + whereClause;
-    return jdbcTemplate.query(sql, new DatasetMapper());
+    return jdbcTemplate.getJdbcTemplate().query(sql, new DatasetMapper(), args.toArray());
   }
 
   @ReadTransaction
