@@ -179,19 +179,19 @@ jobs:
           image: ${{ needs.jib.outputs.image-name }}
 
       - name: Launch the background process for integration tests
-        run: docker run -e DATABASE_HOSTNAME=gateway.docker.internal -p 8080:8080 -d ${{ needs.jib.outputs.image-name }}
+        run: docker run -e DATABASE_HOSTNAME=gateway.docker.internal -p 8080:8080 -d --name catalog ${{ needs.jib.outputs.image-name }}
 
       - name: Wait for boot run to be ready
         run: |
           set +e
-          timeout 60 bash -c 'until [[ $(curl localhost:8080/status | jq .ok) == "true" ]]; do sleep 1; done'
+          timeout 60 bash -c 'until [[ $(curl -s localhost:8080/status | jq .ok) == "true" ]]; do sleep 1; done'
           resultStatus=$?
           set -e
           if [[ $resultStatus == 0 ]]; then
             echo "Server started successfully"
           else
             echo "Server did not start successfully. Dumping log file"
-            cat bootrun.log
+            docker logs catalog
             exit 1
           fi
 
