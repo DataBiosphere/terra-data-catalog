@@ -120,7 +120,7 @@ class DatasetDaoTest {
   }
 
   @Test
-  void testFindNoIds() {
+  void findNoIds() {
     assertThat(datasetDao.find(Map.of(StorageSystem.EXTERNAL, List.of())), empty());
   }
 }

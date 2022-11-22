@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -78,7 +79,7 @@ public class DatasetDao {
   }
 
   @WriteTransaction
-  public Dataset update(Dataset dataset) {
+  public void update(Dataset dataset) {
     String sql =
         "UPDATE dataset "
             + "SET storage_source_id = :storage_source_id, storage_system = :storage_system, "
@@ -90,7 +91,7 @@ public class DatasetDao {
             .addValue(STORAGE_SOURCE_ID_FIELD, dataset.storageSourceId())
             .addValue(STORAGE_SYSTEM_FIELD, String.valueOf(dataset.storageSystem()))
             .addValue(METADATA_FIELD, dataset.metadata());
-    return createOrUpdate(sql, params);
+    createOrUpdate(sql, params);
   }
 
   @WriteTransaction
@@ -123,13 +124,10 @@ public class DatasetDao {
             .map(
                 entry -> {
                   args.add(String.valueOf(entry.getKey()));
+                  args.addAll(entry.getValue());
                   String inQuery =
-                      entry.getValue().stream()
-                          .map(
-                              value -> {
-                                args.add(value);
-                                return "?";
-                              })
+                      Stream.generate(() -> "?")
+                          .limit(entry.getValue().size())
                           .collect(Collectors.joining(", ", "(", ")"));
                   return query.formatted(inQuery);
                 })
