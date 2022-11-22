@@ -165,23 +165,6 @@ paths:
           description: User does not have permission to export workspace
         '404':
           description: Unable to export data into a workspace
-  /api/v1/datasets/{id}/export/{workspaceId}:
-    post:
-      summary: Export the dataset data into a workspace
-      tags: [ datasets ]
-      deprecated: true
-      parameters:
-        - $ref: '#/components/parameters/Id'
-        - $ref: '#/components/parameters/WorkspaceIdPath'
-      operationId: exportDatasetDeprecated
-      responses:
-        '204':
-          description: The data was successfully exported into a workspace
-          content: { }
-        '403':
-          description: User does not have permission to export workspace
-        '404':
-          description: Unable to export data into a workspace
   /api/v1/datasets/{id}/tables:
     get:
       summary: Given a dataset ID, return its preview metadata
