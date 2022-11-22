@@ -1,5 +1,6 @@
 package bio.terra.catalog.service;
 
+import bio.terra.catalog.common.RequestContextCopier;
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.common.StorageSystemInformation;
 import bio.terra.catalog.common.StorageSystemService;
@@ -25,10 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
 
 @Service
 public class DatasetService {
@@ -136,30 +134,9 @@ public class DatasetService {
     return createDatasetResponses(roleMap, system);
   }
 
-  static class ContextCopier {
-
-    private final RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
-
-    private ContextCopier() {}
-
-    private <T> void copyToThread(T target) {
-      if (RequestContextHolder.getRequestAttributes() == null) {
-        RequestContextHolder.setRequestAttributes(attributes);
-      }
-    }
-
-    static <S> Stream<S> parallelWithRequest(Stream<S> stream) {
-      // Spring request context is limited to the main thread, in order
-      // to have the token and auth information available, we need to copy
-      // the current thread requestAttributes to the child threads.
-      ContextCopier copier = new ContextCopier();
-      return stream.parallel().peek(copier::copyToThread);
-    }
-  }
-
   public DatasetsListResponse listDatasets() {
     List<DatasetResponse> datasets =
-        ContextCopier.parallelWithRequest(Arrays.stream(StorageSystem.values()))
+        RequestContextCopier.parallelWithRequest(Arrays.stream(StorageSystem.values()))
             .flatMap(system -> collectDatasets(system).stream())
             .collect(Collectors.toList());
 
