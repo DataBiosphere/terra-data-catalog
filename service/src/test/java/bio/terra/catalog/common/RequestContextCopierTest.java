@@ -16,14 +16,12 @@ public class RequestContextCopierTest {
     MockHttpServletRequest request = new MockHttpServletRequest();
     request.setAttribute("attribute", "value");
     RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
-    Stream.of(1, 2)
-        .parallel()
+    RequestContextCopier.parallelWithRequest(Stream.of(1, 2))
         .forEach(
-            val -> {
-              assertEquals(
-                  Objects.requireNonNull(RequestContextHolder.getRequestAttributes())
-                      .getAttribute("attribute", RequestAttributes.SCOPE_REQUEST),
-                  "value");
-            });
+            val ->
+                assertEquals(
+                    Objects.requireNonNull(RequestContextHolder.getRequestAttributes())
+                        .getAttribute("attribute", RequestAttributes.SCOPE_REQUEST),
+                    "value"));
   }
 }
