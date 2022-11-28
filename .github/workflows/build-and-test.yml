@@ -154,7 +154,9 @@ jobs:
           echo "${{ secrets.PERF_TESTRUNNER_ACCOUNT_B64 }}" | base64 -d > "integration/src/main/resources/rendered/testrunner-perf.json"
 
       - name: Launch the background process for integration tests
-        run: docker run -e DATABASE_HOSTNAME=host.docker.internal -e SPRING_PROFILES_INCLUDE=human-readable-logging -p 8080:8080 -d --name catalog ${{ steps.image-name.outputs.name }}
+        run: |
+          docker --version
+          docker run -e DATABASE_HOSTNAME=172.17.0.1 -e SPRING_PROFILES_INCLUDE=human-readable-logging -p 8080:8080 -d --name catalog ${{ steps.image-name.outputs.name }}
 
       - name: Wait for boot run to be ready
         run: |
