@@ -119,7 +119,7 @@ public class DatasetDao {
   // JdbcTemplate to perform all text substitutions.
   @SuppressWarnings("java:S2077")
   public List<Dataset> find(Map<StorageSystem, Collection<String>> systemsAndIds) {
-    String query = "(storage_system = ? AND storage_source_id IN %s)";
+    String query = "(storage_system = ? AND storage_source_id IN (%s))";
     List<Object> args = new ArrayList<>();
     String whereClause =
         systemsAndIds.entrySet().stream()
@@ -128,11 +128,11 @@ public class DatasetDao {
                 entry -> {
                   args.add(String.valueOf(entry.getKey()));
                   args.addAll(entry.getValue());
-                  String inQuery =
+                  return String.format(
+                      query,
                       Stream.generate(() -> "?")
                           .limit(entry.getValue().size())
-                          .collect(Collectors.joining(", ", "(", ")"));
-                  return query.formatted(inQuery);
+                          .collect(Collectors.joining(", ")));
                 })
             .collect(Collectors.joining(" OR "));
 
