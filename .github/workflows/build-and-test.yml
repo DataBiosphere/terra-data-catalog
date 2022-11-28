@@ -36,39 +36,6 @@ jobs:
         with:
           sarif_file: service/build/reports/spotbugs/main.sarif
 
-  jib:
-    needs: [ build ]
-    runs-on: ubuntu-latest
-    outputs:
-      image-name: ${{ steps.image-name.outputs.name }}
-
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up JDK
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'gradle'
-
-      - name: Construct docker image name and tag
-        id: image-name
-        run: |
-          GITHUB_REPO=$(basename ${{ github.repository }})
-          GIT_SHORT_HASH=$(git rev-parse --short HEAD)
-          echo "name=${GITHUB_REPO}:${GIT_SHORT_HASH}" >> $GITHUB_OUTPUT
-
-      - name: Build image locally with jib
-        run: |
-          ./gradlew --build-cache :service:jibDockerBuild \
-            --image=${{ steps.image-name.outputs.name }} \
-            -Djib.console=plain
-
-      - name: Upload image
-        uses: ishworkh/docker-image-artifact-upload@v1
-        with:
-          image: ${{ steps.image-name.outputs.name }}
-
   dispatch-trivy:
     needs: [ build ]
     runs-on: ubuntu-latest
@@ -142,7 +109,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   integration-tests:
-    needs: [ jib ]
+    needs: [ build ]
     runs-on: ubuntu-latest
 
     services:
@@ -161,6 +128,19 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
+      - name: Construct docker image name and tag
+        id: image-name
+        run: |
+          GITHUB_REPO=$(basename ${{ github.repository }})
+          GIT_SHORT_HASH=$(git rev-parse --short HEAD)
+          echo "name=${GITHUB_REPO}:${GIT_SHORT_HASH}" >> $GITHUB_OUTPUT
+
+      - name: Build image locally with jib
+        run: |
+          ./gradlew --build-cache :service:jibDockerBuild \
+            --image=${{ steps.image-name.outputs.name }} \
+            -Djib.console=plain
+
       - name: Make sure Postgres is ready and init
         env:
           PGPASSWORD: postgres
@@ -173,18 +153,13 @@ jobs:
           echo "${{ secrets.DEV_FIRECLOUD_ACCOUNT_B64 }}" | base64 -d > "integration/src/main/resources/rendered/user-delegated-sa.json"
           echo "${{ secrets.PERF_TESTRUNNER_ACCOUNT_B64 }}" | base64 -d > "integration/src/main/resources/rendered/testrunner-perf.json"
 
-      - name: Download image
-        uses: ishworkh/docker-image-artifact-download@v1
-        with:
-          image: ${{ needs.jib.outputs.image-name }}
-
       - name: Launch the background process for integration tests
-        run: docker run -e DATABASE_HOSTNAME=gateway.docker.internal -p 8080:8080 -d --name catalog ${{ needs.jib.outputs.image-name }}
+        run: docker run -e DATABASE_HOSTNAME=gateway.docker.internal -e SPRING_PROFILES_INCLUDE=human-readable-logging -p 8080:8080 -d --name catalog ${{ needs.jib.outputs.image-name }}
 
       - name: Wait for boot run to be ready
         run: |
           set +e
-          timeout 60 bash -c 'until [[ $(curl -s localhost:8080/status | jq .ok) == "true" ]]; do sleep 1; done'
+          timeout 20 bash -c 'until [[ $(curl -s localhost:8080/status | jq .ok) == "true" ]]; do sleep 1; done'
           resultStatus=$?
           set -e
           if [[ $resultStatus == 0 ]]; then
