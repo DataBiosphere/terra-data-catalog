@@ -8,7 +8,6 @@ import org.apache.commons.dbcp2.PoolableConnectionFactory;
 import org.apache.commons.dbcp2.PoolingDataSource;
 import org.apache.commons.pool2.ObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPool;
-import org.slf4j.LoggerFactory;
 
 /** Base class for accessing database connection configuration properties. */
 public class BaseDatabaseConfiguration {
@@ -60,8 +59,6 @@ public class BaseDatabaseConfiguration {
     props.setProperty("password", getPassword());
 
     ConnectionFactory connectionFactory = new DriverManagerConnectionFactory(getUri(), props);
-
-    LoggerFactory.getLogger(getClass()).info("uri is {}, {}, {}", uri, username, password);
 
     PoolableConnectionFactory poolableConnectionFactory =
         new PoolableConnectionFactory(connectionFactory, null);
