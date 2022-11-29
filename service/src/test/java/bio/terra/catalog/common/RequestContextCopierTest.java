@@ -33,7 +33,9 @@ class RequestContextCopierTest {
 
   @Test
   @Disabled
-  // This is disabled because the way in which Java optimizes parallelization is tricky to test in junit. It works consistently in the positive test, but in the negative test it sometimes optimizes things away where we would like it not to.
+  // This is disabled because the way in which Java optimizes parallelization is tricky to test in
+  // junit. It works consistently in the positive test, but in the negative test it sometimes
+  // optimizes things away where we would like it not to.
   void requestContextDoesntFollowToChildThreads() {
     assertThrows(IllegalStateException.class, () -> runTestWithProvider(Stream::parallel));
   }
