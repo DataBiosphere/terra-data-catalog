@@ -13,7 +13,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.RequestScope;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-public class RequestContextCopierTest {
+class RequestContextCopierTest {
   public static final int THREADS = 2;
 
   int runTestWithProvider(Function<Stream<String>, Stream<String>> provider) {
@@ -33,6 +33,7 @@ public class RequestContextCopierTest {
 
   @Test
   @Disabled
+  // This is disabled because the way in which Java optimizes parallelization is tricky to test in junit. It works consistently in the positive test, but in the negative test it sometimes optimizes things away where we would like it not to.
   void requestContextDoesntFollowToChildThreads() {
     assertThrows(IllegalStateException.class, () -> runTestWithProvider(Stream::parallel));
   }
