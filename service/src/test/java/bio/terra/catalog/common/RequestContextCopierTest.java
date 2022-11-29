@@ -19,6 +19,7 @@ public class RequestContextCopierTest {
     MockHttpServletRequest request = new MockHttpServletRequest();
     RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
     Scope scope = new RequestScope();
+    System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "20");
     return provider
         .apply(Stream.generate(() -> "ignored").limit(THREADS))
         .mapToInt(value -> (int) scope.get("attribute", () -> 1))
