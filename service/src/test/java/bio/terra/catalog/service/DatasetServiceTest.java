@@ -113,6 +113,7 @@ class DatasetServiceTest {
         .thenReturn(List.of(workspaceDataset));
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
         .thenReturn(List.of(tdrDataset));
+    when(datasetDao.find(StorageSystem.EXTERNAL, Set.of())).thenReturn(List.of());
     ObjectNode workspaceJson = (ObjectNode) datasetService.listDatasets().getResult().get(0);
     ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets().getResult().get(1);
     assertThat(workspaceJson.get("name").asText(), is("name"));
@@ -142,6 +143,8 @@ class DatasetServiceTest {
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, Set.of())).thenReturn(List.of());
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
         .thenReturn(List.of(tdrDataset));
+    when(datasetDao.find(StorageSystem.EXTERNAL, Set.of())).thenReturn(List.of());
+
     ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets().getResult().get(0);
     assertThat(tdrJson.get("phsId").asText(), is(phsId));
     assertTrue(tdrJson.has("requestAccessURL"));
@@ -161,6 +164,8 @@ class DatasetServiceTest {
                     """
             {"%s":"%s"}"""
                         .formatted(DatasetService.REQUEST_ACCESS_URL_PROPERTY_NAME, url))));
+    when(datasetDao.find(StorageSystem.EXTERNAL, Set.of())).thenReturn(List.of());
+
     ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets().getResult().get(0);
     assertThat(tdrJson.get("phsId").asText(), is(phsId));
     assertThat(tdrJson.get(DatasetService.REQUEST_ACCESS_URL_PROPERTY_NAME).asText(), is(url));
@@ -176,6 +181,7 @@ class DatasetServiceTest {
     when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, workspaces.keySet())).thenReturn(List.of());
     when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, datasets.keySet()))
         .thenReturn(List.of(tdrDataset));
+    when(datasetDao.find(StorageSystem.EXTERNAL, Set.of())).thenReturn(List.of());
     when(datasetDao.listAllDatasets()).thenReturn(List.of(workspaceDataset, tdrDataset));
     ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets().getResult().get(0);
     ObjectNode workspaceJson = (ObjectNode) datasetService.listDatasets().getResult().get(1);
