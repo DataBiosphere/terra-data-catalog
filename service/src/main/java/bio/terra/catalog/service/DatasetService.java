@@ -1,5 +1,6 @@
 package bio.terra.catalog.service;
 
+import bio.terra.catalog.common.RequestContextCopier;
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.common.StorageSystemInformation;
 import bio.terra.catalog.common.StorageSystemService;
@@ -20,10 +21,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -133,10 +135,11 @@ public class DatasetService {
   }
 
   public DatasetsListResponse listDatasets() {
-    List<DatasetResponse> datasets = new ArrayList<>();
-    for (StorageSystem system : StorageSystem.values()) {
-      datasets.addAll(collectDatasets(system));
-    }
+    List<DatasetResponse> datasets =
+        RequestContextCopier.parallelWithRequest(Arrays.stream(StorageSystem.values()))
+            .flatMap(system -> collectDatasets(system).stream())
+            .collect(Collectors.toList());
+
     if (samService.hasGlobalAction(SamAction.READ_ANY_METADATA)) {
       datasets.addAll(
           datasetDao.listAllDatasets().stream()
