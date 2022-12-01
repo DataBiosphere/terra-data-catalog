@@ -1,5 +1,6 @@
 package bio.terra.catalog.service;
 
+import bio.terra.catalog.common.RequestContextCopier;
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.common.StorageSystemInformation;
 import bio.terra.catalog.common.StorageSystemService;
@@ -117,9 +118,10 @@ public class DatasetService {
 
   public DatasetsListResponse listDatasets() {
     var systemsAndInfo =
-        Arrays.stream(StorageSystem.values())
+        RequestContextCopier.parallelWithRequest(Arrays.stream(StorageSystem.values()))
             .collect(
                 Collectors.toMap(Function.identity(), system -> getService(system).getDatasets()));
+
 
     List<Dataset> datasets;
     if (samService.hasGlobalAction(SamAction.READ_ANY_METADATA)) {
