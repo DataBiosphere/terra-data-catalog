@@ -122,7 +122,6 @@ public class DatasetService {
             .collect(
                 Collectors.toMap(Function.identity(), system -> getService(system).getDatasets()));
 
-
     List<Dataset> datasets;
     if (samService.hasGlobalAction(SamAction.READ_ANY_METADATA)) {
       datasets = datasetDao.listAllDatasets();

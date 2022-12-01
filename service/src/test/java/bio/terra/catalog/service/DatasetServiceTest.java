@@ -145,7 +145,6 @@ class DatasetServiceTest {
     when(datasetDao.find(
             argThat(map -> map.get(StorageSystem.TERRA_DATA_REPO).equals(idToRole.keySet()))))
         .thenReturn(List.of(tdrDataset));
-    when(datasetDao.find(StorageSystem.EXTERNAL, Set.of())).thenReturn(List.of());
 
     ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets().getResult().get(0);
     assertThat(tdrJson.get("phsId").asText(), is(phsId));
@@ -166,7 +165,6 @@ class DatasetServiceTest {
                     """
             {"%s":"%s"}"""
                         .formatted(DatasetService.REQUEST_ACCESS_URL_PROPERTY_NAME, url))));
-    when(datasetDao.find(StorageSystem.EXTERNAL, Set.of())).thenReturn(List.of());
 
     ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets().getResult().get(0);
     assertThat(tdrJson.get("phsId").asText(), is(phsId));
