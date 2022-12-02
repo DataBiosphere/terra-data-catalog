@@ -133,7 +133,7 @@ public class DatasetService {
                       Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().keySet())));
     }
     var response = new DatasetsListResponse();
-    // This is used for the admin user, to provide dummy role for datasets an admin
+    // This is used for the admin user, to provide a dummy role for datasets that an admin
     // doesn't have access to in the underlying storage system.
     var defaultInformation = new StorageSystemInformation(DatasetAccessLevel.READER);
     response.setResult(
