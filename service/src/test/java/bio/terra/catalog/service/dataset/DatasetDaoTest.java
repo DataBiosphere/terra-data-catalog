@@ -12,7 +12,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.service.dataset.exception.DatasetNotFoundException;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,21 +102,25 @@ class DatasetDaoTest {
   }
 
   @Test
-  void testFind() {
-    String storageSourceId = UUID.randomUUID().toString();
-    Dataset d1 = upsertDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO);
+  void find() {
+    Dataset d1 = upsertDataset(UUID.randomUUID().toString(), StorageSystem.TERRA_DATA_REPO);
+    Dataset d2 = upsertDataset(UUID.randomUUID().toString(), StorageSystem.TERRA_DATA_REPO);
     // Create a TDR dataset that we don't request in the query below.
-    String storageSourceId2 = UUID.randomUUID().toString();
-    upsertDataset(storageSourceId2, StorageSystem.TERRA_DATA_REPO);
-    Dataset d3 = upsertDataset(storageSourceId, StorageSystem.EXTERNAL);
-    var datasets =
-        datasetDao.find(
-            StorageSystem.TERRA_DATA_REPO, List.of(d1.storageSourceId(), d3.storageSourceId()));
-    assertThat(datasets, contains(d1));
+    upsertDataset(UUID.randomUUID().toString(), StorageSystem.TERRA_DATA_REPO);
+    Dataset d3 = upsertDataset(UUID.randomUUID().toString(), StorageSystem.EXTERNAL);
+
+    Map<StorageSystem, Collection<String>> systemsAndIds =
+        Map.of(
+            StorageSystem.TERRA_DATA_REPO,
+            List.of(d1.storageSourceId(), d2.storageSourceId()),
+            StorageSystem.EXTERNAL,
+            List.of(d3.storageSourceId()));
+    var datasets = datasetDao.find(systemsAndIds);
+    assertThat(datasets, contains(d1, d2, d3));
   }
 
   @Test
-  void testFindNoIds() {
-    assertThat(datasetDao.find(StorageSystem.EXTERNAL, List.of()), empty());
+  void findNoIds() {
+    assertThat(datasetDao.find(Map.of(StorageSystem.EXTERNAL, List.of())), empty());
   }
 }
