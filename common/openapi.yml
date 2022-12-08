@@ -106,6 +106,202 @@ paths:
           application/json:
             schema:
               type: string
+            examples:
+              jsonObject:
+                summary: A sample object
+                value: '{
+  "dct:title": "sint",
+  "dct:description": "officia dolor et dolor",
+  "dct:creator": "voluptate exercitation Ut cillum",
+  "dct:issued": "1996-08-17T19:54:24.0Z",
+  "TerraDCAT_ap:hasDataCollection": [
+    {
+      "dct:publisher": "Duis",
+      "dct:issued": "1960-12-29T23:38:51.0Z",
+      "dct:creator": "in irure dolor in non",
+      "dct:modified": "1949-02-20T01:48:05.0Z",
+      "dct:identifier": "qui laboris in",
+      "dct:title": "dolore Duis"
+    },
+    {
+      "dct:publisher": "proident eu in amet sed",
+      "dct:creator": "ut amet eu elit",
+      "dct:issued": "1945-04-14T01:25:37.0Z",
+      "dct:title": "consectetur anim adipisicing",
+      "dct:description": "amet labore do incididunt id",
+      "dct:identifier": "cupidatat",
+      "dct:modified": "1979-06-08T11:47:09.0Z"
+    },
+    {
+      "dct:title": "adipisicing mollit qui",
+      "dct:identifier": "ad labore dolore enim aliquip",
+      "dct:issued": "1954-06-17T13:05:40.0Z",
+      "anim_d87": true
+    }
+  ],
+  "dcat:accessURL": "cillum mollit",
+  "storage": [
+    {
+      "cloudPlatform": "azure",
+      "laboris_a": 46232158.70534593,
+      "ex25": -77142789.36118478
+    },
+    {
+      "deserunt_8ed": false,
+      "voluptate_a8": false,
+      "veniam_d": 16463225.891367823
+    }
+  ],
+  "counts": {
+    "samples": -44514847,
+    "donors": 83785293,
+    "files": 36174655
+  },
+  "contributors": [
+    {
+      "email": "anim in dolor",
+      "additionalInformation": {
+        "doloreb": -41708022,
+        "do_3": "non elit esse officia"
+      },
+      "name": "do ut magna in",
+      "ida": false,
+      "ut8e": 74800361
+    },
+    {
+      "additionalInformation": {
+        "et_eef": -34070171.25837757
+      },
+      "email": "in ea dolore in"
+    },
+    {
+      "name": "eu eiusmod labore",
+      "email": "magna pariatur cupidatat in",
+      "additionalInformation": {
+        "mollit_3": 46544276.01068279
+      },
+      "anim_9": -44261677.03337054,
+      "mollit_8": -48392032
+    },
+    {
+      "name": "Excepteur consequat",
+      "additionalInformation": {
+        "anim_7b8": true,
+        "aliquip_7": "anim labore reprehenderit quis",
+        "tempor_03": -84144440,
+        "Lorem4a": 23215743.30680622
+      },
+      "email": "non irure eiusmod",
+      "nostrud_3": "veniam",
+      "est_b": true,
+      "ut_27": -83762846.0241488,
+      "Duis_e": "quis"
+    }
+  ],
+  "TerraDCAT_ap:hasGenomicDataType": [
+    "elit fugiat eu nostrud"
+  ],
+  "TerraDCAT_ap:hasOwner": "non dolor eu ut voluptate",
+  "TerraDCAT_ap:hasPublication": [
+    {
+      "dcat:accessURL": "incididunt eu amet adipisicing occaecat",
+      "dct:title": "quis laboris"
+    },
+    {
+      "dct:title": "Duis consequat dolor",
+      "dcat:accessURL": "quis",
+      "aliqua_5": "cupidatat minim ea eiusmod occaecat"
+    }
+  ],
+  "prov:wasAssociatedWith": [
+    "velit",
+    "esse ea"
+  ],
+  "samples": {
+    "eiusmod_e1_": false,
+    "reprehenderit_2": true
+  },
+  "TerraDCAT_ap:hasConsentGroup": "qui adipisicing consectetur ut",
+  "TerraDCAT_ap:hasCustodian": [
+    "sint mollit id cupidatat dolor",
+    "sit non dolor ut officia"
+  ],
+  "TerraDCAT_ap:hasOriginalPublication": {
+    "dct:title": "ad amet",
+    "amet783": true,
+    "doloree40": 88647167
+  },
+  "fileAggregate": [
+    {
+      "byteSize": 31285755,
+      "TerraCore:hasFileFormat": "nisi",
+      "count": 8911265,
+      "anim9": "nulla aliqua Ut sed",
+      "dolore83a": -50706848.01385088,
+      "dolor8": 73959962.60321835,
+      "Excepteur43": 63858776,
+      "in276": true
+    },
+    {
+      "count": 15916179,
+      "TerraCore:hasFileFormat": "eiusmod",
+      "byteSize": -24580801,
+      "est_75": "Ut in amet velit"
+    },
+    {
+      "TerraCore:hasFileFormat": "irure do",
+      "byteSize": -79723165,
+      "count": 36351881
+    },
+    {
+      "TerraCore:hasFileFormat": "Lorem",
+      "byteSize": -37260619,
+      "count": -26071485
+    }
+  ],
+  "TerraDCAT_ap:hasDataUsePermission": "DUO:0000011",
+  "requestAccessURL": "commodo",
+  "TerraCoreValueSets:SampleType": [
+    "fugiat in enim",
+    "pariatur ut nostrud"
+  ],
+  "prov:wasGeneratedBy": [
+    {
+      "TerraCore:hasAssayCategory": [
+        "deserunt id",
+        "sint aute Duis dolore",
+        "eu",
+        "dolor quis ipsum ullamco"
+      ],
+      "TerraCore:hasDataModality": [
+        "consequat Duis sunt",
+        "laborum consequat enim eiusmod veniam",
+        "ea est in nisi ut",
+        "proident mollit Excepteur commodo occaecat",
+        "velit sunt exercitation ad"
+      ]
+    },
+    {
+      "aliqua3": 81242364,
+      "laboris5a": "occaecat"
+    },
+    {
+      "TerraCore:hasAssayCategory": [
+        "cupidatat",
+        "consectetur proident dolor",
+        "velit adipisicing",
+        "sunt ex irure cillum",
+        "enim voluptate cillum"
+      ],
+      "TerraCore:hasDataModality": [
+        "quis reprehenderit magna",
+        "ullamco in ut qui sed",
+        "exercitation dolore fugiat Excepteur"
+      ]
+    }
+  ]
+}
+'
         required: true
       responses:
         204:
@@ -372,6 +568,7 @@ components:
     DatasetPreviewTablesResponse:
       type: object
       properties:
+
         tables:
           type: array
           items:
