@@ -12,7 +12,7 @@ import java.time.Instant;
 import org.junit.jupiter.api.Test;
 
 class JsonValidationServiceTest {
-  private static final String BASE_PATH = "classpath:schema/test.schema.json";
+  private static final String BASE_PATH = "schema/test.schema.json";
 
   private static final ObjectMapper objectMapper = new BeanConfig().objectMapper();
 

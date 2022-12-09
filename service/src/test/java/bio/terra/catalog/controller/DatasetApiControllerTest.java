@@ -1,4 +1,4 @@
-package bio.terra.catalog.api;
+package bio.terra.catalog.controller;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -12,8 +12,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import bio.terra.catalog.common.StorageSystem;
-import bio.terra.catalog.controller.DatasetApiController;
-import bio.terra.catalog.controller.GlobalExceptionHandler;
 import bio.terra.catalog.model.ColumnModel;
 import bio.terra.catalog.model.CreateDatasetRequest;
 import bio.terra.catalog.model.DatasetExportRequest;

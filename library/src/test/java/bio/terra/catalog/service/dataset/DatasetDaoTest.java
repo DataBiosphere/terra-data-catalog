@@ -11,23 +11,32 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import bio.terra.catalog.common.StorageSystem;
+import bio.terra.catalog.config.CatalogDatabaseConfiguration;
 import bio.terra.catalog.service.dataset.exception.DatasetNotFoundException;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
-@SpringBootTest
 @Transactional
 class DatasetDaoTest {
 
-  @Autowired private DatasetDao datasetDao;
+  private DatasetDao datasetDao;
 
   private static final String METADATA =
       """
           {"sampleId": "12345", "species": ["mouse", "human"]}""";
+
+  @BeforeEach
+  public void beforeEach() {
+    var config = new CatalogDatabaseConfiguration();
+    config.setUsername("dbuser");
+    config.setPassword("dbpwd");
+    config.setUri("jdbc:postgresql://127.0.0.1:5432/catalog_db");
+    datasetDao = new DatasetDao(new NamedParameterJdbcTemplate(config.getDataSource()));
+  }
 
   private Dataset upsertDataset(String storageSourceId, StorageSystem storageSystem) {
     return upsertDataset(storageSourceId, storageSystem, DatasetDaoTest.METADATA);

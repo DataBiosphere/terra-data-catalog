@@ -30,8 +30,8 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Gradle build service
-        run: ./gradlew --build-cache :service:build -x test
+      - name: Build without running tests
+        run: ./gradlew --build-cache build -x test
 
   jib:
     needs: [ build ]

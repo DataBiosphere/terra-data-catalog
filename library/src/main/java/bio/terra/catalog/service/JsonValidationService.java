@@ -7,12 +7,10 @@ import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ResourceUtils;
 
 @Service
 public class JsonValidationService {
@@ -26,9 +24,9 @@ public class JsonValidationService {
 
   private JsonSchema getJsonSchemaFromFile(String file) {
     JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V202012);
-    try (var input = new FileInputStream(ResourceUtils.getFile(file))) {
+    try (var input = getClass().getClassLoader().getResourceAsStream(file)) {
       return factory.getSchema(input);
-    } catch (IOException e) {
+    } catch (IOException | NullPointerException | IllegalArgumentException e) {
       throw new SchemaConfigurationException(e);
     }
   }
