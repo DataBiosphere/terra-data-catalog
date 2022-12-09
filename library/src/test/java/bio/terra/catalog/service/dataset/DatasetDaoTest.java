@@ -13,8 +13,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.config.CatalogDatabaseConfiguration;
 import bio.terra.catalog.service.dataset.exception.DatasetNotFoundException;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
+import javax.sql.DataSource;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -24,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 class DatasetDaoTest {
 
   private DatasetDao datasetDao;
+  private DataSource dataSource;
 
   private static final String METADATA =
       """
@@ -35,7 +39,15 @@ class DatasetDaoTest {
     config.setUsername("dbuser");
     config.setPassword("dbpwd");
     config.setUri("jdbc:postgresql://127.0.0.1:5432/catalog_db");
-    datasetDao = new DatasetDao(new NamedParameterJdbcTemplate(config.getDataSource()));
+    dataSource = config.getDataSource();
+    datasetDao = new DatasetDao(new NamedParameterJdbcTemplate(dataSource));
+  }
+
+  @AfterEach
+  public void afterEach() throws SQLException {
+    try (var statement = dataSource.getConnection().createStatement()) {
+      statement.execute("truncate table dataset");
+    }
   }
 
   private Dataset upsertDataset(String storageSourceId, StorageSystem storageSystem) {
