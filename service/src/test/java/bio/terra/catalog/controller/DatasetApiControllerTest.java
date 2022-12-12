@@ -46,7 +46,6 @@ class DatasetApiControllerTest {
   private static final String PREVIEW_TABLES_API_TABLE_NAME = PREVIEW_TABLES_API + "/{tableName}";
 
   private static final String EXPORT_TABLES_API = API_ID + "/export";
-  private static final String EXPORT_TABLES_DEPRECATED_API = API_ID + "/export/{workspaceId}";
 
   @Autowired private MockMvc mockMvc;
 
@@ -187,16 +186,6 @@ class DatasetApiControllerTest {
             post(EXPORT_TABLES_API, datasetId.uuid())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(postBody))
-        .andExpect(status().is2xxSuccessful());
-    verify(datasetService).exportDataset(datasetId, workspaceId);
-  }
-
-  @Test
-  void exportDatasetDeprecated() throws Exception {
-    var datasetId = new DatasetId(UUID.randomUUID());
-    var workspaceId = UUID.randomUUID();
-    mockMvc
-        .perform(post(EXPORT_TABLES_DEPRECATED_API, datasetId.uuid(), workspaceId))
         .andExpect(status().is2xxSuccessful());
     verify(datasetService).exportDataset(datasetId, workspaceId);
   }

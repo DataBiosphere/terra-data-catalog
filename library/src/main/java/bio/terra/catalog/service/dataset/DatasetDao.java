@@ -7,10 +7,13 @@ import bio.terra.common.db.ReadTransaction;
 import bio.terra.common.db.WriteTransaction;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -76,7 +79,7 @@ public class DatasetDao {
   }
 
   @WriteTransaction
-  public Dataset update(Dataset dataset) {
+  public void update(Dataset dataset) {
     String sql =
         "UPDATE dataset "
             + "SET storage_source_id = :storage_source_id, storage_system = :storage_system, "
@@ -88,7 +91,7 @@ public class DatasetDao {
             .addValue(STORAGE_SOURCE_ID_FIELD, dataset.storageSourceId())
             .addValue(STORAGE_SYSTEM_FIELD, String.valueOf(dataset.storageSystem()))
             .addValue(METADATA_FIELD, dataset.metadata());
-    return createOrUpdate(sql, params);
+    createOrUpdate(sql, params);
   }
 
   @WriteTransaction
@@ -112,15 +115,33 @@ public class DatasetDao {
   }
 
   @ReadTransaction
-  public List<Dataset> find(StorageSystem storageSystem, Collection<String> ids) {
-    if (ids.isEmpty()) {
+  // This code is safe because it builds a template query string using ?s only. It relies on
+  // JdbcTemplate to perform all text substitutions.
+  @SuppressWarnings("java:S2077")
+  public List<Dataset> find(Map<StorageSystem, Collection<String>> systemsAndIds) {
+    String query = "(storage_system = ? AND storage_source_id IN (%s))";
+    List<Object> args = new ArrayList<>();
+    String whereClause =
+        systemsAndIds.entrySet().stream()
+            .filter(entry -> !entry.getValue().isEmpty())
+            .map(
+                entry -> {
+                  args.add(String.valueOf(entry.getKey()));
+                  args.addAll(entry.getValue());
+                  return String.format(
+                      query,
+                      Stream.generate(() -> "?")
+                          .limit(entry.getValue().size())
+                          .collect(Collectors.joining(", ")));
+                })
+            .collect(Collectors.joining(" OR "));
+
+    if (whereClause.isEmpty()) {
       return List.of();
     }
 
-    String sql =
-        "SELECT * FROM dataset WHERE storage_system = :storage_system AND storage_source_id IN (:ids)";
-    var params = Map.of(STORAGE_SYSTEM_FIELD, String.valueOf(storageSystem), "ids", ids);
-    return jdbcTemplate.query(sql, params, new DatasetMapper());
+    String sql = "SELECT * FROM dataset WHERE " + whereClause;
+    return jdbcTemplate.getJdbcTemplate().query(sql, new DatasetMapper(), args.toArray());
   }
 
   @ReadTransaction

@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -109,10 +110,12 @@ class DatasetServiceTest {
     var idToRole = Map.of(SOURCE_ID, new StorageSystemInformation(DatasetAccessLevel.OWNER));
     when(datarepoService.getDatasets()).thenReturn(idToRole);
     when(rawlsService.getDatasets()).thenReturn(workspaces);
-    when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, workspaces.keySet()))
-        .thenReturn(List.of(workspaceDataset));
-    when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
-        .thenReturn(List.of(tdrDataset));
+    when(datasetDao.find(
+            Map.of(
+                StorageSystem.TERRA_WORKSPACE, workspaces.keySet(),
+                StorageSystem.TERRA_DATA_REPO, idToRole.keySet(),
+                StorageSystem.EXTERNAL, Set.of())))
+        .thenReturn(List.of(workspaceDataset, tdrDataset));
     ObjectNode workspaceJson = (ObjectNode) datasetService.listDatasets().getResult().get(0);
     ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets().getResult().get(1);
     assertThat(workspaceJson.get("name").asText(), is("name"));
@@ -139,9 +142,10 @@ class DatasetServiceTest {
     String phsId = "1234";
     var idToRole = Map.of(SOURCE_ID, new StorageSystemInformation(DatasetAccessLevel.OWNER, phsId));
     when(datarepoService.getDatasets()).thenReturn(idToRole);
-    when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, Set.of())).thenReturn(List.of());
-    when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
+    when(datasetDao.find(
+            argThat(map -> map.get(StorageSystem.TERRA_DATA_REPO).equals(idToRole.keySet()))))
         .thenReturn(List.of(tdrDataset));
+
     ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets().getResult().get(0);
     assertThat(tdrJson.get("phsId").asText(), is(phsId));
     assertTrue(tdrJson.has("requestAccessURL"));
@@ -152,15 +156,16 @@ class DatasetServiceTest {
     String phsId = "1234";
     var idToRole = Map.of(SOURCE_ID, new StorageSystemInformation(DatasetAccessLevel.OWNER, phsId));
     when(datarepoService.getDatasets()).thenReturn(idToRole);
-    when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, Set.of())).thenReturn(List.of());
     var url = "url";
-    when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, idToRole.keySet()))
+    when(datasetDao.find(
+            argThat(map -> map.get(StorageSystem.TERRA_DATA_REPO).equals(idToRole.keySet()))))
         .thenReturn(
             List.of(
                 tdrDataset.withMetadata(
                     """
             {"%s":"%s"}"""
                         .formatted(DatasetService.REQUEST_ACCESS_URL_PROPERTY_NAME, url))));
+
     ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets().getResult().get(0);
     assertThat(tdrJson.get("phsId").asText(), is(phsId));
     assertThat(tdrJson.get(DatasetService.REQUEST_ACCESS_URL_PROPERTY_NAME).asText(), is(url));
@@ -173,12 +178,9 @@ class DatasetServiceTest {
     when(datarepoService.getDatasets()).thenReturn(datasets);
     when(rawlsService.getDatasets()).thenReturn(workspaces);
     when(samService.hasGlobalAction(SamAction.READ_ANY_METADATA)).thenReturn(true);
-    when(datasetDao.find(StorageSystem.TERRA_WORKSPACE, workspaces.keySet())).thenReturn(List.of());
-    when(datasetDao.find(StorageSystem.TERRA_DATA_REPO, datasets.keySet()))
-        .thenReturn(List.of(tdrDataset));
     when(datasetDao.listAllDatasets()).thenReturn(List.of(workspaceDataset, tdrDataset));
-    ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets().getResult().get(0);
-    ObjectNode workspaceJson = (ObjectNode) datasetService.listDatasets().getResult().get(1);
+    ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets().getResult().get(1);
+    ObjectNode workspaceJson = (ObjectNode) datasetService.listDatasets().getResult().get(0);
     assertThat(tdrJson.get("name").asText(), is("name"));
     assertThat(tdrJson.get("id").asText(), is(tdrDataset.id().toValue()));
     assertThat(tdrJson.get("accessLevel").asText(), is(String.valueOf(DatasetAccessLevel.OWNER)));

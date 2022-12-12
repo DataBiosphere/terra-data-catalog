@@ -1,5 +1,6 @@
 package bio.terra.catalog.service;
 
+import bio.terra.catalog.common.RequestContextCopier;
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.common.StorageSystemInformation;
 import bio.terra.catalog.common.StorageSystemService;
@@ -20,10 +21,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -113,48 +116,37 @@ public class DatasetService {
     }
   }
 
-  private List<DatasetResponse> createDatasetResponses(
-      Map<String, StorageSystemInformation> datasetStorageInformation,
-      StorageSystem storageSystem) {
-    List<Dataset> datasets = datasetDao.find(storageSystem, datasetStorageInformation.keySet());
-    return datasets.stream()
-        .map(
-            dataset ->
-                new DatasetResponse(
-                    dataset, datasetStorageInformation.get(dataset.storageSourceId())))
-        .toList();
-  }
-
-  private List<DatasetResponse> collectDatasets(StorageSystem system) {
-    // For this storage system, get the collection of visible datasets and the user's roles for
-    // each dataset.
-    Map<String, StorageSystemInformation> roleMap = getService(system).getDatasets();
-    return createDatasetResponses(roleMap, system);
-  }
-
   public DatasetsListResponse listDatasets() {
-    List<DatasetResponse> datasets = new ArrayList<>();
-    for (StorageSystem system : StorageSystem.values()) {
-      datasets.addAll(collectDatasets(system));
-    }
+    var systemsAndInfo =
+        RequestContextCopier.parallelWithRequest(Arrays.stream(StorageSystem.values()))
+            .collect(
+                Collectors.toMap(Function.identity(), system -> getService(system).getDatasets()));
+
+    List<Dataset> datasets;
     if (samService.hasGlobalAction(SamAction.READ_ANY_METADATA)) {
-      datasets.addAll(
-          datasetDao.listAllDatasets().stream()
-              .map(
-                  dataset ->
-                      new DatasetResponse(
-                          dataset, new StorageSystemInformation(DatasetAccessLevel.READER)))
-              .filter(
-                  datasetWithAccessLevel ->
-                      !datasets.stream()
-                          .map(datasetInList -> datasetInList.dataset.id())
-                          .toList()
-                          .contains(datasetWithAccessLevel.dataset.id()))
-              .toList());
+      datasets = datasetDao.listAllDatasets();
+    } else {
+      datasets =
+          datasetDao.find(
+              systemsAndInfo.entrySet().stream()
+                  .collect(
+                      Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().keySet())));
     }
     var response = new DatasetsListResponse();
-
-    response.setResult(datasets.stream().map(DatasetResponse::convertToObject).toList());
+    // This is used for the admin user, to provide a dummy role for datasets that an admin
+    // doesn't have access to in the underlying storage system.
+    var defaultInformation = new StorageSystemInformation(DatasetAccessLevel.READER);
+    response.setResult(
+        datasets.stream()
+            .map(
+                dataset ->
+                    new DatasetResponse(
+                        dataset,
+                        systemsAndInfo
+                            .getOrDefault(dataset.storageSystem(), Map.of())
+                            .getOrDefault(dataset.storageSourceId(), defaultInformation)))
+            .map(DatasetResponse::convertToObject)
+            .toList());
     return response;
   }
 
