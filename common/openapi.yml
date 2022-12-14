@@ -109,7 +109,7 @@ paths:
             examples:
               jsonObject:
                 summary: A sample object
-                externalValue: 'schema.json'
+                externalValue: 'https://localhost:8080/schema.json'
         required: true
       responses:
         204:

@@ -118,8 +118,7 @@
        wrapComponents: {
          response: (Original, { React, oas3Actions, oas3Selectors }) => (props) => {
            const contentType = oas3Selectors.responseContentType(props.path, props.method)
-           const externalValue = props.response.getIn(['content', contentType, 'examples', props.activeExamplesKey, 'externalValue'])
-           console.log(props.response)
+           const externalValue = props.response.getIn(['content', props.contentType, 'examples', props.activeExamplesKey, 'externalValue'])
            // Check if externalValue field exists
            if (externalValue) {
              // Check if examples map already contains externalValue key
