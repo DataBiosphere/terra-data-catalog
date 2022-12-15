@@ -99,11 +99,11 @@
     },
     "samples": {
       "type": "object",
-      "ref": "#/$defs/samples"
+      "$ref": "#/$defs/samples"
     },
     "contributors": {
       "type": "array",
-      "items": { "$ref": "#/defs/contributor" }
+      "items": { "$ref": "#/$defs/contributor" }
     }
   },
   "$defs": {
