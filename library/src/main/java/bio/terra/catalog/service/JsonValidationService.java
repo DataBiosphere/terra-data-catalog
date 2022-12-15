@@ -31,8 +31,12 @@ public class JsonValidationService {
     }
   }
 
+  public Set<ValidationMessage> validate(JsonNode json) {
+    return schema.validate(json);
+  }
+
   public void validateMetadata(JsonNode json) {
-    Set<ValidationMessage> errors = schema.validate(json);
+    Set<ValidationMessage> errors = validate(json);
     if (!errors.isEmpty()) {
       throw new BadRequestException("Catalog entry is invalid: " + errors);
     }
