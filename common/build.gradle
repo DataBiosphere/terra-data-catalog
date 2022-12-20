@@ -1,5 +1,5 @@
 plugins {
-    id 'bio.terra.catalog.java-library-conventions'
+    id 'bio.terra.catalog.java-common-conventions'
     id 'io.spring.dependency-management'
     id 'org.springframework.boot'
     id 'de.undercouch.download'
