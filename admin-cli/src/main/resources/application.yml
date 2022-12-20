@@ -25,27 +25,10 @@ env:
 logging.pattern.level: '%X{requestId} %5p'
 logging.level.root: 'WARN'
 
-server:
-  compression:
-    enabled: true
-    mimeTypes: text/css,application/javascript
-  port: 8080
-
 spring:
   application.name: catalog
-  web:
-    resources:
-      cache:
-        cachecontrol:
-          maxAge: 0
-          mustRevalidate: true
-        useLastModified: false
-      staticLocations: classpath:/api/,classpath:/schema/development/
 
 catalog:
-  ingress:
-    # Default value that's overridden by Helm.
-    domainName: localhost:8080
 
   status-check:
     enabled: true
@@ -72,11 +55,3 @@ catalog:
 
   schema:
     basePath: schema/development/schema.json
-
-terra.common:
-  kubernetes:
-    inKubernetes: false
-
-  tracing:
-    stackdriverExportEnabled: ${env.tracing.exportEnabled}
-    samplingRate: ${env.tracing.samplingRate}
