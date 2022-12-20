@@ -96,7 +96,7 @@ jobs:
           PGPASSWORD: postgres
         run: |
           pg_isready -h localhost -t 10
-          psql -h localhost -U postgres -f ./common/postgres-init.sql
+          psql -h localhost -U postgres -f scripts/postgres-init.sql
 
       - name: Test with coverage
         run: ./gradlew --build-cache test jacocoTestReport
@@ -146,7 +146,7 @@ jobs:
           PGPASSWORD: postgres
         run: |
           pg_isready -h localhost -t 10
-          psql -h localhost -U postgres -f ./common/postgres-init.sql
+          psql -h localhost -U postgres -f scripts/postgres-init.sql
 
       - name: Render GitHub Secrets
         run: |
