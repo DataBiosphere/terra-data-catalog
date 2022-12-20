@@ -136,7 +136,7 @@ jobs:
           psql -h localhost -U postgres -f scripts/postgres-init.sql
 
       - name: Smoke test -- run the CLI
-        run: ./gradlew --build-cache :admin-cli:bootRun --args=list
+        run: UPGRADE_DB=true ./gradlew --build-cache :admin-cli:bootRun --args=list
 
   integration-tests:
     needs: [ build ]
