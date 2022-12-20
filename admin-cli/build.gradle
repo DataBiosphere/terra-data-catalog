@@ -1,7 +1,5 @@
 plugins {
     id 'bio.terra.catalog.java-spring-conventions'
-
-    id 'com.gorylenko.gradle-git-properties' version '2.3.1'
 }
 
 dependencies {
@@ -12,12 +10,4 @@ dependencies {
 
 test {
     useJUnitPlatform ()
-}
-
-gitProperties {
-    keys = []
-    customProperty('catalog.version.gitTag', { it.describe(tags: true) })
-    customProperty('catalog.version.gitHash', { it.head().abbreviatedId })
-    customProperty('catalog.version.github', { "https://github.com/DataBiosphere/terra-data-catalog/tree/${it.describe(tags: true)}" })
-    customProperty('catalog.version.build', version)
 }
