@@ -24,12 +24,14 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @ConfigurationPropertiesScan("bio.terra.catalog")
 @EnableRetry
 @EnableTransactionManagement
-public class LibraryApp {
+public class CommonApp {
 
-  private static final Logger logger = LoggerFactory.getLogger(LibraryApp.class);
+  private static final Logger logger = LoggerFactory.getLogger(CommonApp.class);
 
+  // This is a stub spring boot app that makes it easier to work with the spring boot
+  // gradle plugin. It has no `main` and should never be run.
   public static void main(String[] args) {
-    logger.error("The library app can't be run.");
+    logger.error("The common app can't be run.");
     System.exit(-1);
   }
 }

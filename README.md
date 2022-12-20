@@ -47,7 +47,7 @@ sleep 5                # wait until service comes up
 
 The catalog service uses [Liquibase](https://liquibase.org/) to track and manage changes to the
 database schema. Liquibase runs each changeset (migration) listed in the
-[changelog.xml](library/src/main/resources/db/changelog.xml) file and
+[changelog.xml](common/src/main/resources/db/changelog.xml) file and
 maintains a record of what has been run, so new changes must be added in a new changeset.
 
 To run migrations locally use:
