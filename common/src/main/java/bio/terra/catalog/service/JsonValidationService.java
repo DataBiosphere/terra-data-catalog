@@ -7,12 +7,10 @@ import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ResourceUtils;
 
 @Service
 public class JsonValidationService {
@@ -26,15 +24,19 @@ public class JsonValidationService {
 
   private JsonSchema getJsonSchemaFromFile(String file) {
     JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V202012);
-    try (var input = new FileInputStream(ResourceUtils.getFile(file))) {
+    try (var input = getClass().getClassLoader().getResourceAsStream(file)) {
       return factory.getSchema(input);
-    } catch (IOException e) {
+    } catch (IOException | NullPointerException | IllegalArgumentException e) {
       throw new SchemaConfigurationException(e);
     }
   }
 
+  public Set<ValidationMessage> validate(JsonNode json) {
+    return schema.validate(json);
+  }
+
   public void validateMetadata(JsonNode json) {
-    Set<ValidationMessage> errors = schema.validate(json);
+    Set<ValidationMessage> errors = validate(json);
     if (!errors.isEmpty()) {
       throw new BadRequestException("Catalog entry is invalid: " + errors);
     }

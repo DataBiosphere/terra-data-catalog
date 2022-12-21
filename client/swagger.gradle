@@ -12,7 +12,7 @@ dependencies {
 def artifactGroup = "${group}.catalog"
 
 generateSwaggerCode {
-    inputFile = file('../common/openapi.yml')
+    inputFile = file('../service/src/main/resources/api/openapi.yml')
     language = 'java'
     library = 'jersey2'
 
