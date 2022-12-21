@@ -30,34 +30,8 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Build without running tests
-        run: ./gradlew --build-cache build -x test
-
-  jib:
-    needs: [ build ]
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up JDK
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'gradle'
-
-      - name: Construct docker image name and tag
-        id: image-name
-        run: |
-          GITHUB_REPO=$(basename ${{ github.repository }})
-          GIT_SHORT_HASH=$(git rev-parse --short HEAD)
-          echo "name=${GITHUB_REPO}:${GIT_SHORT_HASH}" >> $GITHUB_OUTPUT
-
-      - name: Build image locally with jib
-        run: |
-          ./gradlew --build-cache :service:jibDockerBuild \
-            --image=${{ steps.image-name.outputs.name }} \
-            -Djib.console=plain
+      - name: Build integration subproject
+        run: ./gradlew --build-cache :integration:build
 
   dispatch-trivy:
     needs: [ build ]
@@ -128,7 +102,7 @@ jobs:
           path: integration/build/reports
 
   notify-de-slack:
-    needs: [ build, jib, test-env, test-runner ]
+    needs: [ build, test-env, test-runner ]
     runs-on: ubuntu-latest
     if: failure()
 
@@ -149,7 +123,7 @@ jobs:
           username: 'Data Explorer Tests'
 
   notify-qa-slack:
-    needs: [ build, jib, test-env, test-runner ]
+    needs: [ build, test-env, test-runner ]
     runs-on: ubuntu-latest
     if: always() && needs.test-env.outputs.test-env != 'dev'
 
@@ -160,7 +134,6 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           STATUS: >-
             ${{ needs.build.result == 'success'
-            && needs.jib.result == 'success'
             && needs.test-runner.result == 'success'
             && 'success' || 'failure' }}
         with:
