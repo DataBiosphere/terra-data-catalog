@@ -4,6 +4,7 @@ env:
   db:
     host: jdbc:postgresql://${DATABASE_HOSTNAME:127.0.0.1}:5432
     init: ${INIT_DB:false}
+    upgrade: ${UPGRADE_DB:false}
     catalog:
       name: ${DATABASE_NAME:catalog_db}
       pass: ${DATABASE_USER_PASSWORD:dbpwd}
@@ -22,28 +23,12 @@ env:
 # Below here is non-deployment-specific
 
 logging.pattern.level: '%X{requestId} %5p'
-
-server:
-  compression:
-    enabled: true
-    mimeTypes: text/css,application/javascript
-  port: 8080
+logging.level.root: 'WARN'
 
 spring:
   application.name: catalog
-  web:
-    resources:
-      cache:
-        cachecontrol:
-          maxAge: 0
-          mustRevalidate: true
-        useLastModified: false
-      staticLocations: classpath:/api/
 
 catalog:
-  ingress:
-    # Default value that's overridden by Helm.
-    domainName: localhost:8080
 
   status-check:
     enabled: true
@@ -54,7 +39,7 @@ catalog:
   catalog-database:
     initializeOnStart: ${env.db.init}
     password: ${env.db.catalog.pass}
-    upgradeOnStart: true
+    upgradeOnStart: ${env.db.upgrade}
     uri: ${env.db.host}/${env.db.catalog.name}
     username: ${env.db.catalog.user}
 
@@ -70,11 +55,3 @@ catalog:
 
   schema:
     basePath: schema/development/schema.json
-
-terra.common:
-  kubernetes:
-    inKubernetes: false
-
-  tracing:
-    stackdriverExportEnabled: ${env.tracing.exportEnabled}
-    samplingRate: ${env.tracing.samplingRate}

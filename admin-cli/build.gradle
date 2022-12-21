@@ -1,0 +1,22 @@
+plugins {
+    id 'bio.terra.catalog.java-spring-conventions'
+    id 'com.gorylenko.gradle-git-properties'
+}
+
+dependencies {
+    implementation project(':client')
+    implementation project(':common')
+    implementation 'com.networknt:json-schema-validator:1.0.73'
+}
+
+test {
+    useJUnitPlatform ()
+}
+
+gitProperties {
+    keys = []
+    customProperty('catalog.version.gitTag', { it.describe(tags: true) })
+    customProperty('catalog.version.gitHash', { it.head().abbreviatedId })
+    customProperty('catalog.version.github', { "https://github.com/DataBiosphere/terra-data-catalog/tree/${it.describe(tags: true)}" })
+    customProperty('catalog.version.build', version)
+}
