@@ -3,9 +3,8 @@ plugins {
     id 'de.undercouch.download'
     id 'com.google.cloud.tools.jib'
     id 'org.sonarqube'
-
-    id 'com.gorylenko.gradle-git-properties' version '2.3.1'
-    id 'org.liquibase.gradle' version '2.1.0'
+    id 'com.gorylenko.gradle-git-properties'
+    id 'org.liquibase.gradle'
 }
 
 apply from: 'generators.gradle'
