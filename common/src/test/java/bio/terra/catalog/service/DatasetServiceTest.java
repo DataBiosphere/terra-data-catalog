@@ -88,7 +88,8 @@ class DatasetServiceTest {
 
   private static String metadataWithIdAndAccess(DatasetId id, DatasetAccessLevel accessLevel) {
     return """
-    {"name":"name","accessLevel":"%s","id":"%s"}""".formatted(accessLevel, id.uuid());
+    {"name":"name","accessLevel":"%s","id":"%s"}"""
+        .formatted(accessLevel, id.uuid());
   }
 
   @BeforeEach

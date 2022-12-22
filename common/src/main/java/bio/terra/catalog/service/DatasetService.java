@@ -35,8 +35,8 @@ public class DatasetService {
   public static final String PHS_ID_PROPERTY_NAME = "phsId";
 
   /**
-   *  This is used for the admin user to provide default information for datasets that an admin
-   *  doesn't have access to in the underlying storage system.
+   * This is used for the admin user to provide default information for datasets that an admin
+   * doesn't have access to in the underlying storage system.
    */
   private static final StorageSystemInformation ADMIN_INFORMATION =
       new StorageSystemInformation(DatasetAccessLevel.READER);
