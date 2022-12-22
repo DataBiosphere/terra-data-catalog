@@ -4,6 +4,7 @@ import bio.terra.catalog.common.RequestContextCopier;
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.common.StorageSystemInformation;
 import bio.terra.catalog.common.StorageSystemService;
+import bio.terra.catalog.datarepo.DatarepoException;
 import bio.terra.catalog.datarepo.DatarepoService;
 import bio.terra.catalog.iam.SamAction;
 import bio.terra.catalog.iam.SamService;
@@ -178,7 +179,7 @@ public class DatasetService {
     StorageSystemInformation information;
     try {
       information = getService(dataset.storageSystem()).getDataset(dataset.storageSourceId());
-    } catch (ForbiddenException e) {
+    } catch (DatarepoException e) {
       information = ADMIN_INFORMATION;
     }
     return new DatasetResponse(dataset, information).convertToObject().toString();

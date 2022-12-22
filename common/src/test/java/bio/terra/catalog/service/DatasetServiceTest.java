@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.common.StorageSystemInformation;
 import bio.terra.catalog.config.BeanConfig;
+import bio.terra.catalog.datarepo.DatarepoException;
 import bio.terra.catalog.datarepo.DatarepoService;
 import bio.terra.catalog.iam.SamAction;
 import bio.terra.catalog.iam.SamService;
@@ -27,6 +28,7 @@ import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.exception.ForbiddenException;
+import bio.terra.datarepo.client.ApiException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -154,7 +156,8 @@ class DatasetServiceTest {
   void getMetadataAdminUserNoAccess() throws Exception {
     mockDataset();
     when(samService.hasGlobalAction(SamAction.READ_ANY_METADATA)).thenReturn(true);
-    when(externalSystemService.getDataset(SOURCE_ID)).thenThrow(new ForbiddenException(""));
+    when(externalSystemService.getDataset(SOURCE_ID))
+        .thenThrow(new DatarepoException(new ApiException()));
     JSONAssert.assertEquals(
         metadataWithIdAndAccess(dataset.id(), DatasetAccessLevel.READER),
         datasetService.getMetadata(dataset.id()),
