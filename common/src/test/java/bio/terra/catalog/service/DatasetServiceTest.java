@@ -83,8 +83,12 @@ class DatasetServiceTest {
           null);
 
   private static String metadataWithId(DatasetId id) {
+    return metadataWithIdAndAccess(id, DatasetAccessLevel.DISCOVERER);
+  }
+
+  private static String metadataWithIdAndAccess(DatasetId id, DatasetAccessLevel accessLevel) {
     return """
-        {"name":"name","accessLevel":"discoverer","id":"%s"}""".formatted(id.uuid());
+    {"name":"name","accessLevel":"%s","id":"%s"}""".formatted(accessLevel, id.uuid());
   }
 
   @BeforeEach
@@ -132,9 +136,28 @@ class DatasetServiceTest {
     when(externalSystemService.getRole(SOURCE_ID)).thenReturn(DatasetAccessLevel.DISCOVERER);
     when(externalSystemService.getDataset(SOURCE_ID))
         .thenReturn(new StorageSystemInformation(DatasetAccessLevel.DISCOVERER));
-    when(datasetDao.retrieve(dataset.id())).thenReturn(dataset);
+    mockDataset();
     JSONAssert.assertEquals(
         metadataWithId(dataset.id()), datasetService.getMetadata(dataset.id()), true);
+  }
+
+  @Test
+  void getMetadataInvalidUser() {
+    mockDataset();
+    when(externalSystemService.getRole(dataset.storageSourceId()))
+        .thenReturn(DatasetAccessLevel.NO_ACCESS);
+    assertThrows(ForbiddenException.class, () -> datasetService.getMetadata(datasetId));
+  }
+
+  @Test
+  void getMetadataAdminUserNoAccess() throws Exception {
+    mockDataset();
+    when(samService.hasGlobalAction(SamAction.READ_ANY_METADATA)).thenReturn(true);
+    when(externalSystemService.getDataset(SOURCE_ID)).thenThrow(new ForbiddenException(""));
+    JSONAssert.assertEquals(
+        metadataWithIdAndAccess(dataset.id(), DatasetAccessLevel.READER),
+        datasetService.getMetadata(dataset.id()),
+        true);
   }
 
   @Test
@@ -211,14 +234,6 @@ class DatasetServiceTest {
     mockDataset();
     when(externalSystemService.getRole(SOURCE_ID)).thenReturn(DatasetAccessLevel.READER);
     assertThrows(ForbiddenException.class, () -> datasetService.deleteMetadata(datasetId));
-  }
-
-  @Test
-  void testGetMetadataWithInvalidUser() {
-    mockDataset();
-    when(externalSystemService.getRole(dataset.storageSourceId()))
-        .thenReturn(DatasetAccessLevel.NO_ACCESS);
-    assertThrows(ForbiddenException.class, () -> datasetService.getMetadata(datasetId));
   }
 
   @Test
