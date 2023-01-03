@@ -1,4 +1,4 @@
-package bio.terra.catalog.api;
+package bio.terra.catalog.controller;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -8,7 +8,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import bio.terra.catalog.config.VersionConfiguration;
-import bio.terra.catalog.controller.PublicApiController;
 import bio.terra.catalog.model.SystemStatus;
 import bio.terra.catalog.service.CatalogStatusService;
 import org.junit.jupiter.api.Test;

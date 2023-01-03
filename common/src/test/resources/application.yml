@@ -1,0 +1,26 @@
+# application.yml for testing the common subproject
+#
+# This is only used to test DAO classes, as only they create a spring boot app context for testing.
+
+env:
+  db:
+    host: jdbc:postgresql://${DATABASE_HOSTNAME:127.0.0.1}:5432
+    init: ${INIT_DB:false}
+    catalog:
+      name: ${DATABASE_NAME:catalog_db}
+      pass: ${DATABASE_USER_PASSWORD:dbpwd}
+      user: ${DATABASE_USER:dbuser}
+
+spring:
+  application.name: catalog
+  # This avoids the need to configure services that aren't tested.
+  main.lazy-initialization: true
+
+catalog:
+
+  catalog-database:
+    initializeOnStart: ${env.db.init}
+    password: ${env.db.catalog.pass}
+    upgradeOnStart: true
+    uri: ${env.db.host}/${env.db.catalog.name}
+    username: ${env.db.catalog.user}
