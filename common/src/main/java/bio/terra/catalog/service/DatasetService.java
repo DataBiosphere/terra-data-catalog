@@ -39,7 +39,7 @@ public class DatasetService {
    * This is used for the admin user to provide default information for datasets that an admin
    * doesn't have access to in the underlying storage system.
    */
-  private static final StorageSystemInformation ADMIN_INFORMATION =
+  private static final StorageSystemInformation DEFAULT_INFORMATION =
       new StorageSystemInformation(DatasetAccessLevel.READER);
 
   private final DatarepoService datarepoService;
@@ -150,7 +150,7 @@ public class DatasetService {
                         dataset,
                         systemsAndInfo
                             .getOrDefault(dataset.storageSystem(), Map.of())
-                            .getOrDefault(dataset.storageSourceId(), ADMIN_INFORMATION)))
+                            .getOrDefault(dataset.storageSourceId(), DEFAULT_INFORMATION)))
             .map(DatasetResponse::convertToObject)
             .toList());
     return response;
@@ -180,7 +180,7 @@ public class DatasetService {
     try {
       information = getService(dataset.storageSystem()).getDataset(dataset.storageSourceId());
     } catch (DatarepoException e) {
-      information = ADMIN_INFORMATION;
+      information = DEFAULT_INFORMATION;
     }
     return new DatasetResponse(dataset, information).convertToObject().toString();
   }
