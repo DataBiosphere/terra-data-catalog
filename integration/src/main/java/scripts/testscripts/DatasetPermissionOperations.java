@@ -179,6 +179,9 @@ public class DatasetPermissionOperations extends TestScript {
     CreateDatasetRequest request = datasetRequest(userTestSnapshotId.toString(), StorageSystem.TDR);
     var datasetId = adminCreateDataset(request);
 
+    // Verify admin can get the dataset metadata even when they don't have access to the snapshot.
+    adminDatasetsApi.getDataset(datasetId);
+
     // But admin cannot access the underlying preview data
     assertThrows(Exception.class, () -> adminDatasetsApi.listDatasetPreviewTables(datasetId));
     assertTrue(
