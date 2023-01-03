@@ -87,7 +87,10 @@
     },
     "storage": {
       "type": "array",
-      "items": { "oneOf": [ { "type": "object", "$ref": "#/$defs/gcpStorageObject" }, { "type": "object", "$ref": "#/$defs/azureStorageObject" } ] }
+      "items": { "oneOf": [
+        { "type": "object", "$ref": "#/$defs/gcpStorageObject" },
+        { "type": "object", "$ref": "#/$defs/azureStorageObject" }
+      ]}
     },
     "counts": {
       "type": "object",
