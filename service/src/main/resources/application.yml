@@ -38,7 +38,7 @@ spring:
           maxAge: 0
           mustRevalidate: true
         useLastModified: false
-      staticLocations: classpath:/api/
+      staticLocations: classpath:/api/,classpath:/schema/development/
 
 catalog:
   ingress:

@@ -76,31 +76,6 @@
 <script src="/webjars/swagger-ui-dist/swagger-ui-standalone-preset.js"> </script>
 <script th:inline="javascript">
 
-   // Adds support for pinning the auth bar when the user scrolls down far enough to hide the bar
-    const pinLoginPlugin = function(system) {
-      return {
-        afterLoad: function(system) {
-          var offsetY;
-          var authBar;
-          document.addEventListener('scroll', function() {
-            if (offsetY === undefined) {
-              // Note: the auth bar is not a React component, so we can't use the standard plugin approach to modify
-              var authBars = document.getElementsByClassName('scheme-container');
-              if (authBars.length > 0) {
-                authBar = authBars[0];
-                offsetY = authBar.offsetTop;
-              }
-            }
-            if (window.scrollY > offsetY) {
-              authBar.classList.add('pinned');
-            } else {
-              authBar.classList.remove('pinned');
-            }
-          });
-        }
-      }
-    }
-
     // Removes the online validation since some code gen bugs cause us to have some specs that cause the validator to squawk
   const clearValidator = function(system) {
     return {
@@ -110,7 +85,65 @@
     };
   }
 
-  window.onload = function() {
+    // Examples map
+    const examples = {};
+
+    // Custom plugin for logic that happens before the response element is created
+    const LoadExternalValuePlugin = () => {
+      return {
+        wrapComponents: {
+          // wrapping https://github.com/swagger-api/swagger-ui/blob/master/src/core/components/parameters/parameters.jsx
+          parameters: (Original, { React, oas3Actions, oas3Selectors }) => (props) => {
+            const operation = props.operation
+            const pathMethod = props.pathMethod
+            // const contentType = oas3Selectors.requestContentType(...pathMethod)
+            const contentType = 'application/json'
+            // const activeExamplesKey = oas3Selectors.activeExamplesMember(
+            //   ...pathMethod,
+            //   "requestBody",
+            //   "requestBody", // RBs are currently not stored per-mediaType
+            // )
+            const activeExamplesKey = 'dataset'
+            // const externalValue = props.response.getIn(['content', contentType, 'examples', props.activeExamplesKey, 'externalValue'])
+            const externalValue = operation.getIn(['requestBody', 'content', contentType, 'examples', activeExamplesKey, 'externalValue'])
+            // Check if externalValue field exists
+            if (externalValue) {
+              // Check if examples map already contains externalValue key
+              if (examples[externalValue]) {
+                // Set example value directly from examples map
+                props.operation = operation.setIn(['requestBody', 'content', contentType, 'examples', activeExamplesKey, 'value'], examples[externalValue])
+              } else {
+                // Download external file
+                fetch(externalValue)
+                  .then(res => res.text())
+                  .then(data => {
+                    // Put downloaded file content into the examples map
+                    examples[externalValue] = data
+                    // Simulate select another example action
+                    oas3Actions.setActiveExamplesMember({
+                      "name": 'fake',
+                      "pathMethod": [props.path, props.method],
+                      "contextType": "responses",
+                      "contextName": props.code
+                    })
+                    // Reselect this example
+                    oas3Actions.setActiveExamplesMember({
+                      "name": props.activeExamplesKey,
+                      "pathMethod": [props.path, props.method],
+                      "contextType": "responses",
+                      "contextName": props.code
+                    })
+                  })
+                  .catch(e => console.error(e))
+              }
+            }
+            return React.createElement(Original, props)
+          }
+        }
+      }
+    }
+
+    window.onload = function() {
     // Begin Swagger UI call region
     const ui = SwaggerUIBundle({
       url: 'openapi.yml',
@@ -122,12 +155,13 @@
       ],
       plugins: [
         SwaggerUIBundle.plugins.DownloadUrl,
-        pinLoginPlugin,
-        clearValidator
+        clearValidator,
+        LoadExternalValuePlugin
       ],
       layout: 'StandaloneLayout',
-      displayOperationId: true,
-      docExpansion: 'none',
+      displayRequestDuration: true,
+      tryItOutEnabled: true,
+      defaultModelsExpandDepth: 0,
       oauth2RedirectUrl: window.location.protocol + '//' + window.location.host + '/webjars/swagger-ui-dist/oauth2-redirect.html'
     })
     // End Swagger UI call region

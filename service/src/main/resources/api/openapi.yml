@@ -106,6 +106,10 @@ paths:
           application/json:
             schema:
               type: string
+            examples:
+              dataset:
+                summary: An example dataset
+                externalValue: 'example.json'
         required: true
       responses:
         204:
