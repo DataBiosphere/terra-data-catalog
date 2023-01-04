@@ -4,6 +4,7 @@ import bio.terra.catalog.common.RequestContextCopier;
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.common.StorageSystemInformation;
 import bio.terra.catalog.common.StorageSystemService;
+import bio.terra.catalog.datarepo.DatarepoException;
 import bio.terra.catalog.datarepo.DatarepoService;
 import bio.terra.catalog.iam.SamAction;
 import bio.terra.catalog.iam.SamService;
@@ -33,6 +34,14 @@ import org.springframework.stereotype.Service;
 public class DatasetService {
   public static final String REQUEST_ACCESS_URL_PROPERTY_NAME = "requestAccessURL";
   public static final String PHS_ID_PROPERTY_NAME = "phsId";
+
+  /**
+   * This is used for the admin user to provide default information for datasets that an admin
+   * doesn't have access to in the underlying storage system.
+   */
+  private static final StorageSystemInformation DEFAULT_INFORMATION =
+      new StorageSystemInformation(DatasetAccessLevel.READER);
+
   private final DatarepoService datarepoService;
   private final RawlsService rawlsService;
   private final SamService samService;
@@ -133,9 +142,6 @@ public class DatasetService {
                       Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().keySet())));
     }
     var response = new DatasetsListResponse();
-    // This is used for the admin user, to provide a dummy role for datasets that an admin
-    // doesn't have access to in the underlying storage system.
-    var defaultInformation = new StorageSystemInformation(DatasetAccessLevel.READER);
     response.setResult(
         datasets.stream()
             .map(
@@ -144,7 +150,7 @@ public class DatasetService {
                         dataset,
                         systemsAndInfo
                             .getOrDefault(dataset.storageSystem(), Map.of())
-                            .getOrDefault(dataset.storageSourceId(), defaultInformation)))
+                            .getOrDefault(dataset.storageSourceId(), DEFAULT_INFORMATION)))
             .map(DatasetResponse::convertToObject)
             .toList());
     return response;
@@ -170,10 +176,13 @@ public class DatasetService {
   public String getMetadata(DatasetId datasetId) {
     var dataset = datasetDao.retrieve(datasetId);
     ensureActionPermission(dataset, SamAction.READ_ANY_METADATA);
-    return new DatasetResponse(
-            dataset, getService(dataset.storageSystem()).getDataset(dataset.storageSourceId()))
-        .convertToObject()
-        .toString();
+    StorageSystemInformation information;
+    try {
+      information = getService(dataset.storageSystem()).getDataset(dataset.storageSourceId());
+    } catch (DatarepoException e) {
+      information = DEFAULT_INFORMATION;
+    }
+    return new DatasetResponse(dataset, information).convertToObject().toString();
   }
 
   public void updateMetadata(DatasetId datasetId, String metadata) {
