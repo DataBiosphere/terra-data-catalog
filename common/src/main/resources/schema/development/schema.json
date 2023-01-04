@@ -87,7 +87,10 @@
     },
     "storage": {
       "type": "array",
-      "items": { "$ref": "#/$defs/storageObject" }
+      "items": { "oneOf": [
+        { "type": "object", "$ref": "#/$defs/gcpStorageObject" },
+        { "type": "object", "$ref": "#/$defs/azureStorageObject" }
+      ]}
     },
     "counts": {
       "type": "object",
@@ -167,17 +170,123 @@
         }
       }
     },
-    "storageObject": {
+    "azureStorageObject": {
       "type": "object",
       "properties": {
         "region": {
-          "enum": ["southamerica-west1", "us-central1", "us-east1", "us-east4", "us-west1", "us-west4", "europe-north1", "europe-west1", "europe-west4", "asia-east1", "asia-southeast1"]
+          "enum": [
+            "eastus",
+            "eastus2",
+            "southcentralus",
+            "westus2",
+            "westus3",
+            "australiaeast",
+            "southeastasia",
+            "northeurope",
+            "swedencentral",
+            "uksouth",
+            "westeurope",
+            "centralus",
+            "southafricanorth",
+            "centralindia",
+            "eastasia",
+            "japaneast",
+            "koreacentral",
+            "canadacentral",
+            "francecentral",
+            "germanywestcentral",
+            "norwayeast",
+            "switzerlandnorth",
+            "uaenorth",
+            "brazilsouth",
+            "eassus2euap",
+            "qatarcentral",
+            "centralusstage",
+            "eastusstage",
+            "eastus2stage",
+            "northcentralusstage",
+            "southcentralusstage",
+            "westtusstage",
+            "westus2stage",
+            "asia",
+            "asiapacific",
+            "australia",
+            "brazil",
+            "canada",
+            "europe",
+            "france",
+            "germany",
+            "global",
+            "india",
+            "japan",
+            "korea",
+            "norway",
+            "singapore",
+            "southafrica",
+            "switzerland",
+            "uae",
+            "uk",
+            "unitedstates",
+            "unitedstateseuap",
+            "eastasiastage",
+            "southeastasiastage",
+            "eastusstg",
+            "southcentralusstg",
+            "northcentralus",
+            "westus",
+            "jioindiawest",
+            "centraluseuap",
+            "westcentralus",
+            "southafricawest",
+            "australiacentral",
+            "australiacentral2",
+            "australiasoutheast",
+            "japanwest",
+            "jioindiacentral",
+            "koreasouth",
+            "southindia",
+            "westindia",
+            "canadaeast",
+            "francesouth",
+            "germanynorth",
+            "norwaywest",
+            "switzerlandwest",
+            "ukwest",
+            "uaecentral",
+            "brazilsoutheast"
+          ]
+        },
+        "cloudResource": {
+          "enum": ["application_deployment", "storage_account", "synapse_workspace"]
+        },
+        "cloudPlatform": {
+          "enum": ["azure"]
+        }
+      }
+    },
+    "gcpStorageObject": {
+      "type": "object",
+      "properties": {
+        "region": {
+          "enum": [
+            "southamerica-west1",
+            "us-central1",
+            "us-east1",
+            "us-east4",
+            "us-west1",
+            "us-west4",
+            "europe-north1",
+            "europe-west1",
+            "europe-west4",
+            "asia-east1",
+            "asia-southeast1"
+          ]
         },
         "cloudResource": {
           "enum": ["bigquery", "firestore", "bucket"]
         },
         "cloudPlatform": {
-          "enum": ["gcp", "azure"]
+          "enum": ["gcp"]
         }
       }
     },
