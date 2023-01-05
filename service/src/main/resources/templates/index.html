@@ -85,54 +85,37 @@
     };
   }
 
-    // Examples map
-    const examples = {};
+    // Examples cache
+    const examplesCache = {};
 
-    // Custom plugin for logic that happens before the response element is created
+    // Custom plugin for logic that happens before a parameters element is created, hardcoded
+    // to work with the dataset example in the PUT dataset operation.
     const LoadExternalValuePlugin = () => {
       return {
         wrapComponents: {
           // wrapping https://github.com/swagger-api/swagger-ui/blob/master/src/core/components/parameters/parameters.jsx
-          parameters: (Original, { React, oas3Actions, oas3Selectors }) => (props) => {
-            const operation = props.operation
-            const pathMethod = props.pathMethod
-            // const contentType = oas3Selectors.requestContentType(...pathMethod)
+          parameters: (Original, { React }) => (props) => {
+            // These hardcoded values should be replaced with code that determines the values
+            // using the user's current selection.
             const contentType = 'application/json'
-            // const activeExamplesKey = oas3Selectors.activeExamplesMember(
-            //   ...pathMethod,
-            //   "requestBody",
-            //   "requestBody", // RBs are currently not stored per-mediaType
-            // )
             const activeExamplesKey = 'dataset'
-            // const externalValue = props.response.getIn(['content', contentType, 'examples', props.activeExamplesKey, 'externalValue'])
+            const operation = props.operation
             const externalValue = operation.getIn(['requestBody', 'content', contentType, 'examples', activeExamplesKey, 'externalValue'])
-            // Check if externalValue field exists
+
             if (externalValue) {
-              // Check if examples map already contains externalValue key
-              if (examples[externalValue]) {
-                // Set example value directly from examples map
-                props.operation = operation.setIn(['requestBody', 'content', contentType, 'examples', activeExamplesKey, 'value'], examples[externalValue])
+              if (examplesCache[externalValue]) {
+                // If the examples cache contains the externalValue key, set the example value
+                // directly from the cache.
+                props.operation = operation.setIn(['requestBody', 'content', contentType, 'examples', activeExamplesKey, 'value'], examplesCache[externalValue])
               } else {
-                // Download external file
+                // Fetch the external file.
                 fetch(externalValue)
                   .then(res => res.text())
                   .then(data => {
-                    // Put downloaded file content into the examples map
-                    examples[externalValue] = data
-                    // Simulate select another example action
-                    oas3Actions.setActiveExamplesMember({
-                      "name": 'fake',
-                      "pathMethod": [props.path, props.method],
-                      "contextType": "responses",
-                      "contextName": props.code
-                    })
-                    // Reselect this example
-                    oas3Actions.setActiveExamplesMember({
-                      "name": props.activeExamplesKey,
-                      "pathMethod": [props.path, props.method],
-                      "contextType": "responses",
-                      "contextName": props.code
-                    })
+                    // Put fetched file content into the cache.
+                    examplesCache[externalValue] = JSON.parse(data)
+                    // At this point the cache contains the JSON data but the UI is not refreshed.
+                    // The code shold be able to use `oas3Actions` to refresh the UI.
                   })
                   .catch(e => console.error(e))
               }
