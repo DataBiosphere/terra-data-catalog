@@ -10,6 +10,9 @@ import bio.terra.catalog.model.DatasetPreviewTablesResponse;
 import bio.terra.catalog.model.DatasetsListResponse;
 import bio.terra.catalog.service.DatasetService;
 import bio.terra.catalog.service.dataset.DatasetId;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
@@ -24,6 +27,8 @@ public class DatasetApiController implements DatasetsApi {
   public DatasetApiController(DatasetService datasetService) {
     this.datasetService = datasetService;
   }
+
+  @Autowired ObjectMapper objectMapper;
 
   @Override
   public ResponseEntity<DatasetsListResponse> listDatasets() {
@@ -47,18 +52,27 @@ public class DatasetApiController implements DatasetsApi {
 
   @Override
   public ResponseEntity<Void> updateDataset(UUID id, String metadata) {
-    datasetService.updateMetadata(new DatasetId(id), metadata);
-    return ResponseEntity.noContent().build();
+    try {
+      datasetService.updateMetadata(
+          new DatasetId(id), objectMapper.readValue(metadata, ObjectNode.class));
+      return ResponseEntity.noContent().build();
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
   public ResponseEntity<CreatedDatasetId> upsertDataset(CreateDatasetRequest request) {
-    var datasetId =
-        datasetService.upsertDataset(
-            StorageSystem.fromModel(request.getStorageSystem()),
-            request.getStorageSourceId(),
-            request.getCatalogEntry());
-    return ResponseEntity.ok(new CreatedDatasetId().id(datasetId.uuid()));
+    try {
+      DatasetId datasetId =
+          datasetService.upsertDataset(
+              StorageSystem.fromModel(request.getStorageSystem()),
+              request.getStorageSourceId(),
+              objectMapper.readValue(request.getCatalogEntry().toString(), ObjectNode.class));
+      return ResponseEntity.ok(new CreatedDatasetId().id(datasetId.uuid()));
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override

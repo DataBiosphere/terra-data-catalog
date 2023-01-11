@@ -111,7 +111,8 @@ class DatasetApiControllerTest {
         .perform(
             put(API_ID, datasetId.uuid()).contentType(MediaType.APPLICATION_JSON).content(METADATA))
         .andExpect(status().is2xxSuccessful());
-    verify(datasetService).updateMetadata(datasetId, METADATA);
+    verify(datasetService)
+        .updateMetadata(datasetId, objectMapper.readValue(METADATA, ObjectNode.class));
   }
 
   @Test
@@ -124,14 +125,15 @@ class DatasetApiControllerTest {
             .storageSourceId(id)
             .catalogEntry(METADATA);
     var uuid = UUID.randomUUID();
-    when(datasetService.upsertDataset(storageSystem, id, METADATA)).thenReturn(new DatasetId(uuid));
+    var metadata = objectMapper.readValue(METADATA, ObjectNode.class);
+    when(datasetService.upsertDataset(storageSystem, id, metadata)).thenReturn(new DatasetId(uuid));
     var postBody = objectMapper.writeValueAsString(request);
     mockMvc
         .perform(post(API).contentType(MediaType.APPLICATION_JSON).content(postBody))
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.id").value(uuid.toString()));
-    verify(datasetService).upsertDataset(storageSystem, id, METADATA);
+    verify(datasetService).upsertDataset(storageSystem, id, metadata);
   }
 
   @Test

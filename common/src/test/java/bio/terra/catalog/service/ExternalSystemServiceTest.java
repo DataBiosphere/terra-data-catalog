@@ -7,9 +7,11 @@ import static org.mockito.Mockito.when;
 
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.common.StorageSystemInformation;
+import bio.terra.catalog.config.BeanConfig;
 import bio.terra.catalog.service.dataset.Dataset;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.catalog.service.dataset.DatasetDao;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,11 +22,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ExternalSystemServiceTest {
   @Mock private DatasetDao mockDatasetDao;
 
+  private static final ObjectMapper objectMapper = new BeanConfig().objectMapper();
+
   @Test
   void getDatasets() {
     String storageSourceId = "source id";
     List<Dataset> resultDatasets =
-        List.of(new Dataset(storageSourceId, StorageSystem.EXTERNAL, ""));
+        List.of(
+            new Dataset(storageSourceId, StorageSystem.EXTERNAL, objectMapper.createObjectNode()));
     when(mockDatasetDao.listAllDatasets(StorageSystem.EXTERNAL)).thenReturn(resultDatasets);
 
     var expectedStorageSystemInformation =

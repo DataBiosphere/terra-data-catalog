@@ -12,6 +12,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.service.dataset.exception.DatasetNotFoundException;
+import bio.terra.common.exception.BadRequestException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -26,22 +30,33 @@ import org.springframework.transaction.annotation.Transactional;
 class DatasetDaoTest {
 
   @Autowired private DatasetDao datasetDao;
+  @Autowired private ObjectMapper objectMapper;
 
   private static final String METADATA =
       """
           {"sampleId": "12345", "species": ["mouse", "human"]}""";
 
-  private Dataset upsertDataset(String storageSourceId, StorageSystem storageSystem) {
-    return upsertDataset(storageSourceId, storageSystem, DatasetDaoTest.METADATA);
+  private Dataset upsertDataset(String storageSourceId, StorageSystem storageSystem)
+      throws JsonProcessingException {
+    return upsertDataset(
+        storageSourceId,
+        storageSystem,
+        objectMapper.readValue(DatasetDaoTest.METADATA, ObjectNode.class));
   }
 
   private Dataset upsertDataset(
-      String storageSourceId, StorageSystem storageSystem, String metadata) {
+      String storageSourceId, StorageSystem storageSystem, ObjectNode metadata) {
     return datasetDao.upsert(new Dataset(storageSourceId, storageSystem, metadata));
   }
 
   @Test
-  void testListAllExternalDatasets() {
+  void testMetadataInvalidInput() {
+    var invalidMetadata = "metadata must be json object";
+    assertThrows(BadRequestException.class, () -> datasetDao.toJsonNode(invalidMetadata));
+  }
+
+  @Test
+  void testListAllExternalDatasets() throws JsonProcessingException {
     String storageSourceId = UUID.randomUUID().toString();
     for (StorageSystem value : StorageSystem.values()) {
       upsertDataset(storageSourceId, value);
@@ -57,10 +72,10 @@ class DatasetDaoTest {
   }
 
   @Test
-  void testDatasetCrudOperations() {
+  void testDatasetCrudOperations() throws JsonProcessingException {
     String storageSourceId = UUID.randomUUID().toString();
     Dataset dataset = upsertDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO);
-    var newMetadata = "{}";
+    var newMetadata = objectMapper.createObjectNode();
     Dataset updateRequest = dataset.withMetadata(newMetadata);
     datasetDao.update(updateRequest);
     DatasetId id = dataset.id();
@@ -70,7 +85,7 @@ class DatasetDaoTest {
   }
 
   @Test
-  void testCreateDatasetWithDifferentSources() {
+  void testCreateDatasetWithDifferentSources() throws JsonProcessingException {
     String storageSourceId = UUID.randomUUID().toString();
     for (StorageSystem value : StorageSystem.values()) {
       upsertDataset(storageSourceId, value);
@@ -84,25 +99,27 @@ class DatasetDaoTest {
   }
 
   @Test
-  void testCreateDuplicateDataset() {
+  void testCreateDuplicateDataset() throws JsonProcessingException {
     String storageSourceId = UUID.randomUUID().toString();
     upsertDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO);
-    Dataset dataset = upsertDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO, "{}");
+    var emptyMetadata = objectMapper.createObjectNode();
+    Dataset dataset = upsertDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO, emptyMetadata);
 
-    assertThat(dataset.metadata(), is("{}"));
+    assertThat(dataset.metadata(), is(emptyMetadata));
   }
 
   @Test
-  void testHandleNonExistentDatasets() {
+  void testHandleNonExistentDatasets() throws JsonProcessingException {
     DatasetId id = new DatasetId(UUID.randomUUID());
-    Dataset dataset = new Dataset(id, "source id", StorageSystem.TERRA_WORKSPACE, METADATA, null);
+    ObjectNode metadata = objectMapper.readValue(DatasetDaoTest.METADATA, ObjectNode.class);
+    Dataset dataset = new Dataset(id, "source id", StorageSystem.TERRA_WORKSPACE, metadata, null);
     assertThrows(DatasetNotFoundException.class, () -> datasetDao.retrieve(id));
     assertThrows(DatasetNotFoundException.class, () -> datasetDao.update(dataset));
     assertFalse(datasetDao.delete(dataset));
   }
 
   @Test
-  void find() {
+  void find() throws JsonProcessingException {
     Dataset d1 = upsertDataset(UUID.randomUUID().toString(), StorageSystem.TERRA_DATA_REPO);
     Dataset d2 = upsertDataset(UUID.randomUUID().toString(), StorageSystem.TERRA_DATA_REPO);
     // Create a TDR dataset that we don't request in the query below.

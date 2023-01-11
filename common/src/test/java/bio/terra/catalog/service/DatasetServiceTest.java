@@ -66,14 +66,23 @@ class DatasetServiceTest {
   private static final String WORKSPACE_ID = "abc-def-workspace-id";
   private static final String METADATA = """
       {"name":"name"}""";
+
+  private static ObjectNode toJsonNode(String s) {
+    try {
+      return objectMapper.readValue(s, ObjectNode.class);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   private static final Dataset dataset =
-      new Dataset(datasetId, SOURCE_ID, StorageSystem.EXTERNAL, METADATA, null);
+      new Dataset(datasetId, SOURCE_ID, StorageSystem.EXTERNAL, toJsonNode(METADATA), null);
   private static final Dataset tdrDataset =
       new Dataset(
           new DatasetId(UUID.randomUUID()),
           SOURCE_ID,
           StorageSystem.TERRA_DATA_REPO,
-          METADATA,
+          toJsonNode(METADATA),
           null);
 
   private static final Dataset workspaceDataset =
@@ -81,7 +90,7 @@ class DatasetServiceTest {
           new DatasetId(UUID.randomUUID()),
           WORKSPACE_ID,
           StorageSystem.TERRA_WORKSPACE,
-          METADATA,
+          toJsonNode(METADATA),
           null);
 
   private static String metadataWithId(DatasetId id) {
@@ -103,8 +112,7 @@ class DatasetServiceTest {
             externalSystemService,
             samService,
             jsonValidationService,
-            datasetDao,
-            objectMapper);
+            datasetDao);
   }
 
   private void mockDataset() {
@@ -189,9 +197,10 @@ class DatasetServiceTest {
         .thenReturn(
             List.of(
                 tdrDataset.withMetadata(
-                    """
+                    toJsonNode(
+                        """
             {"%s":"%s"}"""
-                        .formatted(DatasetService.REQUEST_ACCESS_URL_PROPERTY_NAME, url))));
+                            .formatted(DatasetService.REQUEST_ACCESS_URL_PROPERTY_NAME, url)))));
 
     ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets().getResult().get(0);
     assertThat(tdrJson.get("phsId").asText(), is(phsId));
@@ -246,23 +255,25 @@ class DatasetServiceTest {
     when(externalSystemService.getRole(dataset.storageSourceId()))
         .thenReturn(DatasetAccessLevel.NO_ACCESS);
     assertThrows(
-        ForbiddenException.class, () -> datasetService.updateMetadata(datasetId, METADATA));
+        ForbiddenException.class,
+        () -> datasetService.updateMetadata(datasetId, toJsonNode(METADATA)));
   }
 
   @Test
   void testUpdateMetadata() throws JsonProcessingException {
     mockDataset();
     when(samService.hasGlobalAction(SamAction.UPDATE_ANY_METADATA)).thenReturn(true);
-    datasetService.updateMetadata(datasetId, METADATA);
-    verify(jsonValidationService).validateMetadata(objectMapper.readTree(dataset.metadata()));
-    verify(datasetDao).update(dataset.withMetadata(METADATA));
+    datasetService.updateMetadata(datasetId, toJsonNode(METADATA));
+    verify(jsonValidationService).validateMetadata(dataset.metadata());
+    verify(datasetDao).update(dataset.withMetadata(toJsonNode(METADATA)));
   }
 
   @Test
   void testUpdateMetadataInvalidInput() {
     String invalidMetadata = "metadata must be json object";
     assertThrows(
-        BadRequestException.class, () -> datasetService.updateMetadata(datasetId, invalidMetadata));
+        BadRequestException.class,
+        () -> datasetService.updateMetadata(datasetId, toJsonNode(invalidMetadata)));
     verify(datasetDao, never()).update(any());
   }
 
@@ -271,16 +282,19 @@ class DatasetServiceTest {
     when(datarepoService.getRole(null)).thenReturn(DatasetAccessLevel.DISCOVERER);
     assertThrows(
         ForbiddenException.class,
-        () -> datasetService.upsertDataset(StorageSystem.TERRA_DATA_REPO, null, METADATA));
+        () ->
+            datasetService.upsertDataset(
+                StorageSystem.TERRA_DATA_REPO, null, toJsonNode(METADATA)));
   }
 
   @Test
   void testCreateDatasetAdmin() throws JsonProcessingException {
     when(samService.hasGlobalAction(SamAction.CREATE_METADATA)).thenReturn(true);
-    when(datasetDao.upsert(new Dataset(SOURCE_ID, dataset.storageSystem(), METADATA)))
+    when(datasetDao.upsert(new Dataset(SOURCE_ID, dataset.storageSystem(), toJsonNode(METADATA))))
         .thenReturn(dataset);
-    DatasetId id = datasetService.upsertDataset(dataset.storageSystem(), SOURCE_ID, METADATA);
-    verify(jsonValidationService).validateMetadata(objectMapper.readTree(dataset.metadata()));
+    DatasetId id =
+        datasetService.upsertDataset(dataset.storageSystem(), SOURCE_ID, toJsonNode(METADATA));
+    verify(jsonValidationService).validateMetadata(dataset.metadata());
     assertThat(id, is(datasetId));
   }
 
@@ -292,7 +306,7 @@ class DatasetServiceTest {
         BadRequestException.class,
         () ->
             datasetService.upsertDataset(
-                StorageSystem.TERRA_DATA_REPO, storageSourceId, invalidMetadata));
+                StorageSystem.TERRA_DATA_REPO, storageSourceId, toJsonNode(invalidMetadata)));
     verify(datasetDao, never()).upsert(any());
   }
 
