@@ -111,7 +111,7 @@ public class Main {
             .map(
                 dataset ->
                     new ValidationResult(
-                        dataset.id(), jsonValidationService.validate(toJson(dataset.metadata()))))
+                        dataset.id(), jsonValidationService.validate(dataset.metadata())))
             .filter(result -> !result.messages.isEmpty())
             .toList();
     outputAsJson(results);
