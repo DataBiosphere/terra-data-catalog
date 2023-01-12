@@ -76,15 +76,6 @@
 <script src="/webjars/swagger-ui-dist/swagger-ui-standalone-preset.js"> </script>
 <script th:inline="javascript">
 
-    // Removes the online validation since some code gen bugs cause us to have some specs that cause the validator to squawk
-  const clearValidator = function(system) {
-    return {
-      components: {
-        onlineValidatorBadge: function() { return null; },
-      }
-    };
-  }
-
     // Examples cache
     const examplesCache = {};
 
@@ -141,7 +132,7 @@
         clearValidator,
         LoadExternalValuePlugin
       ],
-      layout: 'StandaloneLayout',
+      displayOperationId: true,
       displayRequestDuration: true,
       tryItOutEnabled: true,
       defaultModelsExpandDepth: 0,
