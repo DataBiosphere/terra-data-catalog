@@ -3,17 +3,16 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta
     name="description"
     content="Data Catalog SwaggerUI"
   />
   <title>Data Catalog SwaggerUI</title>
-  <link rel="stylesheet" type="text/css" href="/webjars/swagger-ui-dist/swagger-ui.css" >
+  <link rel="stylesheet" type="text/css" href="/webjars/swagger-ui-dist/swagger-ui.css">
   <style>
-    html
-    {
+    html {
       box-sizing: border-box;
       overflow: -moz-scrollbars-vertical;
       overflow-y: scroll;
@@ -21,14 +20,12 @@
 
     *,
     *:before,
-    *:after
-    {
+    *:after {
       box-sizing: inherit;
     }
 
-    body
-    {
-      margin:0;
+    body {
+      margin: 0;
       background: #fafafa;
     }
 
@@ -52,6 +49,7 @@
     .swagger-ui details {
       margin-bottom: 20px;
     }
+
     .swagger-ui details summary {
       cursor: pointer;
     }
@@ -60,6 +58,7 @@
     .swagger-ui .scheme-container {
       position: relative;
     }
+
     .swagger-ui .scheme-container.pinned {
       position: fixed;
       top: 0;
@@ -72,52 +71,51 @@
 
 <body>
 <div id="swagger-ui"></div>
-<script src="/webjars/swagger-ui-dist/swagger-ui-bundle.js"> </script>
-<script src="/webjars/swagger-ui-dist/swagger-ui-standalone-preset.js"> </script>
+<script src="/webjars/swagger-ui-dist/swagger-ui-bundle.js"></script>
+<script src="/webjars/swagger-ui-dist/swagger-ui-standalone-preset.js"></script>
 <script th:inline="javascript">
 
-    // Examples cache
-    const examplesCache = {};
-
-    // Custom plugin for logic that happens before a parameters element is created, hardcoded
-    // to work with the dataset example in the PUT dataset operation.
-    const LoadExternalValuePlugin = () => {
-      return {
-        wrapComponents: {
-          // wrapping https://github.com/swagger-api/swagger-ui/blob/master/src/core/components/parameters/parameters.jsx
-          parameters: (Original, { React }) => (props) => {
-            // These hardcoded values should be replaced with code that determines the values
-            // using the user's current selection.
-            const contentType = 'application/json'
-            const activeExamplesKey = 'dataset'
-            const operation = props.operation
-            const externalValue = operation.getIn(['requestBody', 'content', contentType, 'examples', activeExamplesKey, 'externalValue'])
-
-            if (externalValue) {
-              if (examplesCache[externalValue]) {
-                // If the examples cache contains the externalValue key, set the example value
-                // directly from the cache.
-                props.operation = operation.setIn(['requestBody', 'content', contentType, 'examples', activeExamplesKey, 'value'], examplesCache[externalValue])
-              } else {
-                // Fetch the external file.
-                fetch(externalValue)
-                  .then(res => res.text())
-                  .then(data => {
-                    // Put fetched file content into the cache.
-                    examplesCache[externalValue] = JSON.parse(data)
-                    // At this point the cache contains the JSON data but the UI is not refreshed.
-                    // The code shold be able to use `oas3Actions` to refresh the UI.
-                  })
-                  .catch(e => console.error(e))
+  // Custom plugin for logic that happens before a parameters element is created, hardcoded
+  // to work with the dataset example in the PUT dataset operation.
+  const LoadExternalValuePlugin = () => {
+    return {
+      wrapComponents: {
+        // wrapping https://github.com/swagger-api/swagger-ui/blob/master/src/core/components/parameters/parameters.jsx
+        parameters: (Original, {React, oas3Actions}) => (props) => {
+          const {operation, pathMethod} = props
+          // These hardcoded values should be replaced with code that determines the values
+          // using the user's current selection.
+          const contentType = 'application/json'
+          const activeExamplesKey = 'dataset'
+          const externalValue = operation.getIn(['requestBody', 'content', contentType, 'examples', activeExamplesKey, 'externalValue'])
+          if (externalValue) {
+            const [example, setExample] = React.useState()
+            // Since openAPI3 (oas3) is responsible for rendering, use a side effect to force a re-render via the oas3 UI API
+            // Normally, in react the setState would be enough to get the rendered state we are after
+            React.useEffect(() => {
+              oas3Actions.setRequestBodyValue({pathMethod, value: example})
+            }, [example])
+            if (!example) {
+              fetch(externalValue)
+                .then(res => res.text())
+                .then(data => setExample(JSON.parse(data)))
+                .catch(e => console.error(e))
+            } else {
+              // Since we need to modify the props for everything to work correctly, let's be explicit about this
+              const updatedProps = {
+                ...props,
+                ...{operation: operation.setIn(['requestBody', 'content', contentType, 'examples', activeExamplesKey, 'value'], example)}
               }
+              return React.createElement(Original, updatedProps)
             }
-            return React.createElement(Original, props)
           }
+          return React.createElement(Original, props)
         }
       }
     }
+  }
 
-    window.onload = function() {
+  window.onload = function () {
     // Begin Swagger UI call region
     const ui = SwaggerUIBundle({
       url: 'openapi.yml',
@@ -129,7 +127,6 @@
       ],
       plugins: [
         SwaggerUIBundle.plugins.DownloadUrl,
-        clearValidator,
         LoadExternalValuePlugin
       ],
       displayOperationId: true,
