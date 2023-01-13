@@ -4,9 +4,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -26,7 +24,6 @@ import bio.terra.catalog.service.dataset.Dataset;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
-import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.exception.ForbiddenException;
 import bio.terra.datarepo.client.ApiException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -269,15 +266,6 @@ class DatasetServiceTest {
   }
 
   @Test
-  void testUpdateMetadataInvalidInput() {
-    String invalidMetadata = "metadata must be json object";
-    assertThrows(
-        BadRequestException.class,
-        () -> datasetService.updateMetadata(datasetId, toJsonNode(invalidMetadata)));
-    verify(datasetDao, never()).update(any());
-  }
-
-  @Test
   void testCreateDatasetWithInvalidUser() {
     when(datarepoService.getRole(null)).thenReturn(DatasetAccessLevel.DISCOVERER);
     assertThrows(
@@ -296,18 +284,6 @@ class DatasetServiceTest {
         datasetService.upsertDataset(dataset.storageSystem(), SOURCE_ID, toJsonNode(METADATA));
     verify(jsonValidationService).validateMetadata(dataset.metadata());
     assertThat(id, is(datasetId));
-  }
-
-  @Test
-  void testCreateDatasetInvalidMetadata() {
-    String invalidMetadata = "metadata must be json object";
-    String storageSourceId = "testSource";
-    assertThrows(
-        BadRequestException.class,
-        () ->
-            datasetService.upsertDataset(
-                StorageSystem.TERRA_DATA_REPO, storageSourceId, toJsonNode(invalidMetadata)));
-    verify(datasetDao, never()).upsert(any());
   }
 
   @Test
