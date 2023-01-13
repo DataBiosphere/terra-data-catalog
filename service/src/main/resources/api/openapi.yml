@@ -58,6 +58,8 @@ paths:
       tags: [ datasets ]
       description: |
         ⚠️ Do not add sensitive data. All catalog entries are publicly accessible to all Terra users. ⚠️
+
+        Catalog entries must conform to [this schema](schema.json)
       operationId: upsertDataset
       requestBody:
         content:
@@ -97,6 +99,8 @@ paths:
       tags: [ datasets ]
       description: |
         ⚠️ Do not add sensitive data. All catalog entries are publicly accessible to all Terra users. ⚠️
+
+        Catalog entries must conform to [this schema](schema.json)
       operationId: updateDataset
       parameters:
         - $ref: '#/components/parameters/Id'
@@ -108,7 +112,7 @@ paths:
               type: string
             examples:
               dataset:
-                summary: An example dataset
+                summary: Example dataset
                 externalValue: 'example.json'
         required: true
       responses:
