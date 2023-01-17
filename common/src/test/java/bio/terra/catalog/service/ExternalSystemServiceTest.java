@@ -7,7 +7,6 @@ import static org.mockito.Mockito.when;
 
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.common.StorageSystemInformation;
-import bio.terra.catalog.config.BeanConfig;
 import bio.terra.catalog.service.dataset.Dataset;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.catalog.service.dataset.DatasetDao;
@@ -22,7 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ExternalSystemServiceTest {
   @Mock private DatasetDao mockDatasetDao;
 
-  private static final ObjectMapper objectMapper = new BeanConfig().objectMapper();
+  private static final ObjectMapper objectMapper = new ObjectMapper();
 
   @Test
   void getDatasets() {

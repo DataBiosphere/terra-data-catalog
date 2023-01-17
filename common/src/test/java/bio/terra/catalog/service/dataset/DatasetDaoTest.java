@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.service.dataset.exception.DatasetNotFoundException;
-import bio.terra.common.exception.BadRequestException;
+import bio.terra.common.exception.InternalServerErrorException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -30,18 +30,18 @@ import org.springframework.transaction.annotation.Transactional;
 class DatasetDaoTest {
 
   @Autowired private DatasetDao datasetDao;
-  @Autowired private ObjectMapper objectMapper;
 
-  private static final String METADATA =
-      """
-          {"sampleId": "12345", "species": ["mouse", "human"]}""";
+  private static final ObjectMapper objectMapper = new ObjectMapper();
+
+  private final ObjectNode METADATA =
+      objectMapper
+          .createObjectNode()
+          .put("sampleId", "12345")
+          .putPOJO("species", List.of("mouse", "human"));
 
   private Dataset upsertDataset(String storageSourceId, StorageSystem storageSystem)
       throws JsonProcessingException {
-    return upsertDataset(
-        storageSourceId,
-        storageSystem,
-        objectMapper.readValue(DatasetDaoTest.METADATA, ObjectNode.class));
+    return upsertDataset(storageSourceId, storageSystem, METADATA);
   }
 
   private Dataset upsertDataset(
@@ -52,7 +52,7 @@ class DatasetDaoTest {
   @Test
   void testMetadataInvalidInput() {
     var invalidMetadata = "metadata must be json object";
-    assertThrows(BadRequestException.class, () -> datasetDao.toJsonNode(invalidMetadata));
+    assertThrows(InternalServerErrorException.class, () -> datasetDao.toJsonNode(invalidMetadata));
   }
 
   @Test
@@ -109,10 +109,9 @@ class DatasetDaoTest {
   }
 
   @Test
-  void testHandleNonExistentDatasets() throws JsonProcessingException {
+  void testHandleNonExistentDatasets() {
     DatasetId id = new DatasetId(UUID.randomUUID());
-    ObjectNode metadata = objectMapper.readValue(DatasetDaoTest.METADATA, ObjectNode.class);
-    Dataset dataset = new Dataset(id, "source id", StorageSystem.TERRA_WORKSPACE, metadata, null);
+    Dataset dataset = new Dataset(id, "source id", StorageSystem.TERRA_WORKSPACE, METADATA, null);
     assertThrows(DatasetNotFoundException.class, () -> datasetDao.retrieve(id));
     assertThrows(DatasetNotFoundException.class, () -> datasetDao.update(dataset));
     assertFalse(datasetDao.delete(dataset));

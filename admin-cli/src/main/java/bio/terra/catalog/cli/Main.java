@@ -3,9 +3,7 @@ package bio.terra.catalog.cli;
 import bio.terra.catalog.service.JsonValidationService;
 import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.networknt.schema.ValidationMessage;
 import java.io.IOException;
 import java.util.List;
@@ -93,15 +91,6 @@ public class Main {
   record ValidationResult(UUID id, List<String> messages) {
     ValidationResult(DatasetId id, Set<ValidationMessage> messages) {
       this(id.uuid(), messages.stream().map(ValidationMessage::getMessage).toList());
-    }
-  }
-
-  private ObjectNode toJson(String metadata) {
-    try {
-      return objectMapper.readValue(metadata, ObjectNode.class);
-    } catch (JsonProcessingException e) {
-      fail("An error occurred: " + e, false);
-      return null;
     }
   }
 

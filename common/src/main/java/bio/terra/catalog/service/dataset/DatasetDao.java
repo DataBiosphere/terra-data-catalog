@@ -5,10 +5,11 @@ import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.service.dataset.exception.DatasetNotFoundException;
 import bio.terra.common.db.ReadTransaction;
 import bio.terra.common.db.WriteTransaction;
-import bio.terra.common.exception.BadRequestException;
+import bio.terra.common.exception.InternalServerErrorException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ import org.springframework.stereotype.Repository;
 public class DatasetDao {
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
+  private final ObjectMapper objectMapper;
   private static final String ID_FIELD = "id";
   private static final String STORAGE_SOURCE_ID_FIELD = "storage_source_id";
   private static final String STORAGE_SYSTEM_FIELD = "storage_system";
@@ -37,18 +39,19 @@ public class DatasetDao {
   private static final String CREATED_DATE_FIELD = "created_date";
 
   @Autowired
-  public DatasetDao(NamedParameterJdbcTemplate jdbcTemplate) {
+  public DatasetDao(NamedParameterJdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
     this.jdbcTemplate = jdbcTemplate;
+    this.objectMapper = objectMapper;
   }
 
-  @Autowired ObjectMapper objectMapper;
-
-  public ObjectNode toJsonNode(String json) {
+  @VisibleForTesting
+  protected ObjectNode toJsonNode(String json) {
     try {
       return objectMapper.readValue(json, ObjectNode.class);
     } catch (JsonProcessingException e) {
       // This should never occur because the data is validated and stored as JSONB in postgres
-      throw new BadRequestException("Catalog metadata must be a valid json object in database", e);
+      throw new InternalServerErrorException(
+          "Catalog metadata must be a valid json object in database", e);
     }
   }
 

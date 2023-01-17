@@ -10,9 +10,11 @@ import bio.terra.catalog.model.DatasetPreviewTablesResponse;
 import bio.terra.catalog.model.DatasetsListResponse;
 import bio.terra.catalog.service.DatasetService;
 import bio.terra.catalog.service.dataset.DatasetId;
+import bio.terra.common.exception.BadRequestException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
@@ -22,13 +24,22 @@ import org.springframework.stereotype.Controller;
 @Controller
 public class DatasetApiController implements DatasetsApi {
   private final DatasetService datasetService;
+  private final ObjectMapper objectMapper;
 
   @Autowired
-  public DatasetApiController(DatasetService datasetService) {
+  public DatasetApiController(DatasetService datasetService, ObjectMapper objectMapper) {
     this.datasetService = datasetService;
+    this.objectMapper = objectMapper;
   }
 
-  @Autowired ObjectMapper objectMapper;
+  @VisibleForTesting
+  protected ObjectNode toJsonNode(String json) {
+    try {
+      return objectMapper.readValue(json, ObjectNode.class);
+    } catch (JsonProcessingException e) {
+      throw new BadRequestException("Catalog metadata must be a valid json object", e);
+    }
+  }
 
   @Override
   public ResponseEntity<DatasetsListResponse> listDatasets() {
@@ -52,27 +63,18 @@ public class DatasetApiController implements DatasetsApi {
 
   @Override
   public ResponseEntity<Void> updateDataset(UUID id, String metadata) {
-    try {
-      datasetService.updateMetadata(
-          new DatasetId(id), objectMapper.readValue(metadata, ObjectNode.class));
-      return ResponseEntity.noContent().build();
-    } catch (JsonProcessingException e) {
-      throw new RuntimeException(e);
-    }
+    datasetService.updateMetadata(new DatasetId(id), toJsonNode(metadata));
+    return ResponseEntity.noContent().build();
   }
 
   @Override
   public ResponseEntity<CreatedDatasetId> upsertDataset(CreateDatasetRequest request) {
-    try {
-      DatasetId datasetId =
-          datasetService.upsertDataset(
-              StorageSystem.fromModel(request.getStorageSystem()),
-              request.getStorageSourceId(),
-              objectMapper.readValue(request.getCatalogEntry().toString(), ObjectNode.class));
-      return ResponseEntity.ok(new CreatedDatasetId().id(datasetId.uuid()));
-    } catch (JsonProcessingException e) {
-      throw new RuntimeException(e);
-    }
+    DatasetId datasetId =
+        datasetService.upsertDataset(
+            StorageSystem.fromModel(request.getStorageSystem()),
+            request.getStorageSourceId(),
+            toJsonNode(request.getCatalogEntry().toString()));
+    return ResponseEntity.ok(new CreatedDatasetId().id(datasetId.uuid()));
   }
 
   @Override
