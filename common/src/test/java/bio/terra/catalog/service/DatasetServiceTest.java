@@ -180,19 +180,11 @@ class DatasetServiceTest {
     var idToRole = Map.of(SOURCE_ID, new StorageSystemInformation(DatasetAccessLevel.OWNER, phsId));
     when(datarepoService.getDatasets()).thenReturn(idToRole);
     var url = "url";
-    ObjectNode qqq = null;
-    try {
-      qqq =
-          objectMapper.readValue(
-              """
-{"%s":"%s"}""".formatted(DatasetService.REQUEST_ACCESS_URL_PROPERTY_NAME, url),
-              ObjectNode.class);
-    } catch (JsonProcessingException e) {
-      throw new RuntimeException(e);
-    }
+    var metadata =
+        objectMapper.createObjectNode().put(DatasetService.REQUEST_ACCESS_URL_PROPERTY_NAME, url);
     when(datasetDao.find(
             argThat(map -> map.get(StorageSystem.TERRA_DATA_REPO).equals(idToRole.keySet()))))
-        .thenReturn(List.of(tdrDataset.withMetadata(qqq)));
+        .thenReturn(List.of(tdrDataset.withMetadata(metadata)));
 
     ObjectNode tdrJson = (ObjectNode) datasetService.listDatasets().getResult().get(0);
     assertThat(tdrJson.get("phsId").asText(), is(phsId));
