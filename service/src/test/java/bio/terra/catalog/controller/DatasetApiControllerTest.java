@@ -22,6 +22,7 @@ import bio.terra.catalog.model.TableMetadata;
 import bio.terra.catalog.service.DatasetService;
 import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.catalog.service.dataset.exception.DatasetNotFoundException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
@@ -52,6 +53,9 @@ class DatasetApiControllerTest {
   @MockBean private DatasetService datasetService;
 
   private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectNode METADATA_OBJ = objectMapper.readValue(METADATA, ObjectNode.class);
+
+  DatasetApiControllerTest() throws JsonProcessingException {}
 
   @Test
   void listDatasets() throws Exception {
@@ -111,8 +115,7 @@ class DatasetApiControllerTest {
         .perform(
             put(API_ID, datasetId.uuid()).contentType(MediaType.APPLICATION_JSON).content(METADATA))
         .andExpect(status().is2xxSuccessful());
-    verify(datasetService)
-        .updateMetadata(datasetId, objectMapper.readValue(METADATA, ObjectNode.class));
+    verify(datasetService).updateMetadata(datasetId, METADATA_OBJ);
   }
 
   @Test
@@ -137,15 +140,15 @@ class DatasetApiControllerTest {
             .storageSourceId(id)
             .catalogEntry(METADATA);
     var uuid = UUID.randomUUID();
-    var metadata = objectMapper.readValue(METADATA, ObjectNode.class);
-    when(datasetService.upsertDataset(storageSystem, id, metadata)).thenReturn(new DatasetId(uuid));
+    when(datasetService.upsertDataset(storageSystem, id, METADATA_OBJ))
+        .thenReturn(new DatasetId(uuid));
     var postBody = objectMapper.writeValueAsString(request);
     mockMvc
         .perform(post(API).contentType(MediaType.APPLICATION_JSON).content(postBody))
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.id").value(uuid.toString()));
-    verify(datasetService).upsertDataset(storageSystem, id, metadata);
+    verify(datasetService).upsertDataset(storageSystem, id, METADATA_OBJ);
   }
 
   @Test

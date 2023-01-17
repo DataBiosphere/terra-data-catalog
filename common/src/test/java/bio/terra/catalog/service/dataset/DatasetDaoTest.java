@@ -13,7 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.service.dataset.exception.DatasetNotFoundException;
 import bio.terra.common.exception.InternalServerErrorException;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Collection;
@@ -33,14 +32,13 @@ class DatasetDaoTest {
 
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
-  private final ObjectNode METADATA =
+  private static final ObjectNode METADATA =
       objectMapper
           .createObjectNode()
           .put("sampleId", "12345")
           .putPOJO("species", List.of("mouse", "human"));
 
-  private Dataset upsertDataset(String storageSourceId, StorageSystem storageSystem)
-      throws JsonProcessingException {
+  private Dataset upsertDataset(String storageSourceId, StorageSystem storageSystem) {
     return upsertDataset(storageSourceId, storageSystem, METADATA);
   }
 
@@ -56,7 +54,7 @@ class DatasetDaoTest {
   }
 
   @Test
-  void testListAllExternalDatasets() throws JsonProcessingException {
+  void testListAllExternalDatasets() {
     String storageSourceId = UUID.randomUUID().toString();
     for (StorageSystem value : StorageSystem.values()) {
       upsertDataset(storageSourceId, value);
@@ -72,7 +70,7 @@ class DatasetDaoTest {
   }
 
   @Test
-  void testDatasetCrudOperations() throws JsonProcessingException {
+  void testDatasetCrudOperations() {
     String storageSourceId = UUID.randomUUID().toString();
     Dataset dataset = upsertDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO);
     var newMetadata = objectMapper.createObjectNode();
@@ -85,7 +83,7 @@ class DatasetDaoTest {
   }
 
   @Test
-  void testCreateDatasetWithDifferentSources() throws JsonProcessingException {
+  void testCreateDatasetWithDifferentSources() {
     String storageSourceId = UUID.randomUUID().toString();
     for (StorageSystem value : StorageSystem.values()) {
       upsertDataset(storageSourceId, value);
@@ -99,7 +97,7 @@ class DatasetDaoTest {
   }
 
   @Test
-  void testCreateDuplicateDataset() throws JsonProcessingException {
+  void testCreateDuplicateDataset() {
     String storageSourceId = UUID.randomUUID().toString();
     upsertDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO);
     var emptyMetadata = objectMapper.createObjectNode();
@@ -118,7 +116,7 @@ class DatasetDaoTest {
   }
 
   @Test
-  void find() throws JsonProcessingException {
+  void find() {
     Dataset d1 = upsertDataset(UUID.randomUUID().toString(), StorageSystem.TERRA_DATA_REPO);
     Dataset d2 = upsertDataset(UUID.randomUUID().toString(), StorageSystem.TERRA_DATA_REPO);
     // Create a TDR dataset that we don't request in the query below.
