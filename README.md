@@ -93,3 +93,13 @@ generate a report, run using `--info`:
 ```shell
 ./gradlew sonarqube --info
 ```
+
+## Dataset entry schema
+
+Datasets in the catalog (also known as catalog entries) have a JSON schema that they must conform to.
+The current schema for dataset entries is [schema.json](common/src/main/resources/schema/development/schema.json),
+and an example entry that conforms to this schema is [example.json](common/src/main/resources/schema/development/example.json).
+This schema is based on the [TerraDCAT_AP model](https://github.com/DataBiosphere/terra-interoperability-model/blob/master/releases/1.x/terra-core/TerraDCAT-AP.ttl)
+from the [Terra Interoperability Model](https://github.com/DataBiosphere/terra-interoperability-model).
+
+The example entry was generated from the JSON schema using the online tool [JSON Schema Faker](https://json-schema-faker.js.org).

@@ -1,0 +1,197 @@
+{
+  "dct:title": "eiusmod",
+  "dct:description": "ex",
+  "dct:creator": "ea",
+  "dct:issued": "1972-06-02T08:42:53.0Z",
+  "TerraDCAT_ap:hasDataCollection": [
+    {
+      "dct:modified": "1957-10-06T02:22:04.0Z",
+      "dct:publisher": "qui enim dolor Excepteur Ut",
+      "dct:title": "nisi ut laboris nulla",
+      "dct:creator": "cillum voluptate anim elit dolor",
+      "dct:description": "elit reprehenderit do",
+      "dct:identifier": "eiusmod anim nulla proident Duis",
+      "dct:issued": "1979-10-26T20:48:46.0Z"
+    },
+    {
+      "dct:issued": "1988-04-08T06:33:06.0Z",
+      "dct:creator": "sed do ex mollit minim",
+      "dct:title": "veniam occaecat culpa tempor minim",
+      "dct:modified": "1943-12-25T06:59:04.0Z"
+    },
+    {
+      "dct:title": "sed nisi veniam",
+      "dct:description": "labore cillum dolor sunt et",
+      "dct:modified": "1948-03-07T11:45:21.0Z",
+      "dct:publisher": "irure",
+      "dct:issued": "1982-06-27T15:10:57.0Z",
+      "dct:identifier": "ut Ut in Duis dolore",
+      "dct:creator": "consectetur sit laboris"
+    }
+  ],
+  "dcat:accessURL": "fugiat reprehenderit eu",
+  "storage": [
+    {
+      "cloudPlatform": "gcp",
+      "qui_6a8": "magna est ipsum nostrud non",
+      "exe8_": "ullamco",
+      "dolor4bb": -93389314,
+      "mollite": 18273837.309168965,
+      "ut__": "et tempor consequat non mollit",
+      "inf6": false
+    },
+    {
+      "cloudResource": "application_deployment",
+      "region": "centralusstage",
+      "cloudPlatform": "azure"
+    },
+    {
+      "officia90": "mollit nisi fugiat",
+      "sint_886": 39193575,
+      "in708": true
+    },
+    {
+      "region": "ukwest",
+      "cloudPlatform": "azure",
+      "cloudResource": "application_deployment",
+      "dolore_25": 45212730,
+      "in_8": 21809450.76485683
+    },
+    {
+      "cloudPlatform": "azure",
+      "region": "europe",
+      "cloudResource": "synapse_workspace",
+      "proidentb0": -1669074.48199068,
+      "esseb3": true
+    }
+  ],
+  "counts": {
+    "files": -48022071,
+    "donors": 71794624,
+    "incididunt_6b": -85982146,
+    "euf6": "ut ipsum commodo magna ut",
+    "cupidatat_93": "mollit",
+    "ad0": -8528955
+  },
+  "contributors": [
+    {
+      "additionalInformation": {
+        "anim5": true,
+        "amet4b": true
+      },
+      "email": "aute fugiat amet ullamco laborum",
+      "name": "fugiat id voluptate incididunt minim"
+    },
+    {
+      "do9": 53113890.57188231,
+      "officia5df": -78638841.55110909,
+      "laboris_3d6": 71622431,
+      "Duis97": "cillum et Lorem ex"
+    },
+    {
+      "additionalInformation": {
+        "non16f": -76396469,
+        "nostrud6e": "eiusmod in in"
+      },
+      "name": "tempor adipisicing ut sint anim",
+      "email": "nostrud"
+    },
+    {
+      "name": "magna",
+      "additionalInformation": {
+        "labore_24": false,
+        "ut_2": "in cillum proident",
+        "consectetur_428": false
+      },
+      "email": "nisi"
+    },
+    {
+      "additionalInformation": {
+        "ut8d5": -85210982.3141007,
+        "voluptate8": "nulla in culpa qui",
+        "sunt_50f": -52050872.30007373
+      },
+      "name": "tempor irure aliquip aute consequat",
+      "email": "nostrud",
+      "veniam__2": "in proident ipsum ex ut"
+    }
+  ],
+  "TerraCore:id": "in enim velit eu tempor",
+  "TerraDCAT_ap:hasGenomicDataType": [
+    "sunt tempor cupidatat",
+    "quis in"
+  ],
+  "dct:modified": "1980-06-13T10:38:26.0Z",
+  "samples": {
+    "disease": [
+      "cupidatat dolor officia consectetur Lorem"
+    ],
+    "species": [
+      "Excepteur occaecat culpa sed",
+      "aliqua Lorem",
+      "enim labore",
+      "ullamco",
+      "enim velit qui"
+    ],
+    "adipisicing_5": 78399601,
+    "consectetur_ef": 54308056,
+    "Ut5": -26621229.330413684,
+    "proident87": -33749174.293875515,
+    "id_22": 68329722.31689748
+  },
+  "prov:wasGeneratedBy": [
+    {
+      "TerraCore:hasAssayCategory": [
+        "dolore laborum sunt",
+        "non",
+        "laboris",
+        "laboris",
+        "et quis ipsum ex cillum"
+      ],
+      "TerraCore:hasDataModality": [
+        "anim commodo eu",
+        "exercitation id",
+        "adipisicing Excepteur nisi",
+        "quis dolor laborum",
+        "sint magna Excepteur velit"
+      ]
+    }
+  ],
+  "TerraDCAT_ap:hasPhenotypeDataType": [
+    "reprehenderit",
+    "Ut qui id",
+    "enim"
+  ],
+  "TerraDCAT_ap:hasCustodian": [
+    "pariatur magna reprehenderit",
+    "Ut aute sunt",
+    "proident",
+    "fugiat veniam Ut sunt",
+    "esse labore do ut velit"
+  ],
+  "TerraCoreValueSets:SampleType": [
+    "aliqua minim ad quis in",
+    "velit reprehenderit dolor sed",
+    "Lorem dolore",
+    "sed Duis officia irure",
+    "voluptate consectetur pariatur laboris deserunt"
+  ],
+  "requestAccessURL": "ut nulla incididunt",
+  "TerraDCAT_ap:hasPublication": [
+    {
+      "dcat:accessURL": "eu mollit",
+      "dct:title": "pariatur est"
+    },
+    {
+      "dct:title": "dolore laboris ea in",
+      "dcat:accessURL": "aliqua ut dolor fugiat esse",
+      "quis_2_": 46259580,
+      "ex_6": -64460245.0798847
+    }
+  ],
+  "TerraDCAT_ap:hasOwner": "et dolore in minim",
+  "TerraDCAT_ap:hasOriginalPublication": {
+    "dcat:accessURL": "cupidatat",
+    "dct:title": "nisi"
+  }
+}

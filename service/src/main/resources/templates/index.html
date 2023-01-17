@@ -76,38 +76,44 @@
 <script src="/webjars/swagger-ui-dist/swagger-ui-standalone-preset.js"> </script>
 <script th:inline="javascript">
 
-   // Adds support for pinning the auth bar when the user scrolls down far enough to hide the bar
-    const pinLoginPlugin = function(system) {
-      return {
-        afterLoad: function(system) {
-          var offsetY;
-          var authBar;
-          document.addEventListener('scroll', function() {
-            if (offsetY === undefined) {
-              // Note: the auth bar is not a React component, so we can't use the standard plugin approach to modify
-              var authBars = document.getElementsByClassName('scheme-container');
-              if (authBars.length > 0) {
-                authBar = authBars[0];
-                offsetY = authBar.offsetTop;
-              }
-            }
-            if (window.scrollY > offsetY) {
-              authBar.classList.add('pinned');
+  // Custom plugin for logic that happens before a parameters element is created, hardcoded
+  // to work with the dataset example in the PUT dataset operation.
+  const LoadExternalValuePlugin = () => {
+    return {
+      wrapComponents: {
+        // wrapping https://github.com/swagger-api/swagger-ui/blob/master/src/core/components/parameters/parameters.jsx
+        parameters: (Original, {React, oas3Actions}) => (props) => {
+          const {operation, pathMethod} = props
+          // These hardcoded values should be replaced with code that determines the values
+          // using the user's current selection.
+          const contentType = 'application/json'
+          const activeExamplesKey = 'dataset'
+          const externalValue = operation.getIn(['requestBody', 'content', contentType, 'examples', activeExamplesKey, 'externalValue'])
+          if (externalValue) {
+            const [example, setExample] = React.useState()
+            // Since openAPI3 (oas3) is responsible for rendering, use a side effect to force a re-render via the oas3 UI API
+            // Normally, in react the setState would be enough to get the rendered state we are after
+            React.useEffect(() => {
+              oas3Actions.setRequestBodyValue({pathMethod, value: example})
+            }, [example])
+            if (!example) {
+              fetch(externalValue)
+                .then(res => res.text())
+                .then(data => setExample(JSON.parse(data)))
+                .catch(e => console.error(e))
             } else {
-              authBar.classList.remove('pinned');
+              // Since we need to modify the props for everything to work correctly, let's be explicit about this
+              const updatedProps = {
+                ...props,
+                ...{operation: operation.setIn(['requestBody', 'content', contentType, 'examples', activeExamplesKey, 'value'], example)}
+              }
+              return React.createElement(Original, updatedProps)
             }
-          });
+          }
+          return React.createElement(Original, props)
         }
       }
     }
-
-    // Removes the online validation since some code gen bugs cause us to have some specs that cause the validator to squawk
-  const clearValidator = function(system) {
-    return {
-      components: {
-        onlineValidatorBadge: function() { return null; },
-      }
-    };
   }
 
   window.onload = function() {
@@ -122,12 +128,12 @@
       ],
       plugins: [
         SwaggerUIBundle.plugins.DownloadUrl,
-        pinLoginPlugin,
-        clearValidator
+        LoadExternalValuePlugin
       ],
-      layout: 'StandaloneLayout',
       displayOperationId: true,
-      docExpansion: 'none',
+      displayRequestDuration: true,
+      tryItOutEnabled: true,
+      defaultModelsExpandDepth: 0,
       oauth2RedirectUrl: window.location.protocol + '//' + window.location.host + '/webjars/swagger-ui-dist/oauth2-redirect.html'
     })
     // End Swagger UI call region
