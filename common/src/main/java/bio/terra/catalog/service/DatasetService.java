@@ -16,10 +16,7 @@ import bio.terra.catalog.service.dataset.Dataset;
 import bio.terra.catalog.service.dataset.DatasetAccessLevel;
 import bio.terra.catalog.service.dataset.DatasetDao;
 import bio.terra.catalog.service.dataset.DatasetId;
-import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.exception.ForbiddenException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import java.util.Arrays;
@@ -47,7 +44,6 @@ public class DatasetService {
   private final SamService samService;
   private final JsonValidationService jsonValidationService;
   private final DatasetDao datasetDao;
-  private final ObjectMapper objectMapper;
   private final StorageSystemService externalService;
 
   private static final int MAX_ROWS = 30;
@@ -58,15 +54,13 @@ public class DatasetService {
       ExternalSystemService externalService,
       SamService samService,
       JsonValidationService jsonValidationService,
-      DatasetDao datasetDao,
-      ObjectMapper objectMapper) {
+      DatasetDao datasetDao) {
     this.datarepoService = datarepoService;
     this.rawlsService = rawlsService;
     this.externalService = externalService;
     this.samService = samService;
     this.jsonValidationService = jsonValidationService;
     this.datasetDao = datasetDao;
-    this.objectMapper = objectMapper;
   }
 
   private StorageSystemService getService(StorageSystem system) {
@@ -91,7 +85,7 @@ public class DatasetService {
     }
 
     private Object convertToObject() {
-      ObjectNode node = toJsonNode(dataset.metadata());
+      ObjectNode node = dataset.metadata().deepCopy();
       addPhsProperties(node);
       node.set(
           "accessLevel",
@@ -112,16 +106,6 @@ public class DatasetService {
                       storageSystemInformation.phsId())));
         }
       }
-    }
-  }
-
-  private ObjectNode toJsonNode(String json) {
-    try {
-      return objectMapper.readValue(json, ObjectNode.class);
-    } catch (JsonProcessingException e) {
-      // This shouldn't occur on retrieve, as the data stored in postgres must be valid JSON,
-      // because it's stored as JSONB.
-      throw new BadRequestException("catalogEntry/metadata must be a valid json object", e);
     }
   }
 
@@ -185,16 +169,16 @@ public class DatasetService {
     return new DatasetResponse(dataset, information).convertToObject().toString();
   }
 
-  public void updateMetadata(DatasetId datasetId, String metadata) {
-    jsonValidationService.validateMetadata(toJsonNode(metadata));
+  public void updateMetadata(DatasetId datasetId, ObjectNode metadata) {
+    jsonValidationService.validateMetadata(metadata);
     var dataset = datasetDao.retrieve(datasetId);
     ensureActionPermission(dataset, SamAction.UPDATE_ANY_METADATA);
     datasetDao.update(dataset.withMetadata(metadata));
   }
 
   public DatasetId upsertDataset(
-      StorageSystem storageSystem, String storageSourceId, String metadata) {
-    jsonValidationService.validateMetadata(toJsonNode(metadata));
+      StorageSystem storageSystem, String storageSourceId, ObjectNode metadata) {
+    jsonValidationService.validateMetadata(metadata);
     var dataset = new Dataset(storageSourceId, storageSystem, metadata);
     ensureActionPermission(dataset, SamAction.CREATE_METADATA);
     return datasetDao.upsert(dataset).id();

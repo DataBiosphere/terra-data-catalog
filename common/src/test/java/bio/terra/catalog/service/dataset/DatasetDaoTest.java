@@ -12,6 +12,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.service.dataset.exception.DatasetNotFoundException;
+import bio.terra.common.exception.InternalServerErrorException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -27,17 +30,27 @@ class DatasetDaoTest {
 
   @Autowired private DatasetDao datasetDao;
 
-  private static final String METADATA =
-      """
-          {"sampleId": "12345", "species": ["mouse", "human"]}""";
+  private static final ObjectMapper objectMapper = new ObjectMapper();
+
+  private static final ObjectNode METADATA =
+      objectMapper
+          .createObjectNode()
+          .put("sampleId", "12345")
+          .putPOJO("species", List.of("mouse", "human"));
 
   private Dataset upsertDataset(String storageSourceId, StorageSystem storageSystem) {
-    return upsertDataset(storageSourceId, storageSystem, DatasetDaoTest.METADATA);
+    return upsertDataset(storageSourceId, storageSystem, METADATA);
   }
 
   private Dataset upsertDataset(
-      String storageSourceId, StorageSystem storageSystem, String metadata) {
+      String storageSourceId, StorageSystem storageSystem, ObjectNode metadata) {
     return datasetDao.upsert(new Dataset(storageSourceId, storageSystem, metadata));
+  }
+
+  @Test
+  void testMetadataInvalidInput() {
+    var invalidMetadata = "metadata must be json object";
+    assertThrows(InternalServerErrorException.class, () -> datasetDao.toJsonNode(invalidMetadata));
   }
 
   @Test
@@ -60,7 +73,7 @@ class DatasetDaoTest {
   void testDatasetCrudOperations() {
     String storageSourceId = UUID.randomUUID().toString();
     Dataset dataset = upsertDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO);
-    var newMetadata = "{}";
+    var newMetadata = objectMapper.createObjectNode();
     Dataset updateRequest = dataset.withMetadata(newMetadata);
     datasetDao.update(updateRequest);
     DatasetId id = dataset.id();
@@ -87,9 +100,10 @@ class DatasetDaoTest {
   void testCreateDuplicateDataset() {
     String storageSourceId = UUID.randomUUID().toString();
     upsertDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO);
-    Dataset dataset = upsertDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO, "{}");
+    var emptyMetadata = objectMapper.createObjectNode();
+    Dataset dataset = upsertDataset(storageSourceId, StorageSystem.TERRA_DATA_REPO, emptyMetadata);
 
-    assertThat(dataset.metadata(), is("{}"));
+    assertThat(dataset.metadata(), is(emptyMetadata));
   }
 
   @Test

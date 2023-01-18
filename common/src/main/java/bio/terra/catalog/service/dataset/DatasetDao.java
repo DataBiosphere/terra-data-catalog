@@ -5,6 +5,11 @@ import bio.terra.catalog.common.StorageSystem;
 import bio.terra.catalog.service.dataset.exception.DatasetNotFoundException;
 import bio.terra.common.db.ReadTransaction;
 import bio.terra.common.db.WriteTransaction;
+import bio.terra.common.exception.InternalServerErrorException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -26,6 +31,7 @@ import org.springframework.stereotype.Repository;
 public class DatasetDao {
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
+  private final ObjectMapper objectMapper;
   private static final String ID_FIELD = "id";
   private static final String STORAGE_SOURCE_ID_FIELD = "storage_source_id";
   private static final String STORAGE_SYSTEM_FIELD = "storage_system";
@@ -33,8 +39,20 @@ public class DatasetDao {
   private static final String CREATED_DATE_FIELD = "created_date";
 
   @Autowired
-  public DatasetDao(NamedParameterJdbcTemplate jdbcTemplate) {
+  public DatasetDao(NamedParameterJdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
     this.jdbcTemplate = jdbcTemplate;
+    this.objectMapper = objectMapper;
+  }
+
+  @VisibleForTesting
+  protected ObjectNode toJsonNode(String json) {
+    try {
+      return objectMapper.readValue(json, ObjectNode.class);
+    } catch (JsonProcessingException e) {
+      // This should never occur because the data is validated and stored as JSONB in postgres
+      throw new InternalServerErrorException(
+          "Catalog metadata must be a valid json object in database", e);
+    }
   }
 
   @ReadTransaction
@@ -60,7 +78,7 @@ public class DatasetDao {
         keyHolder.getId(),
         keyHolder.getString(STORAGE_SOURCE_ID_FIELD),
         StorageSystem.valueOf(keyHolder.getString(STORAGE_SYSTEM_FIELD)),
-        keyHolder.getField(METADATA_FIELD, PGobject.class).toString(),
+        toJsonNode(keyHolder.getField(METADATA_FIELD, PGobject.class).toString()),
         keyHolder.getCreatedDate());
   }
 
@@ -74,7 +92,7 @@ public class DatasetDao {
         new MapSqlParameterSource()
             .addValue(STORAGE_SOURCE_ID_FIELD, dataset.storageSourceId())
             .addValue(STORAGE_SYSTEM_FIELD, String.valueOf(dataset.storageSystem()))
-            .addValue(METADATA_FIELD, dataset.metadata());
+            .addValue(METADATA_FIELD, dataset.metadata().toString());
     return createOrUpdate(sql, params);
   }
 
@@ -90,7 +108,7 @@ public class DatasetDao {
             .addValue(ID_FIELD, dataset.id().uuid())
             .addValue(STORAGE_SOURCE_ID_FIELD, dataset.storageSourceId())
             .addValue(STORAGE_SYSTEM_FIELD, String.valueOf(dataset.storageSystem()))
-            .addValue(METADATA_FIELD, dataset.metadata());
+            .addValue(METADATA_FIELD, dataset.metadata().toString());
     createOrUpdate(sql, params);
   }
 
@@ -103,13 +121,13 @@ public class DatasetDao {
     return rowsAffected > 0;
   }
 
-  private static class DatasetMapper implements RowMapper<Dataset> {
+  private class DatasetMapper implements RowMapper<Dataset> {
     public Dataset mapRow(ResultSet rs, int rowNum) throws SQLException {
       return new Dataset(
           new DatasetId(rs.getObject(ID_FIELD, UUID.class)),
           rs.getString(STORAGE_SOURCE_ID_FIELD),
           StorageSystem.valueOf(rs.getString(STORAGE_SYSTEM_FIELD)),
-          rs.getString(METADATA_FIELD),
+          toJsonNode(rs.getString(METADATA_FIELD)),
           rs.getTimestamp(CREATED_DATE_FIELD).toInstant());
     }
   }
