@@ -352,6 +352,8 @@ components:
           type: string
         catalogEntry:
           type: object
+          additionalProperties: true
+
 
     DatasetExportRequest:
       type: object

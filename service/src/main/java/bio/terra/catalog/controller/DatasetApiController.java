@@ -73,7 +73,7 @@ public class DatasetApiController implements DatasetsApi {
         datasetService.upsertDataset(
             StorageSystem.fromModel(request.getStorageSystem()),
             request.getStorageSourceId(),
-            toJsonNode(request.getCatalogEntry().toString()));
+            objectMapper.convertValue(request.getCatalogEntry(), ObjectNode.class));
     return ResponseEntity.ok(new CreatedDatasetId().id(datasetId.uuid()));
   }
 
