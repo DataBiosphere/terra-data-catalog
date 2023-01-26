@@ -18,6 +18,7 @@ import bio.terra.testrunner.runner.config.TestUserSpecification;
 import com.google.api.client.http.HttpStatusCodes;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -201,7 +202,7 @@ public class DatasetPermissionOperations extends TestScript {
   }
 
   private CreateDatasetRequest datasetRequest(String sourceId, StorageSystem storageSystem) {
-    final String metadata = DatasetOperations.createMetadata("test").toString();
+    final Map<String, Object> metadata = DatasetOperations.createMetadata("test");
     return new CreateDatasetRequest()
         .catalogEntry(metadata)
         .storageSourceId(sourceId)
