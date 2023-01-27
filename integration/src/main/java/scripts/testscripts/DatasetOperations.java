@@ -25,6 +25,7 @@ import bio.terra.testrunner.runner.TestScript;
 import bio.terra.testrunner.runner.config.TestUserSpecification;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.api.client.http.HttpStatusCodes;
 import java.time.Instant;
 import java.util.HashMap;
@@ -82,6 +83,23 @@ public class DatasetOperations extends TestScript {
     DatasetModel tdrDataset = datarepoClient.datasetsApi().getTestDataset();
     snapshotsApi = new SnapshotsApi(datarepoClient);
     snapshotId = snapshotsApi.createTestSnapshot(tdrDataset);
+  }
+
+  public static ObjectNode createMetadataAsObjectNode(String title) {
+    var obj =
+        objectMapper
+            .createObjectNode()
+            .put("dct:title", title)
+            .put("dct:description", "description")
+            .put("dct:creator", "creator")
+            .put("dct:issued", Instant.now().toString())
+            .put("dcat:accessURL", "url");
+    obj.putArray("TerraDCAT_ap:hasDataCollection").addAll(List.of());
+    obj.putArray("storage").addAll(List.of());
+    obj.putObject("counts");
+    obj.putArray("contributors").addAll(List.of());
+
+    return obj;
   }
 
   public static Map<String, Object> createMetadata(String title) {
@@ -182,7 +200,7 @@ public class DatasetOperations extends TestScript {
     if (storageSystem.equals(StorageSystem.TDR)) {
       expectedMetadata.put("phsId", "1234");
     }
-    keys.forEach(key -> assertThat(jsonOne.get(key), is(expectedMetadata.get(key))));
+    keys.forEach(key -> assertThat(jsonOne.get(key).asText(), is(expectedMetadata.get(key))));
   }
 
   private void crudUserJourney(CatalogClient client, StorageSystem storageSystem, String sourceId)
@@ -211,7 +229,7 @@ public class DatasetOperations extends TestScript {
     resultHasDatasetWithRoles(datasets.getResult(), storageSystem);
 
     // Modify the entry
-    datasetsApi.updateDataset(createMetadata("crud2").toString(), datasetId);
+    datasetsApi.updateDataset(createMetadataAsObjectNode("crud2").toString(), datasetId);
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_NO_CONTENT));
 
     // Verify modify success
