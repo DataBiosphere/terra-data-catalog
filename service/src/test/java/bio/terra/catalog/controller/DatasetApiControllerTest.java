@@ -23,6 +23,7 @@ import bio.terra.catalog.service.DatasetService;
 import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.catalog.service.dataset.exception.DatasetNotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
@@ -41,8 +42,10 @@ class DatasetApiControllerTest {
 
   private static final String API = "/api/v1/datasets";
   private static final String API_ID = API + "/{id}";
-  private static final String METADATA = """
-      {"some": "metadata"}""";
+  private static final String METADATA =
+      """
+      {"files": [{"count": 1,"dcat:byteSize": 63354880,"dcat:mediaType": "tar"}]}""";
+
   private static final String PREVIEW_TABLES_API = API_ID + "/tables";
   private static final String PREVIEW_TABLES_API_TABLE_NAME = PREVIEW_TABLES_API + "/{tableName}";
 
@@ -119,18 +122,6 @@ class DatasetApiControllerTest {
   }
 
   @Test
-  void testMetadataInvalidInput() throws Exception {
-    var invalidMetadata = "metadata must be json object";
-    var datasetId = new DatasetId(UUID.randomUUID());
-    mockMvc
-        .perform(
-            put(API_ID, datasetId.uuid())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(invalidMetadata))
-        .andExpect(status().is4xxClientError());
-  }
-
-  @Test
   void createDataset() throws Exception {
     var storageSystem = StorageSystem.EXTERNAL;
     var id = "sourceId";
@@ -138,7 +129,7 @@ class DatasetApiControllerTest {
         new CreateDatasetRequest()
             .storageSystem(storageSystem.toModel())
             .storageSourceId(id)
-            .catalogEntry(METADATA);
+            .catalogEntry(objectMapper.readValue(METADATA, new TypeReference<>() {}));
     var uuid = UUID.randomUUID();
     when(datasetService.upsertDataset(storageSystem, id, METADATA_OBJ))
         .thenReturn(new DatasetId(uuid));

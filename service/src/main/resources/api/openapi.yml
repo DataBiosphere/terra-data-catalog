@@ -109,7 +109,8 @@ paths:
         content:
           application/json:
             schema:
-              type: string
+              type: object
+              additionalProperties: true
             examples:
               dataset:
                 summary: Example dataset
@@ -352,6 +353,7 @@ components:
           type: string
         catalogEntry:
           type: object
+          additionalProperties: true
 
     DatasetExportRequest:
       type: object
