@@ -85,23 +85,6 @@ public class DatasetOperations extends TestScript {
     snapshotId = snapshotsApi.createTestSnapshot(tdrDataset);
   }
 
-  public static ObjectNode createMetadataAsObjectNode(String title) {
-    var obj =
-        objectMapper
-            .createObjectNode()
-            .put("dct:title", title)
-            .put("dct:description", "description")
-            .put("dct:creator", "creator")
-            .put("dct:issued", Instant.now().toString())
-            .put("dcat:accessURL", "url");
-    obj.putArray("TerraDCAT_ap:hasDataCollection").addAll(List.of());
-    obj.putArray("storage").addAll(List.of());
-    obj.putObject("counts");
-    obj.putArray("contributors").addAll(List.of());
-
-    return obj;
-  }
-
   public static Map<String, Object> createMetadata(String title) {
     return Map.of(
         "dct:title", title,
