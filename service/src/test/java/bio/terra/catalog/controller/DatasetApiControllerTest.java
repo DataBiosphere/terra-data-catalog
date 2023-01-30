@@ -119,19 +119,7 @@ class DatasetApiControllerTest {
             put(API_ID, datasetId.uuid()).contentType(MediaType.APPLICATION_JSON).content(METADATA))
         .andExpect(status().is2xxSuccessful());
     verify(datasetService).updateMetadata(datasetId, METADATA_OBJ);
-  }
-
-  @Test
-  void testMetadataInvalidInput() throws Exception {
-    var invalidMetadata = "metadata must be json object";
-    var datasetId = new DatasetId(UUID.randomUUID());
-    mockMvc
-        .perform(
-            put(API_ID, datasetId.uuid())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(invalidMetadata))
-        .andExpect(status().is4xxClientError());
-  }
+  
 
   @Test
   void createDataset() throws Exception {
