@@ -229,7 +229,7 @@ public class DatasetOperations extends TestScript {
     resultHasDatasetWithRoles(datasets.getResult(), storageSystem);
 
     // Modify the entry
-    datasetsApi.updateDataset(createMetadataAsObjectNode("crud2").toString(), datasetId);
+    datasetsApi.updateDataset(createMetadata("crud2"), datasetId);
     assertThat(client.getStatusCode(), is(HttpStatusCodes.STATUS_CODE_NO_CONTENT));
 
     // Verify modify success

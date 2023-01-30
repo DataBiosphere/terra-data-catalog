@@ -23,10 +23,10 @@ import bio.terra.catalog.service.DatasetService;
 import bio.terra.catalog.service.dataset.DatasetId;
 import bio.terra.catalog.service.dataset.exception.DatasetNotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,9 +46,6 @@ class DatasetApiControllerTest {
       """
       {"files": [{"count": 1,"dcat:byteSize": 63354880,"dcat:mediaType": "tar"}]}""";
 
-  private static final Map<String, Object> METADATA_MAP =
-      Map.of(
-          "files", List.of(Map.of("count", 1, "dcat:byteSize", 63354880, "dcat:mediaType", "tar")));
   private static final String PREVIEW_TABLES_API = API_ID + "/tables";
   private static final String PREVIEW_TABLES_API_TABLE_NAME = PREVIEW_TABLES_API + "/{tableName}";
 
@@ -144,7 +141,7 @@ class DatasetApiControllerTest {
         new CreateDatasetRequest()
             .storageSystem(storageSystem.toModel())
             .storageSourceId(id)
-            .catalogEntry(METADATA_MAP);
+            .catalogEntry(objectMapper.readValue(METADATA, new TypeReference<>() {}));
     var uuid = UUID.randomUUID();
     when(datasetService.upsertDataset(storageSystem, id, METADATA_OBJ))
         .thenReturn(new DatasetId(uuid));
