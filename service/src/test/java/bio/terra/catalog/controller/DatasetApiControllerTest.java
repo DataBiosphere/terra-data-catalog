@@ -119,7 +119,7 @@ class DatasetApiControllerTest {
             put(API_ID, datasetId.uuid()).contentType(MediaType.APPLICATION_JSON).content(METADATA))
         .andExpect(status().is2xxSuccessful());
     verify(datasetService).updateMetadata(datasetId, METADATA_OBJ);
-  
+  }
 
   @Test
   void createDataset() throws Exception {
