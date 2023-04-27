@@ -5,8 +5,8 @@ import bio.terra.catalog.model.SystemStatus;
 import bio.terra.catalog.model.SystemStatusSystems;
 import com.google.common.annotations.VisibleForTesting;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -16,9 +16,11 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
-public class BaseStatusService {
-  private static final Logger logger = LoggerFactory.getLogger(BaseStatusService.class);
+@Component
+public class StatusCheckService {
+  private static final Logger logger = LoggerFactory.getLogger(StatusCheckService.class);
   /** cached status */
   private final AtomicReference<SystemStatus> cachedStatus;
   /** configuration parameters */
@@ -30,9 +32,9 @@ public class BaseStatusService {
   /** last time cache was updated */
   private final AtomicReference<Instant> lastStatusUpdate;
 
-  public BaseStatusService(StatusCheckConfiguration configuration) {
+  public StatusCheckService(StatusCheckConfiguration configuration) {
     this.configuration = configuration;
-    statusCheckMap = new HashMap<>();
+    statusCheckMap = new ConcurrentHashMap<>();
     cachedStatus = new AtomicReference<>(new SystemStatus().ok(false));
     lastStatusUpdate = new AtomicReference<>(Instant.now());
     scheduler = Executors.newScheduledThreadPool(1);
@@ -50,7 +52,7 @@ public class BaseStatusService {
     }
   }
 
-  void registerStatusCheck(String name, Supplier<SystemStatusSystems> checkFn) {
+  public void registerStatusCheck(String name, Supplier<SystemStatusSystems> checkFn) {
     statusCheckMap.put(name, checkFn);
   }
 

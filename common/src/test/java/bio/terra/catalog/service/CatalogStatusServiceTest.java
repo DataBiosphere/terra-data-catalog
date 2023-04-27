@@ -24,6 +24,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 @ExtendWith(MockitoExtension.class)
 class CatalogStatusServiceTest {
+  @Mock private StatusCheckService statusCheckService;
   @Mock private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
   @Mock private JdbcTemplate jdbcTemplate;
 
@@ -33,8 +34,8 @@ class CatalogStatusServiceTest {
   public void beforeEach() {
     catalogStatusService =
         new CatalogStatusService(
+            statusCheckService,
             namedParameterJdbcTemplate,
-            null,
             mock(SamService.class),
             mock(DatarepoService.class),
             mock(RawlsService.class));

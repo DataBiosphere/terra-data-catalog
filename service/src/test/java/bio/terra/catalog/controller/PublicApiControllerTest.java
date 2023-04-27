@@ -9,7 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import bio.terra.catalog.config.VersionConfiguration;
 import bio.terra.catalog.model.SystemStatus;
-import bio.terra.catalog.service.CatalogStatusService;
+import bio.terra.catalog.service.StatusCheckService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -23,7 +23,7 @@ class PublicApiControllerTest {
 
   @Autowired private MockMvc mockMvc;
 
-  @MockBean private CatalogStatusService statusService;
+  @MockBean private StatusCheckService statusService;
 
   @MockBean private VersionConfiguration versionConfiguration;
 
@@ -31,14 +31,14 @@ class PublicApiControllerTest {
   void testStatus() throws Exception {
     SystemStatus systemStatus = new SystemStatus().ok(true);
     when(statusService.getCurrentStatus()).thenReturn(systemStatus);
-    this.mockMvc.perform(get("/status")).andExpect(status().isOk());
+    mockMvc.perform(get("/status")).andExpect(status().isOk());
   }
 
   @Test
   void testStatusCheckFails() throws Exception {
     SystemStatus systemStatus = new SystemStatus().ok(false);
     when(statusService.getCurrentStatus()).thenReturn(systemStatus);
-    this.mockMvc.perform(get("/status")).andExpect(status().is5xxServerError());
+    mockMvc.perform(get("/status")).andExpect(status().is5xxServerError());
   }
 
   @Test
@@ -53,7 +53,7 @@ class PublicApiControllerTest {
     when(versionConfiguration.getGithub()).thenReturn(github);
     when(versionConfiguration.getBuild()).thenReturn(build);
 
-    this.mockMvc
+    mockMvc
         .perform(get("/version"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.gitTag").value(gitTag))
@@ -64,7 +64,7 @@ class PublicApiControllerTest {
 
   @Test
   void testGetSwagger() throws Exception {
-    this.mockMvc
+    mockMvc
         .perform(get("/swagger-ui.html"))
         .andExpect(status().isOk())
         .andExpect(model().attributeExists("clientId"));
@@ -72,6 +72,6 @@ class PublicApiControllerTest {
 
   @Test
   void testIndex() throws Exception {
-    this.mockMvc.perform(get("/")).andExpect(redirectedUrl("swagger-ui.html"));
+    mockMvc.perform(get("/")).andExpect(redirectedUrl("swagger-ui.html"));
   }
 }

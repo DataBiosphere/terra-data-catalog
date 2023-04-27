@@ -4,6 +4,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import bio.terra.catalog.config.StatusCheckConfiguration;
 import bio.terra.catalog.model.SystemStatus;
@@ -12,12 +13,12 @@ import java.util.Map;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 
-class BaseStatusServiceTest {
+class StatusCheckServiceTest {
 
   @Test
   void getCurrentStatus() {
     var config = new StatusCheckConfiguration(true, 0, 0, 10);
-    BaseStatusService service = new BaseStatusService(config);
+    StatusCheckService service = new StatusCheckService(config);
     var status = new SystemStatusSystems().ok(true);
     service.registerStatusCheck("test", () -> status);
     assertThat(service.getCurrentStatus(), is(new SystemStatus().ok(false)));
@@ -30,8 +31,7 @@ class BaseStatusServiceTest {
   @Test
   void getCurrentStatusException() {
     var config = new StatusCheckConfiguration(true, 0, 0, 10);
-    BaseStatusService service = new BaseStatusService(config);
-    var status = new SystemStatusSystems().ok(true);
+    StatusCheckService service = new StatusCheckService(config);
     service.registerStatusCheck(
         "test",
         () -> {
@@ -48,8 +48,9 @@ class BaseStatusServiceTest {
   @Test
   void startStatusChecking() throws InterruptedException {
     var config = new StatusCheckConfiguration(true, 1, 0, 10);
-    BaseStatusService service = new BaseStatusService(config);
+    StatusCheckService service = new StatusCheckService(config);
     var status = mock(Status.class);
+    when(status.get()).thenReturn(new SystemStatusSystems().ok(true));
     service.registerStatusCheck("", status);
     service.startStatusChecking();
     Thread.sleep(500);
@@ -59,7 +60,7 @@ class BaseStatusServiceTest {
   @Test
   void getNonEnabledStatus() {
     var config = new StatusCheckConfiguration(false, 0, 0, 10);
-    BaseStatusService service = new BaseStatusService(config);
+    StatusCheckService service = new StatusCheckService(config);
     assertThat(service.getCurrentStatus(), is(new SystemStatus().ok(true)));
   }
 }
