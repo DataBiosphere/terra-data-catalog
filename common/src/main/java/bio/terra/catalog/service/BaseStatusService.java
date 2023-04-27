@@ -5,8 +5,8 @@ import bio.terra.catalog.model.SystemStatus;
 import bio.terra.catalog.model.SystemStatusSystems;
 import com.google.common.annotations.VisibleForTesting;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -24,7 +24,7 @@ public class BaseStatusService {
   /** configuration parameters */
   private final StatusCheckConfiguration configuration;
   /** set of status methods to check */
-  private final ConcurrentHashMap<String, Supplier<SystemStatusSystems>> statusCheckMap;
+  private final Map<String, Supplier<SystemStatusSystems>> statusCheckMap;
   /** scheduler */
   private final ScheduledExecutorService scheduler;
   /** last time cache was updated */
@@ -32,7 +32,7 @@ public class BaseStatusService {
 
   public BaseStatusService(StatusCheckConfiguration configuration) {
     this.configuration = configuration;
-    statusCheckMap = new ConcurrentHashMap<>();
+    statusCheckMap = new HashMap<>();
     cachedStatus = new AtomicReference<>(new SystemStatus().ok(false));
     lastStatusUpdate = new AtomicReference<>(Instant.now());
     scheduler = Executors.newScheduledThreadPool(1);
@@ -42,7 +42,7 @@ public class BaseStatusService {
   @VisibleForTesting
   void startStatusChecking() {
     if (configuration.enabled()) {
-      scheduler.scheduleAtFixedRate(
+      scheduler.scheduleWithFixedDelay(
           this::checkStatus,
           configuration.startupWaitSeconds(),
           configuration.pollingIntervalSeconds(),
@@ -61,6 +61,7 @@ public class BaseStatusService {
       try {
         var systems =
             statusCheckMap.entrySet().stream()
+                .parallel()
                 .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get()));
         newStatus.setOk(systems.values().stream().allMatch(SystemStatusSystems::isOk));
         newStatus.setSystems(systems);

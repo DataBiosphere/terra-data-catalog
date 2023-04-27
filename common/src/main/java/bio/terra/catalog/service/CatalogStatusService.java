@@ -5,6 +5,7 @@ import bio.terra.catalog.datarepo.DatarepoService;
 import bio.terra.catalog.iam.SamService;
 import bio.terra.catalog.model.SystemStatusSystems;
 import bio.terra.catalog.rawls.RawlsService;
+import com.google.common.annotations.VisibleForTesting;
 import java.sql.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,11 +34,12 @@ public class CatalogStatusService extends BaseStatusService {
     registerStatusCheck("Rawls", rawlsService::status);
   }
 
-  private SystemStatusSystems databaseStatus() {
+  @VisibleForTesting
+  SystemStatusSystems databaseStatus() {
     try {
       logger.debug("Checking database connection valid");
       return new SystemStatusSystems()
-          .ok(jdbcTemplate.getJdbcTemplate().execute((Connection conn) -> conn.isValid(5000)));
+          .ok(jdbcTemplate.getJdbcTemplate().execute((Connection conn) -> conn.isValid(1)));
     } catch (Exception ex) {
       String errorMsg = "Database status check failed";
       logger.error(errorMsg, ex);
