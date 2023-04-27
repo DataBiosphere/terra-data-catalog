@@ -3,7 +3,9 @@ package bio.terra.catalog.service;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import bio.terra.catalog.config.StatusCheckConfiguration;
@@ -46,15 +48,14 @@ class StatusCheckServiceTest {
   interface Status extends Supplier<SystemStatusSystems> {}
 
   @Test
-  void startStatusChecking() throws InterruptedException {
+  void startStatusChecking() {
     var config = new StatusCheckConfiguration(true, 1, 0, 10);
     StatusCheckService service = new StatusCheckService(config);
     var status = mock(Status.class);
     when(status.get()).thenReturn(new SystemStatusSystems().ok(true));
     service.registerStatusCheck("", status);
     service.startStatusChecking();
-    Thread.sleep(500);
-    verify(status).get();
+    verify(status, timeout(500)).get();
   }
 
   @Test
@@ -62,5 +63,17 @@ class StatusCheckServiceTest {
     var config = new StatusCheckConfiguration(false, 0, 0, 10);
     StatusCheckService service = new StatusCheckService(config);
     assertThat(service.getCurrentStatus(), is(new SystemStatus().ok(true)));
+    var status = mock(Status.class);
+    service.registerStatusCheck("", status);
+    service.startStatusChecking();
+    service.checkStatus();
+    verifyNoInteractions(status);
+  }
+
+  @Test
+  void getCurrentStatusStale() {
+    var config = new StatusCheckConfiguration(true, 0, 0, 0);
+    StatusCheckService service = new StatusCheckService(config);
+    assertThat(service.getCurrentStatus(), is(new SystemStatus().ok(false)));
   }
 }
