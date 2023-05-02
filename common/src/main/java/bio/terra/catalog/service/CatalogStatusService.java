@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class CatalogStatusService {
   private static final Logger logger = LoggerFactory.getLogger(CatalogStatusService.class);
+  /** Number of seconds to wait for a connection to the database. */
+  public static final int DB_CONNECTION_TIMEOUT = 1;
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -37,7 +39,7 @@ public class CatalogStatusService {
     try {
       logger.debug("Checking database connection valid");
       return new SystemStatusSystems()
-          .ok(jdbcTemplate.getJdbcTemplate().execute((Connection conn) -> conn.isValid(1)));
+          .ok(jdbcTemplate.getJdbcTemplate().execute((Connection conn) -> conn.isValid(DB_CONNECTION_TIMEOUT)));
     } catch (Exception ex) {
       String errorMsg = "Database status check failed";
       logger.error(errorMsg, ex);
