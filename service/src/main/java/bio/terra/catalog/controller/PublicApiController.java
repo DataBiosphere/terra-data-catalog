@@ -4,9 +4,10 @@ import bio.terra.catalog.api.PublicApi;
 import bio.terra.catalog.config.VersionConfiguration;
 import bio.terra.catalog.model.SystemStatus;
 import bio.terra.catalog.model.VersionProperties;
-import bio.terra.catalog.service.CatalogStatusService;
+import bio.terra.catalog.service.StatusCheckService;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,21 +17,21 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class PublicApiController implements PublicApi {
-  private final CatalogStatusService statusService;
+  private final StatusCheckService statusService;
   private final VersionConfiguration versionConfiguration;
 
   private final String swaggerClientId;
 
   @Autowired
   public PublicApiController(
-      CatalogStatusService statusService, VersionConfiguration versionConfiguration) {
+      StatusCheckService statusService, VersionConfiguration versionConfiguration) {
     this.statusService = statusService;
     this.versionConfiguration = versionConfiguration;
 
     String clientId = "";
 
     try (var stream = getClass().getResourceAsStream("/rendered/swagger-client-id")) {
-      clientId = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+      clientId = new String(Objects.requireNonNull(stream).readAllBytes(), StandardCharsets.UTF_8);
     } catch (IOException | NullPointerException e) {
       log.error(
           "It doesn't look like configs have been rendered! Unable to parse swagger client id.", e);

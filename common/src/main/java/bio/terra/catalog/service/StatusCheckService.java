@@ -16,21 +16,23 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
-public class BaseStatusService {
-  private static final Logger logger = LoggerFactory.getLogger(BaseStatusService.class);
+@Component
+public class StatusCheckService {
+  private static final Logger logger = LoggerFactory.getLogger(StatusCheckService.class);
   /** cached status */
   private final AtomicReference<SystemStatus> cachedStatus;
   /** configuration parameters */
   private final StatusCheckConfiguration configuration;
   /** set of status methods to check */
-  private final ConcurrentHashMap<String, Supplier<SystemStatusSystems>> statusCheckMap;
+  private final Map<String, Supplier<SystemStatusSystems>> statusCheckMap;
   /** scheduler */
   private final ScheduledExecutorService scheduler;
   /** last time cache was updated */
   private final AtomicReference<Instant> lastStatusUpdate;
 
-  public BaseStatusService(StatusCheckConfiguration configuration) {
+  public StatusCheckService(StatusCheckConfiguration configuration) {
     this.configuration = configuration;
     statusCheckMap = new ConcurrentHashMap<>();
     cachedStatus = new AtomicReference<>(new SystemStatus().ok(false));
@@ -42,7 +44,7 @@ public class BaseStatusService {
   @VisibleForTesting
   void startStatusChecking() {
     if (configuration.enabled()) {
-      scheduler.scheduleAtFixedRate(
+      scheduler.scheduleWithFixedDelay(
           this::checkStatus,
           configuration.startupWaitSeconds(),
           configuration.pollingIntervalSeconds(),
@@ -50,7 +52,7 @@ public class BaseStatusService {
     }
   }
 
-  void registerStatusCheck(String name, Supplier<SystemStatusSystems> checkFn) {
+  public void registerStatusCheck(String name, Supplier<SystemStatusSystems> checkFn) {
     statusCheckMap.put(name, checkFn);
   }
 
@@ -61,6 +63,7 @@ public class BaseStatusService {
       try {
         var systems =
             statusCheckMap.entrySet().stream()
+                .parallel()
                 .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get()));
         newStatus.setOk(systems.values().stream().allMatch(SystemStatusSystems::isOk));
         newStatus.setSystems(systems);
