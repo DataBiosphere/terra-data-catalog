@@ -39,7 +39,10 @@ public class CatalogStatusService {
     try {
       logger.debug("Checking database connection valid");
       return new SystemStatusSystems()
-          .ok(jdbcTemplate.getJdbcTemplate().execute((Connection conn) -> conn.isValid(DB_CONNECTION_TIMEOUT)));
+          .ok(
+              jdbcTemplate
+                  .getJdbcTemplate()
+                  .execute((Connection conn) -> conn.isValid(DB_CONNECTION_TIMEOUT)));
     } catch (Exception ex) {
       String errorMsg = "Database status check failed";
       logger.error(errorMsg, ex);
