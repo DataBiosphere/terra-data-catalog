@@ -3,6 +3,7 @@ package bio.terra.catalog.common;
 import bio.terra.catalog.service.dataset.DatasetId;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 
@@ -27,8 +28,7 @@ public class DaoKeyHolder extends GeneratedKeyHolder {
 
   public <T> T getField(String fieldName, Class<T> type) {
     // In practice getKeys() will never return null
-    @SuppressWarnings("ConstantConditions")
-    Object fieldObject = getKeys().get(fieldName);
+    Object fieldObject = Objects.requireNonNull(getKeys()).get(fieldName);
     return type.cast(fieldObject);
   }
 }
