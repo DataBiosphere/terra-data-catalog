@@ -54,3 +54,7 @@ liquibase {
         }
     }
 }
+
+srcclr {
+    scope = "compile"
+}
