@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class CatalogStatusService {
   private static final Logger logger = LoggerFactory.getLogger(CatalogStatusService.class);
+
   /** Number of seconds to wait for a connection to the database. */
   public static final int DB_CONNECTION_TIMEOUT = 1;
 
