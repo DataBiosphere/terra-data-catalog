@@ -4,6 +4,7 @@
   "serverSpecificationFile": "catalog-local.json",
   "kubernetes": {},
   "application": {},
+  "maxRetries": 0,
   "testScripts": [
     {
       "name": "GetVersion",
