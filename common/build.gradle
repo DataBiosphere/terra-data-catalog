@@ -56,5 +56,5 @@ liquibase {
 }
 
 srcclr {
-    scope = "compile"
+    scope = 'runtimeClasspath'
 }
