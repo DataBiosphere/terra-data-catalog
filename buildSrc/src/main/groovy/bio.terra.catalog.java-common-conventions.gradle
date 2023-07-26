@@ -48,7 +48,7 @@ dependencies {
 
     testImplementation 'ch.qos.logback:logback-classic'
 
-    implementation 'bio.terra:terra-common-lib:0.0.75-SNAPSHOT'
+    implementation 'bio.terra:terra-common-lib:0.0.93-SNAPSHOT'
     implementation 'bio.terra:datarepo-client:1.349.0-SNAPSHOT'
 }
 
