@@ -21,14 +21,19 @@ import org.springframework.stereotype.Component;
 @Component
 public class StatusCheckService {
   private static final Logger logger = LoggerFactory.getLogger(StatusCheckService.class);
+
   /** cached status */
   private final AtomicReference<SystemStatus> cachedStatus;
+
   /** configuration parameters */
   private final StatusCheckConfiguration configuration;
+
   /** set of status methods to check */
   private final Map<String, Supplier<SystemStatusSystems>> statusCheckMap;
+
   /** scheduler */
   private final ScheduledExecutorService scheduler;
+
   /** last time cache was updated */
   private final AtomicReference<Instant> lastStatusUpdate;
 
