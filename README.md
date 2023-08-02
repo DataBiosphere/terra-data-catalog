@@ -75,23 +75,23 @@ export SRCCLR_API_TOKEN=$(vault read -field=api_token secret/secops/ci/srcclr/gr
 ./gradlew srcclr
 ```
 
-## Running SonarQube locally
+## Running Sonar locally
 
-[SonarQube](https://www.sonarqube.org) is a static analysis code that scans code for a wide
+[Sonar](https://www.sonarsource.com) is a static analysis code that scans code for a wide
 range of issues, including maintainability and possible bugs. If you get a build failure due to
-SonarQube and want to debug the problem locally, you need to get the the sonar token from vault
+Sonar and want to debug the problem locally, you need to get the the sonar token from vault
 before runing the gradle task.
 
 ```shell
 export SONAR_TOKEN=$(vault read -field=sonar_token secret/secops/ci/sonarcloud/catalog)
-./gradlew sonarqube
+./gradlew sonar
 ```
 
 Unlike SourceClear, running this task produces no output unless your project has errors. To always
 generate a report, run using `--info`:
 
 ```shell
-./gradlew sonarqube --info
+./gradlew sonar --info
 ```
 
 ## Dataset entry schema
