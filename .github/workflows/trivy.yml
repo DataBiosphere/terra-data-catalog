@@ -1,5 +1,5 @@
 name: Trivy
-on: workflow_dispatch
+on: workflow_call
 
 jobs:
   trivy:
