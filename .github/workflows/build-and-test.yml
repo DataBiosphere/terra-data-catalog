@@ -3,7 +3,7 @@ name: Build and Test
 on:
   push:
     branches: [ main ]
-    paths-ignore: [ '*.md' ]
+    paths-ignore: [ '*.md', 'settings.gradle' ]
   pull_request:
     branches: [ '**' ]
 
@@ -39,7 +39,8 @@ jobs:
   dispatch-trivy:
     needs: [ build ]
     uses: ./.github/workflows/trivy.yml
-    secrets: inherit
+    secrets:
+      token: ${{ secrets.BROADBOT_TOKEN }}
     if: github.event_name == 'pull_request'
 
   source-clear:
@@ -218,5 +219,6 @@ jobs:
   dispatch-tag:
     needs: [ unit-tests-and-sonar, source-clear, integration-tests, admin-cli-test ]
     uses: ./.github/workflows/tag.yml
-    secrets: inherit
+    secrets:
+      token: ${{ secrets.BROADBOT_TOKEN }}
     if: success() && github.ref == 'refs/heads/main'

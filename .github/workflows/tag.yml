@@ -1,5 +1,9 @@
 name: Tag
-on: workflow_call
+on:
+  workflow_call:
+    secrets:
+      token:
+        required: true
 
 jobs:
   tag-job:

@@ -32,8 +32,8 @@ jobs:
   dispatch-trivy:
     needs: [ build ]
     uses: ./.github/workflows/trivy.yml
-    secrets: inherit
-    if: github.event_name == 'pull_request'
+    secrets:
+      token: ${{ secrets.BROADBOT_TOKEN }}
 
   test-env:
     runs-on: ubuntu-latest
