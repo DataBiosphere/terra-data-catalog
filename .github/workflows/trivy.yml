@@ -1,5 +1,9 @@
 name: Trivy
-on: workflow_dispatch
+on:
+  workflow_call:
+    secrets:
+      token:
+        required: true
 
 jobs:
   trivy:
