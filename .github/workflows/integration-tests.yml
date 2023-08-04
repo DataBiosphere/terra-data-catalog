@@ -31,14 +31,9 @@ jobs:
 
   dispatch-trivy:
     needs: [ build ]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Fire off Trivy action
-        uses: ./.github/workflows/trivy.yml
-        with:
-          workflow: Trivy
-          token: ${{ secrets.BROADBOT_TOKEN }}
+    uses: ./.github/workflows/trivy.yml
+    secrets: inherit
+    if: github.event_name == 'pull_request'
 
   test-env:
     runs-on: ubuntu-latest
