@@ -217,13 +217,6 @@ jobs:
 
   dispatch-tag:
     needs: [ unit-tests-and-sonar, source-clear, integration-tests, admin-cli-test ]
-    runs-on: ubuntu-latest
-
+    uses: ./.github/workflows/tag.yml
+    secrets: inherit
     if: success() && github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Fire off tag action
-        uses: ./.github/workflows/tag.yml
-        with:
-          workflow: Tag
-          token: ${{ secrets.BROADBOT_TOKEN }}
