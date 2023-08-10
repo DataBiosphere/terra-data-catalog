@@ -30,7 +30,7 @@ jobs:
           ARTIFACTORY_REPO_KEY: "libs-release-local"
 
       - name: Auth to GCR
-        uses: google-github-actions/setup-gcloud@v0
+        uses: google-github-actions/setup-gcloud@v1
         with:
           service_account_email: ${{ secrets.GCR_PUBLISH_EMAIL }}
           service_account_key: ${{ secrets.GCR_PUBLISH_KEY_B64 }}
@@ -59,7 +59,7 @@ jobs:
           client-payload: '{"service": "catalog", "version": "${{ steps.tag.outputs.tag }}", "dev_only": false}'
 
       - name: Notify slack on failure
-        uses: broadinstitute/action-slack@v3.8.0
+        uses: broadinstitute/action-slack@v3.15.0
         if: failure()
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

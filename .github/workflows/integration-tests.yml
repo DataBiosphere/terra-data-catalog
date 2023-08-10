@@ -39,7 +39,7 @@ jobs:
 
     steps:
       - name: Fire off Trivy action
-        uses: broadinstitute/workflow-dispatch@v1
+        uses: broadinstitute/workflow-dispatch@v3
         with:
           workflow: Trivy
           token: ${{ secrets.BROADBOT_TOKEN }}
@@ -96,7 +96,7 @@ jobs:
 
       - name: Upload Test Reports for GitHub
         if: always()
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: Test Reports
           path: integration/build/reports
@@ -108,7 +108,7 @@ jobs:
 
     steps:
       - name: "Notify #jade-data-explorer Slack on failure"
-        uses: broadinstitute/action-slack@v3.8.0
+        uses: broadinstitute/action-slack@v3.15.0
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           STATUS: failure
@@ -129,7 +129,7 @@ jobs:
 
     steps:
       - name: "Always notify #dsde-qa Slack"
-        uses: broadinstitute/action-slack@v3.8.0
+        uses: broadinstitute/action-slack@v3.15.0
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           STATUS: >-
