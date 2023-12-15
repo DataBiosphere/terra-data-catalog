@@ -36,7 +36,8 @@ generateSwaggerCode {
         apiPackage    : "${artifactGroup}.api",
         invokerPackage: "${artifactGroup}.client",
         dateLibrary   : 'java11',
-        java8         : true
+        java8         : true,
+        jakarta       : true
     ]
 
     rawOptions = ['--ignore-file-override', "${projectDir}/.swagger-codegen-ignore"]
