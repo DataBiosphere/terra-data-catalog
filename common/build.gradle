@@ -20,6 +20,8 @@ dependencies {
     implementation 'org.broadinstitute.dsde.workbench:sam-client_2.13:0.1-6a32c36'
     implementation 'jakarta.ws.rs:jakarta.ws.rs-api:3.1.0'
     implementation 'javax.ws.rs:javax.ws.rs-api:2.1.1'
+    implementation 'org.glassfish.jersey.core:jersey-client:3.1.3'
+    implementation 'org.glassfish.jersey.core:jersey-common:3.1.3'
     implementation 'org.postgresql:postgresql'
     implementation 'com.networknt:json-schema-validator:1.0.73'
     implementation project(':rawls-client')

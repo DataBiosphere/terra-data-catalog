@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import bio.terra.catalog.config.SamConfiguration;
+import bio.terra.common.exception.ErrorReportException;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.sam.SamRetry;
 import java.util.List;
@@ -85,6 +86,6 @@ class SamServiceTest {
     var action = SamAction.READ_ANY_METADATA;
     when(SamRetry.retry(() -> resourcesApi.resourceActionsV2(any(), any())))
         .thenThrow(new ApiException());
-    assertThrows(IllegalArgumentException.class, () -> samService.hasGlobalAction(action));
+    assertThrows(ErrorReportException.class, () -> samService.hasGlobalAction(action));
   }
 }
