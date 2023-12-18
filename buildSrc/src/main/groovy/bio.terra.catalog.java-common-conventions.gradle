@@ -49,7 +49,7 @@ dependencies {
 
     implementation 'bio.terra:terra-common-lib:0.1.9-SNAPSHOT'
     implementation 'com.google.guava:guava:31.1-jre'
-    implementation 'bio.terra:datarepo-client:1.349.0-SNAPSHOT'
+    implementation 'bio.terra:datarepo-jakarta-client:1.563.0-SNAPSHOT'
 }
 
 tasks.named('test') {
