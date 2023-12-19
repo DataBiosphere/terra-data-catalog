@@ -1,7 +1,17 @@
+plugins {
+    id 'org.liquibase.gradle'
+}
 dependencies {
     implementation 'bio.terra:terra-common-lib'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.retry:spring-retry'
     implementation 'jakarta.ws.rs:jakarta.ws.rs-api:3.1.0'
     implementation 'org.postgresql:postgresql'
+
+    liquibaseRuntime 'org.liquibase:liquibase-core:1.4.14'
+    liquibaseRuntime 'info.picocli:picocli:4.6.1'
+    liquibaseRuntime 'org.postgresql:postgresql'
+    liquibaseRuntime 'ch.qos.logback:logback-classic:1.4.14'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

@@ -8,7 +8,6 @@ plugins {
     id 'com.srcclr.gradle'
     id 'org.sonarqube'
     id 'com.gorylenko.gradle-git-properties'
-    id 'org.liquibase.gradle'
 }
 
 dependencies {
@@ -20,13 +19,6 @@ dependencies {
     implementation 'com.networknt:json-schema-validator:1.0.73'
     implementation project(':rawls-client')
     implementation project(':client')
-
-    liquibaseRuntime 'org.liquibase:liquibase-core'
-    liquibaseRuntime 'info.picocli:picocli:4.6.1'
-    liquibaseRuntime 'org.postgresql:postgresql'
-    liquibaseRuntime 'ch.qos.logback:logback-classic'
-
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 test {
