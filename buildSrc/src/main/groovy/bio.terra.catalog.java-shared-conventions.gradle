@@ -1,0 +1,10 @@
+plugins {
+    id 'bio.terra.catalog.java-common-conventions'
+}
+dependencies {
+    implementation 'bio.terra:terra-common-lib'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.retry:spring-retry'
+    implementation 'jakarta.ws.rs:jakarta.ws.rs-api:3.1.0'
+    implementation 'org.postgresql:postgresql'
+}
