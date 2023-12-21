@@ -16,7 +16,6 @@ generateSwaggerCode {
     inputFile = file('src/main/resources/api/openapi.yml')
     language = 'spring'
     components = ['models', 'apis']
-    jvmArgs = ['--add-opens=java.base/java.util=ALL-UNNAMED']
     additionalProperties = [
         modelPackage     : "${artifactGroup}.model",
         apiPackage       : "${artifactGroup}.api",
@@ -24,7 +23,6 @@ generateSwaggerCode {
         java8            : true,
         interfaceOnly    : 'true',
         useTags          : 'true',
-        springBootVersion: dependencyManagement.managedVersions['org.springframework.boot:spring-boot'],
         jakarta          : true
     ]
 }
