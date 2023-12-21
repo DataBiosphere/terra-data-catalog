@@ -11,6 +11,7 @@ import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.exception.NotFoundException;
 import bio.terra.datarepo.client.ApiException;
 import bio.terra.datarepo.model.EnumerateSnapshotModel;
+import bio.terra.datarepo.model.QueryDataRequestModel;
 import bio.terra.datarepo.model.RepositoryStatusModel;
 import bio.terra.datarepo.model.SnapshotModel;
 import bio.terra.datarepo.model.SnapshotPreviewModel;
@@ -148,7 +149,7 @@ public class DatarepoService implements StorageSystemService {
       UUID id = UUID.fromString(snapshotId);
       return datarepoClient
           .snapshotsApi()
-          .lookupSnapshotPreviewById(id, tableName, null, maxRows, null, null, null);
+          .querySnapshotDataById(id, tableName, new QueryDataRequestModel().limit(maxRows));
     } catch (ApiException e) {
       throw new DatarepoException(e);
     }
