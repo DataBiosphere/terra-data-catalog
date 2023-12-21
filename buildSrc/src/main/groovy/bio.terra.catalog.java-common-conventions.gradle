@@ -44,8 +44,8 @@ dependencies {
     implementation 'io.swagger.core.v3:swagger-annotations:2.2.12'
     swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli:3.0.47'
     implementation 'org.slf4j:slf4j-api'
-    implementation 'ch.qos.logback:logback-classic:1.4.14' //unpin when Spring Boot 3.2.1 is available
-    implementation 'ch.qos.logback:logback-core:1.4.14' //unpin when Spring Boot 3.2.1 is available
+    implementation 'ch.qos.logback:logback-classic'
+    implementation 'ch.qos.logback:logback-core'
 
     implementation 'bio.terra:terra-common-lib:0.1.9-SNAPSHOT'
     // guava is depended on by terra-common-lib, https://broadworkbench.atlassian.net/browse/DC-798

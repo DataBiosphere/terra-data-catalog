@@ -19,7 +19,7 @@ dependencies {
     implementation 'io.spring.dependency-management:io.spring.dependency-management.gradle.plugin:1.1.4'
     implementation 'org.hidetake.swagger.generator:org.hidetake.swagger.generator.gradle.plugin:2.19.2'
     implementation 'org.sonarqube:org.sonarqube.gradle.plugin:4.3.0.3225'
-    implementation 'org.springframework.boot:spring-boot-gradle-plugin:3.2.0'
+    implementation 'org.springframework.boot:spring-boot-gradle-plugin:3.2.1'
     implementation 'bio.terra:terra-test-runner:0.2.0-SNAPSHOT'
     implementation 'com.gorylenko.gradle-git-properties:gradle-git-properties:2.4.1'
     implementation 'org.liquibase:liquibase-gradle-plugin:2.2.0'
