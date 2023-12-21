@@ -6,7 +6,7 @@ import bio.terra.rawls.api.EntitiesApi;
 import bio.terra.rawls.api.StatusApi;
 import bio.terra.rawls.api.WorkspacesApi;
 import bio.terra.rawls.client.ApiClient;
-import javax.ws.rs.client.Client;
+import jakarta.ws.rs.client.Client;
 import org.springframework.stereotype.Component;
 
 @Component

@@ -5,7 +5,7 @@ import bio.terra.common.iam.BearerToken;
 import bio.terra.datarepo.api.SnapshotsApi;
 import bio.terra.datarepo.api.UnauthenticatedApi;
 import bio.terra.datarepo.client.ApiClient;
-import javax.ws.rs.client.Client;
+import jakarta.ws.rs.client.Client;
 import org.springframework.stereotype.Component;
 
 @Component

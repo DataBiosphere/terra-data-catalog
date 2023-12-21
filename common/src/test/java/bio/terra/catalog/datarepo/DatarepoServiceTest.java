@@ -20,6 +20,7 @@ import bio.terra.datarepo.client.ApiException;
 import bio.terra.datarepo.model.ColumnModel;
 import bio.terra.datarepo.model.DatasetSummaryModel;
 import bio.terra.datarepo.model.EnumerateSnapshotModel;
+import bio.terra.datarepo.model.QueryDataRequestModel;
 import bio.terra.datarepo.model.RepositoryStatusModel;
 import bio.terra.datarepo.model.SnapshotModel;
 import bio.terra.datarepo.model.SnapshotPreviewModel;
@@ -72,7 +73,7 @@ class DatarepoServiceTest {
         new EnumerateSnapshotModel()
             .items(List.of(new SnapshotSummaryModel().id(snapshotId).phsId("1234")))
             .roleMap(items);
-    when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any()))
+    when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any(), any()))
         .thenReturn(esm);
     var returnedItems = datarepoService.getDatasets();
     assertThat(returnedItems, is(expectedItems));
@@ -98,7 +99,7 @@ class DatarepoServiceTest {
   @Test
   void getSnapshotsException() throws Exception {
     mockSnapshots();
-    when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any()))
+    when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any(), any()))
         .thenThrow(new ApiException());
     assertThrows(DatarepoException.class, () -> datarepoService.getDatasets());
   }
@@ -216,7 +217,7 @@ class DatarepoServiceTest {
                                 List.of(new ColumnModel().name("a"), new ColumnModel().name("b"))),
                         new TableModel().rowCount(0).name("empty"))));
     List<Object> rows = List.of(Map.of("a", 1, "b", 2), Map.of("a", 3, "b", 4));
-    when(snapshotsApi.lookupSnapshotPreviewById(id, tableName, null, 10, null, null))
+    when(snapshotsApi.querySnapshotDataById(id, tableName, new QueryDataRequestModel().limit(10)))
         .thenReturn(new SnapshotPreviewModel().result(rows));
     assertThat(
         datarepoService.previewTable(id.toString(), tableName, 10),
@@ -250,7 +251,7 @@ class DatarepoServiceTest {
 
     when(snapshotsApi.retrieveSnapshot(id, List.of(SnapshotRetrieveIncludeModel.TABLES)))
         .thenReturn(new SnapshotModel().tables(List.of(new TableModel().name(tableName))));
-    when(snapshotsApi.lookupSnapshotPreviewById(id, tableName, null, 10, null, null))
+    when(snapshotsApi.querySnapshotDataById(id, tableName, new QueryDataRequestModel().limit(10)))
         .thenThrow(new ApiException(HttpStatus.NOT_FOUND.value(), errorMessage));
 
     String snapshotId = id.toString();
