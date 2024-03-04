@@ -72,7 +72,7 @@ public class DatarepoService implements StorageSystemService {
       EnumerateSnapshotModel response =
           datarepoClient
               .snapshotsApi()
-              .enumerateSnapshots(null, MAX_DATASETS, null, null, null, null, null, null);
+              .enumerateSnapshots(null, MAX_DATASETS, null, null, null, null, null, null, null);
       Map<String, List<String>> roleMap = response.getRoleMap();
 
       return response.getItems().stream()

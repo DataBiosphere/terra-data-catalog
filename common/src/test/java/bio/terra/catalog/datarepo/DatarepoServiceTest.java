@@ -73,7 +73,8 @@ class DatarepoServiceTest {
         new EnumerateSnapshotModel()
             .items(List.of(new SnapshotSummaryModel().id(snapshotId).phsId("1234")))
             .roleMap(items);
-    when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any(), any()))
+    when(snapshotsApi.enumerateSnapshots(
+            any(), any(), any(), any(), any(), any(), any(), any(), any()))
         .thenReturn(esm);
     var returnedItems = datarepoService.getDatasets();
     assertThat(returnedItems, is(expectedItems));
@@ -99,7 +100,8 @@ class DatarepoServiceTest {
   @Test
   void getSnapshotsException() throws Exception {
     mockSnapshots();
-    when(snapshotsApi.enumerateSnapshots(any(), any(), any(), any(), any(), any(), any(), any()))
+    when(snapshotsApi.enumerateSnapshots(
+            any(), any(), any(), any(), any(), any(), any(), any(), any()))
         .thenThrow(new ApiException());
     assertThrows(DatarepoException.class, () -> datarepoService.getDatasets());
   }
