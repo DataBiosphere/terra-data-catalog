@@ -30,7 +30,7 @@ will give you access to our repositories. You should also be a member of
 [broadwrite](https://github.com/orgs/DataBiosphere/teams/broadwrite); this should be done
 automatically when you're added to the DataBiosphere organization.
 - Google Groups: Ask a team member for access to Google Groups including
-`jade-internal` and `jade-data-explorer`, and check that you're a member of
+`jade-internal` and `dsp-data-exploration`, and check that you're a member of
 `dsde-engineering` and `dsp-engineering`. These google groups are used for scheduling, email and
 google drive document sharing, and are also used to control membership in GitHub teams
 in the broadinstitute organization, such as

@@ -216,7 +216,7 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
-          channel: '#jade-data-explorer'
+          channel: '#dsp-data-exploration'
           status: failure
           author_name: Build on dev
           fields: job,message
