@@ -107,13 +107,13 @@ jobs:
     if: failure()
 
     steps:
-      - name: "Notify #dsp-data-exploration Slack on failure"
+      - name: "Notify Slack channel on failure"
         uses: broadinstitute/action-slack@v3.15.0
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           STATUS: failure
         with:
-          channel: '#dsp-data-exploration'
+          channel: ${{ vars.SLACK_NOTIFICATION_CHANNELS }}
           status: ${{ env.STATUS }}
           fields: job,ref
           text: >
