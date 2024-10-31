@@ -1,4 +1,4 @@
 rootProject.name = 'terra-data-catalog'
 include('admin-cli', 'service', 'client', 'rawls-client', 'common', 'integration', 'scripts')
 
-gradle.ext.releaseVersion = '0.140.0'
+gradle.ext.releaseVersion = '0.145.0'
