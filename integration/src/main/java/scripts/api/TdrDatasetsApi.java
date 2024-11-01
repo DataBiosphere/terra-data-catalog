@@ -99,6 +99,7 @@ public class TdrDatasetsApi {
     return new DatasetRequestModel()
         .name(DatarepoClient.randomName())
         .defaultProfileId(billingProfileId)
+        .dedicatedIngestServiceAccount(false)
         .schema(schema)
         .phsId("1234");
   }
