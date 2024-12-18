@@ -96,10 +96,11 @@ jobs:
 
       - name: Upload Test Reports for GitHub
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Test Reports
           path: integration/build/reports
+          retention-days: 7
 
   notify-de-slack:
     needs: [ build, test-env, test-runner ]
