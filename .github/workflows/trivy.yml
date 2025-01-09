@@ -6,6 +6,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          persist-credentials: false
 
       - name: Set up JDK
         uses: actions/setup-java@v3
@@ -25,8 +27,10 @@ jobs:
       - name: Build image locally with jib
         run: |
           ./gradlew --build-cache :service:jibDockerBuild \
-            --image=${{ steps.image-name.outputs.name }} \
+            --image="${IMAGE_NAME}" \
             -Djib.console=plain
+        env:
+          IMAGE_NAME: ${{ steps.image-name.outputs.name }}
 
       - name: Run Trivy vulnerability scanner
         uses: broadinstitute/dsp-appsec-trivy-action@v1

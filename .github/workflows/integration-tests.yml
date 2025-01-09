@@ -9,12 +9,11 @@ on:
         required: true
         options:
           - staging
-          - alpha
           - dev
         default: 'dev'
 
 env:
-  TEST_ENV: ${{ github.event.inputs.environment }}
+  TEST_INPUT: ${{ github.event.inputs.environment }}
   TEST_DEFAULT: dev
 
 jobs:
@@ -23,6 +22,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          persist-credentials: false
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
@@ -53,7 +54,9 @@ jobs:
       - name: Set default test env
         id: test-env
         run: |
-          echo "test-env=${{ env.TEST_ENV || env.TEST_DEFAULT }}" >> $GITHUB_OUTPUT
+          TEST_ENV=${TEST_INPUT:-$TEST_DEFAULT}
+          echo "test-env=${TEST_ENV}" >> $GITHUB_OUTPUT
+          echo "Running tests in '${TEST_ENV}' environment"
 
   test-runner:
     needs: [ build, test-env ]
@@ -61,6 +64,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          persist-credentials: false
 
       - name: Get the helm chart versions for the test env
         run: |
@@ -70,8 +75,10 @@ jobs:
             --create-dirs -o "integration/src/main/resources/rendered/dev.yaml"
           curl -H 'Authorization: token ${{ secrets.BROADBOT_TOKEN }}' \
             -H 'Accept: application/vnd.github.v3.raw' \
-            -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/environments/live/${{ needs.test-env.outputs.test-env }}.yaml \
-            --create-dirs -o "integration/src/main/resources/rendered/${{ needs.test-env.outputs.test-env }}.yaml"
+            -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/environments/live/${TEST_ENV}.yaml \
+            --create-dirs -o "integration/src/main/resources/rendered/${TEST_ENV}.yaml"
+        env:
+          TEST_ENV: ${{ needs.test-env.outputs.test-env }}
 
       - name: Set up JDK
         uses: actions/setup-java@v3
@@ -87,7 +94,9 @@ jobs:
 
       - name: Run integration test suite
         run: |
-          ./gradlew --build-cache runTest --args="suites/${{ needs.test-env.outputs.test-env }}/FullIntegration.json build/reports"
+          ./gradlew --build-cache runTest --args="suites/${TEST_ENV}/FullIntegration.json build/reports"
+        env:
+          TEST_ENV: ${{ needs.test-env.outputs.test-env }}
 
       - name: Upload Test Reports for QA
         if: always()

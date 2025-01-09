@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          persist-credentials: false
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
@@ -41,16 +43,22 @@ jobs:
 
       - name: Construct docker image name and tag
         id: image-name
-        run: echo "name=gcr.io/${GOOGLE_PROJECT}/${SERVICE_NAME}:${{ steps.tag.outputs.tag }}" >> $GITHUB_OUTPUT
+        run: echo "name=gcr.io/${GOOGLE_PROJECT}/${SERVICE_NAME}:${GIT_TAG}" >> $GITHUB_OUTPUT
+        env:
+          GIT_TAG: ${{ steps.tag.outputs.tag }}
 
       - name: Build image locally with jib
         run: |
           ./gradlew --build-cache :service:jibDockerBuild \
-          --image=${{ steps.image-name.outputs.name }} \
+          --image="$IMAGE_NAME" \
           -Djib.console=plain
+        env:
+          IMAGE_NAME: ${{ steps.image-name.outputs.name }}
 
       - name: Push GCR image
-        run: docker push ${{ steps.image-name.outputs.name }}
+        run: docker push "${IMAGE_NAME}"
+        env:
+          IMAGE_NAME: ${{ steps.image-name.outputs.name }}
 
       - name: Deploy to Terra Dev environment
         uses: broadinstitute/repository-dispatch@master
