@@ -13,6 +13,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          persist-credentials: false
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -56,6 +58,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          persist-credentials: false
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
@@ -84,6 +88,7 @@ jobs:
         # Needed by sonar to get the git history for the branch the PR will be merged into.
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
@@ -121,6 +126,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          persist-credentials: false
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
@@ -151,6 +158,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          persist-credentials: false
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
@@ -168,8 +177,10 @@ jobs:
       - name: Build image locally with jib
         run: |
           ./gradlew --build-cache :service:jibDockerBuild \
-            --image=${{ steps.image-name.outputs.name }} \
+            --image="${IMAGE_NAME}" \
             -Djib.console=plain
+        env:
+          IMAGE_NAME: ${{ steps.image-name.outputs.name }}
 
       - name: Make sure Postgres is ready and init
         env:
@@ -185,7 +196,9 @@ jobs:
 
       - name: Launch the background process for integration tests
         # 172.17.0.1 is the IP address of the gateway in the default docker bridge network. https://docs.docker.com/network/network-tutorial-standalone/
-        run: docker run -e DATABASE_HOSTNAME=172.17.0.1 -e SPRING_PROFILES_INCLUDE=human-readable-logging -p 8080:8080 -d --name catalog ${{ steps.image-name.outputs.name }}
+        run: docker run -e DATABASE_HOSTNAME=172.17.0.1 -e SPRING_PROFILES_INCLUDE=human-readable-logging -p 8080:8080 -d --name catalog "${IMAGE_NAME}"
+        env:
+          IMAGE_NAME: ${{ steps.image-name.outputs.name }}
 
       - name: Wait for boot run to be ready
         run: |
