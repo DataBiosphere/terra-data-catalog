@@ -47,9 +47,11 @@ dependencies {
 
     testImplementation 'ch.qos.logback:logback-classic'
 
-    implementation 'bio.terra:terra-common-lib:0.1.9-SNAPSHOT'
-    // guava is depended on by terra-common-lib, https://broadworkbench.atlassian.net/browse/DC-798
-    implementation 'com.google.guava:guava:31.1-jre'
+    implementation 'bio.terra:terra-common-lib:1.1.38-SNAPSHOT'
+    // terra-common-lib requires opentelemetry
+    implementation platform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:2.12.0-alpha")
+    // terra-common-lib requires guava, https://broadworkbench.atlassian.net/browse/DC-798
+    implementation 'com.google.guava:guava:33.4.0-jre'
     implementation 'bio.terra:datarepo-client:2.13.0-SNAPSHOT'
 }
 
