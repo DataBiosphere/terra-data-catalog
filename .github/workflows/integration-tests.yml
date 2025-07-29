@@ -1,5 +1,5 @@
-# DISABLED per # Disabled integration tests per https://broadworkbench.atlassian.net/browse/DT-2032
-name: Integration Tests (DISABLED)
+# Disabled integration tests per https://broadworkbench.atlassian.net/browse/DT-2032
+name: Integration Tests (DISABLED per DT-2032)
 
 # This workflow is disabled - using a trigger that will never fire
 on:
@@ -10,7 +10,7 @@ on:
         required: false
         default: 'true'
 
-# Integration tests are disabled
+# Integration tests are disabled per https://broadworkbench.atlassian.net/browse/DT-2032
 # env:
 #   TEST_INPUT: ${{ github.event.inputs.environment }}
 #   TEST_DEFAULT: dev
