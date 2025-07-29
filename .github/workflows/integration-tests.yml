@@ -1,157 +1,167 @@
-name: Integration Tests
+# DISABLED per # Disabled integration tests per https://broadworkbench.atlassian.net/browse/DT-2032
+name: Integration Tests (DISABLED)
 
+# This workflow is disabled - using a trigger that will never fire
 on:
   workflow_dispatch:
     inputs:
-      environment:
-        type: choice
-        description: 'environment to run test in'
-        required: true
-        options:
-          - staging
-          - dev
-        default: 'dev'
+      disabled:
+        description: 'This workflow is disabled'
+        required: false
+        default: 'true'
 
-env:
-  TEST_INPUT: ${{ github.event.inputs.environment }}
-  TEST_DEFAULT: dev
+# Integration tests are disabled
+# env:
+#   TEST_INPUT: ${{ github.event.inputs.environment }}
+#   TEST_DEFAULT: dev
 
 jobs:
-  build:
+  # All jobs are disabled per https://broadworkbench.atlassian.net/browse/DT-2032
+  disabled-notice:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v3
-        with:
-          persist-credentials: false
-      - name: Set up JDK
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'gradle'
-
-      - name: Build integration subproject
-        run: ./gradlew --build-cache :integration:build
-
-  dispatch-trivy:
-    needs: [ build ]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Fire off Trivy action
-        uses: broadinstitute/workflow-dispatch@v3
-        with:
-          workflow: Trivy
-          token: ${{ secrets.BROADBOT_TOKEN }}
-
-  test-env:
-    runs-on: ubuntu-latest
-    outputs:
-      test-env: ${{ steps.test-env.outputs.test-env }}
-
-    steps:
-      - name: Set default test env
-        id: test-env
+      - name: Display disabled notice
         run: |
-          TEST_ENV=${TEST_INPUT:-$TEST_DEFAULT}
-          echo "test-env=${TEST_ENV}" >> $GITHUB_OUTPUT
-          echo "Running tests in '${TEST_ENV}' environment"
+          echo "::notice::Integration tests are disabled per https://broadworkbench.atlassian.net/browse/DT-2032"
+          exit 0
 
-  test-runner:
-    needs: [ build, test-env ]
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          persist-credentials: false
-
-      - name: Get the helm chart versions for the test env
-        run: |
-          curl -H 'Authorization: token ${{ secrets.BROADBOT_TOKEN }}' \
-            -H 'Accept: application/vnd.github.v3.raw' \
-            -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/versions/app/dev.yaml \
-            --create-dirs -o "integration/src/main/resources/rendered/dev.yaml"
-          curl -H 'Authorization: token ${{ secrets.BROADBOT_TOKEN }}' \
-            -H 'Accept: application/vnd.github.v3.raw' \
-            -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/environments/live/${TEST_ENV}.yaml \
-            --create-dirs -o "integration/src/main/resources/rendered/${TEST_ENV}.yaml"
-        env:
-          TEST_ENV: ${{ needs.test-env.outputs.test-env }}
-
-      - name: Set up JDK
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'gradle'
-
-      - name: Render GitHub Secrets
-        run: |
-          echo "${{ secrets.DEV_FIRECLOUD_ACCOUNT_B64 }}" | base64 -d > "integration/src/main/resources/rendered/user-delegated-sa.json"
-          echo "${{ secrets.PERF_TESTRUNNER_ACCOUNT_B64 }}" | base64 -d > "integration/src/main/resources/rendered/testrunner-perf.json"
-
-      - name: Run integration test suite
-        run: |
-          ./gradlew --build-cache runTest --args="suites/${TEST_ENV}/FullIntegration.json build/reports"
-        env:
-          TEST_ENV: ${{ needs.test-env.outputs.test-env }}
-
-      - name: Upload Test Reports for QA
-        if: always()
-        run: |
-          ./gradlew --build-cache uploadResults --args="CompressDirectoryToTerraKernelK8S.json build/reports"
-
-      - name: Upload Test Reports for GitHub
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: Test Reports
-          path: integration/build/reports
-          retention-days: 7
-
-  notify-de-slack:
-    needs: [ build, test-env, test-runner ]
-    runs-on: ubuntu-latest
-    if: failure()
-
-    steps:
-      - name: "Notify Slack channel on failure"
-        uses: broadinstitute/action-slack@v3.15.0
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          STATUS: failure
-        with:
-          channel: ${{ vars.SLACK_NOTIFICATION_CHANNELS }}
-          status: ${{ env.STATUS }}
-          fields: job,ref
-          text: >
-            ${{ format('Catalog test *{0}* in *{1}* {2}',
-            env.STATUS, needs.test-env.outputs.test-env,
-            env.STATUS == 'success' && ':check_green:' || ':sadpanda:') }}
-          username: 'Data Explorer Tests'
-
-  notify-qa-slack:
-    needs: [ build, test-env, test-runner ]
-    runs-on: ubuntu-latest
-    if: always() && needs.test-env.outputs.test-env != 'dev'
-
-    steps:
-      - name: "Always notify #dsde-qa Slack"
-        uses: broadinstitute/action-slack@v3.15.0
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          STATUS: >-
-            ${{ needs.build.result == 'success'
-            && needs.test-runner.result == 'success'
-            && 'success' || 'failure' }}
-        with:
-          channel: '#dsde-qa'
-          status: ${{ env.STATUS }}
-          fields: job,ref
-          text: >
-            ${{ format('Catalog test *{0}* in *{1}* {2}',
-            env.STATUS, needs.test-env.outputs.test-env,
-            env.STATUS == 'success' && ':check_green:' || ':sadpanda:') }}
-          username: 'Data Explorer Tests'
+  # All remaining jobs are disabled per https://broadworkbench.atlassian.net/browse/DT-2032
+  #
+  # build:
+  #   runs-on: ubuntu-latest
+  #
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #       with:
+  #         persist-credentials: false
+  #     - name: Set up JDK
+  #       uses: actions/setup-java@v3
+  #       with:
+  #         java-version: '17'
+  #         distribution: 'temurin'
+  #         cache: 'gradle'
+  #
+  #     - name: Build integration subproject
+  #       run: ./gradlew --build-cache :integration:build
+  #
+  # dispatch-trivy:
+  #   needs: [ build ]
+  #   runs-on: ubuntu-latest
+  #
+  #   steps:
+  #     - name: Fire off Trivy action
+  #       uses: broadinstitute/workflow-dispatch@v3
+  #       with:
+  #         workflow: Trivy
+  #         token: ${{ secrets.BROADBOT_TOKEN }}
+  #
+  # test-env:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     test-env: ${{ steps.test-env.outputs.test-env }}
+  #
+  #   steps:
+  #     - name: Set default test env
+  #       id: test-env
+  #       run: |
+  #         TEST_ENV=${TEST_INPUT:-$TEST_DEFAULT}
+  #         echo "test-env=${TEST_ENV}" >> $GITHUB_OUTPUT
+  #         echo "Running tests in '${TEST_ENV}' environment"
+  #
+  # test-runner:
+  #   needs: [ build, test-env ]
+  #   runs-on: ubuntu-latest
+  #
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #       with:
+  #         persist-credentials: false
+  #
+  #     - name: Get the helm chart versions for the test env
+  #       run: |
+  #         curl -H 'Authorization: token ${{ secrets.BROADBOT_TOKEN }}' \
+  #           -H 'Accept: application/vnd.github.v3.raw' \
+  #           -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/versions/app/dev.yaml \
+  #           --create-dirs -o "integration/src/main/resources/rendered/dev.yaml"
+  #         curl -H 'Authorization: token ${{ secrets.BROADBOT_TOKEN }}' \
+  #           -H 'Accept: application/vnd.github.v3.raw' \
+  #           -L https://api.github.com/repos/broadinstitute/terra-helmfile/contents/environments/live/${TEST_ENV}.yaml \
+  #           --create-dirs -o "integration/src/main/resources/rendered/${TEST_ENV}.yaml"
+  #       env:
+  #         TEST_ENV: ${{ needs.test-env.outputs.test-env }}
+  #
+  #     - name: Set up JDK
+  #       uses: actions/setup-java@v3
+  #       with:
+  #         java-version: '17'
+  #         distribution: 'temurin'
+  #         cache: 'gradle'
+  #
+  #     - name: Render GitHub Secrets
+  #       run: |
+  #         echo "${{ secrets.DEV_FIRECLOUD_ACCOUNT_B64 }}" | base64 -d > "integration/src/main/resources/rendered/user-delegated-sa.json"
+  #         echo "${{ secrets.PERF_TESTRUNNER_ACCOUNT_B64 }}" | base64 -d > "integration/src/main/resources/rendered/testrunner-perf.json"
+  #
+  #     - name: Run integration test suite
+  #       run: |
+  #         ./gradlew --build-cache runTest --args="suites/${TEST_ENV}/FullIntegration.json build/reports"
+  #       env:
+  #         TEST_ENV: ${{ needs.test-env.outputs.test-env }}
+  #
+  #     - name: Upload Test Reports for QA
+  #       if: always()
+  #       run: |
+  #         ./gradlew --build-cache uploadResults --args="CompressDirectoryToTerraKernelK8S.json build/reports"
+  #
+  #     - name: Upload Test Reports for GitHub
+  #       if: always()
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: Test Reports
+  #         path: integration/build/reports
+  #         retention-days: 7
+  #
+  # notify-de-slack:
+  #   needs: [ build, test-env, test-runner ]
+  #   runs-on: ubuntu-latest
+  #   if: failure()
+  #
+  #   steps:
+  #     - name: "Notify Slack channel on failure"
+  #       uses: broadinstitute/action-slack@v3.15.0
+  #       env:
+  #         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+  #         STATUS: failure
+  #       with:
+  #         channel: ${{ vars.SLACK_NOTIFICATION_CHANNELS }}
+  #         status: ${{ env.STATUS }}
+  #         fields: job,ref
+  #         text: >
+  #           ${{ format('Catalog test *{0}* in *{1}* {2}',
+  #           env.STATUS, needs.test-env.outputs.test-env,
+  #           env.STATUS == 'success' && ':check_green:' || ':sadpanda:') }}
+  #         username: 'Data Explorer Tests'
+  #
+  # notify-qa-slack:
+  #   needs: [ build, test-env, test-runner ]
+  #   runs-on: ubuntu-latest
+  #   if: always() && needs.test-env.outputs.test-env != 'dev'
+  #
+  #   steps:
+  #     - name: "Always notify #dsde-qa Slack"
+  #       uses: broadinstitute/action-slack@v3.15.0
+  #       env:
+  #         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+  #         STATUS: >-
+  #           ${{ needs.build.result == 'success'
+  #           && needs.test-runner.result == 'success'
+  #           && 'success' || 'failure' }}
+  #       with:
+  #         channel: '#dsde-qa'
+  #         status: ${{ env.STATUS }}
+  #         fields: job,ref
+  #         text: >
+  #           ${{ format('Catalog test *{0}* in *{1}* {2}',
+  #           env.STATUS, needs.test-env.outputs.test-env,
+  #           env.STATUS == 'success' && ':check_green:' || ':sadpanda:') }}
+  #         username: 'Data Explorer Tests'
