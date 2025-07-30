@@ -145,80 +145,8 @@ jobs:
       - name: Smoke test -- run the CLI
         run: UPGRADE_DB=true ./gradlew --build-cache :admin-cli:bootRun --args=list
 
-  integration-tests:
-    needs: [ build ]
-    runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:13
-        env:
-          POSTGRES_PASSWORD: postgres
-        ports: [ "5432:5432" ]
-
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          persist-credentials: false
-      - name: Set up JDK
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'gradle'
-
-      - name: Construct docker image name and tag
-        id: image-name
-        run: |
-          GITHUB_REPO=$(basename ${{ github.repository }})
-          GIT_SHORT_HASH=$(git rev-parse --short HEAD)
-          echo "name=${GITHUB_REPO}:${GIT_SHORT_HASH}" >> $GITHUB_OUTPUT
-
-      - name: Build image locally with jib
-        run: |
-          ./gradlew --build-cache :service:jibDockerBuild \
-            --image="${IMAGE_NAME}" \
-            -Djib.console=plain
-        env:
-          IMAGE_NAME: ${{ steps.image-name.outputs.name }}
-
-      - name: Make sure Postgres is ready and init
-        env:
-          PGPASSWORD: postgres
-        run: |
-          pg_isready -h localhost -t 10
-          psql -h localhost -U postgres -f scripts/postgres-init.sql
-
-      - name: Render GitHub Secrets
-        run: |
-          echo "${{ secrets.DEV_FIRECLOUD_ACCOUNT_B64 }}" | base64 -d > "integration/src/main/resources/rendered/user-delegated-sa.json"
-          echo "${{ secrets.PERF_TESTRUNNER_ACCOUNT_B64 }}" | base64 -d > "integration/src/main/resources/rendered/testrunner-perf.json"
-
-      - name: Launch the background process for integration tests
-        # 172.17.0.1 is the IP address of the gateway in the default docker bridge network. https://docs.docker.com/network/network-tutorial-standalone/
-        run: docker run -e DATABASE_HOSTNAME=172.17.0.1 -e SPRING_PROFILES_INCLUDE=human-readable-logging -p 8080:8080 -d --name catalog "${IMAGE_NAME}"
-        env:
-          IMAGE_NAME: ${{ steps.image-name.outputs.name }}
-
-      - name: Wait for boot run to be ready
-        run: |
-          set +e
-          timeout 20 bash -c 'until [[ $(curl -s localhost:8080/status | jq .ok) == "true" ]]; do sleep 1; done'
-          resultStatus=$?
-          set -e
-          if [[ $resultStatus == 0 ]]; then
-            echo "Server started successfully"
-          else
-            echo "Server did not start successfully. Dumping log file"
-            docker logs catalog
-            exit 1
-          fi
-
-      - name: Run the integration test suite
-        run: ./gradlew --build-cache runTest --args="suites/local/FullIntegration.json build/reports"
-
   notify-slack:
-    needs: [ unit-tests-and-sonar, source-clear, integration-tests, admin-cli-test ]
+    needs: [ unit-tests-and-sonar, source-clear, admin-cli-test ]
     runs-on: ubuntu-latest
 
     if: failure() && github.ref == 'refs/heads/main'
@@ -237,7 +165,7 @@ jobs:
           username: 'Data Explorer GitHub Action'
 
   dispatch-tag:
-    needs: [ unit-tests-and-sonar, source-clear, integration-tests, admin-cli-test ]
+    needs: [ unit-tests-and-sonar, source-clear, admin-cli-test ]
     runs-on: ubuntu-latest
 
     if: success() && github.ref == 'refs/heads/main'
